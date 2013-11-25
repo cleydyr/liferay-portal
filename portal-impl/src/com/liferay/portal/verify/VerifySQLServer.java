@@ -111,7 +111,7 @@ public class VerifySQLServer extends VerifyProcess {
 
 			StringBundler sb = new StringBundler(7);
 
-			sb.append("select count(*) from information_schema.columns ");
+			sb.append("select count(*) from INFORMATION_SCHEMA.COLUMNS ");
 			sb.append("where table_name = '");
 			sb.append(tableName);
 			sb.append("' and column_name = '");
