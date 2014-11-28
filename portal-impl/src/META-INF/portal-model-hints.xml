@@ -87,7 +87,9 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
-		<field name="name" type="String" />
+		<field name="name" type="String">
+			<hint name="max-length">255</hint>
+		</field>
 		<field name="servletContextNames" type="String">
 			<hint name="max-length">255</hint>
 		</field>
@@ -1409,6 +1411,8 @@
 		<field name="trackbacks" type="String">
 			<hint-collection name="CLOB" />
 		</field>
+		<field name="coverImageFileEntryId" type="long" />
+		<field name="coverImageURL" type="String" />
 		<field name="smallImage" type="boolean" />
 		<field name="smallImageFileEntryId" type="long" />
 		<field name="smallImageId" type="long" />
@@ -1643,7 +1647,7 @@
 		<field name="lastPostDate" type="Date" />
 		<field name="defaultFileEntryTypeId" type="long" />
 		<field name="hidden" type="boolean" />
-		<field name="overrideFileEntryTypes" type="boolean" />
+		<field name="restrictionType" type="int" />
 		<field name="status" type="int" />
 		<field name="statusByUserId" type="long" />
 		<field name="statusByUserName" type="String" />
@@ -1967,13 +1971,9 @@
 		<field name="description" type="String">
 			<hint-collection name="TEXTAREA" />
 		</field>
-		<field name="structureId" type="String">
-			<hint name="auto-escape">false</hint>
-		</field>
-		<field name="templateId" type="String">
-			<hint name="auto-escape">false</hint>
-		</field>
-		<field name="rendererTemplateId" type="String" />
+		<field name="DDMStructureKey" type="String" />
+		<field name="DDMTemplateKey" type="String" />
+		<field name="DDMRendererTemplateKey" type="String" />
 		<field name="delta" type="int">
 			<hint name="display-width">50</hint>
 		</field>

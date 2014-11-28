@@ -379,6 +379,21 @@ public class SyncFileService {
 		}
 	}
 
+	public static List<SyncFile> findSyncFilesByRepositoryId(
+		long repositoryId, long syncAccountId) {
+
+		try {
+			return _syncFilePersistence.findByR_S(repositoryId, syncAccountId);
+		}
+		catch (SQLException sqle) {
+			if (_logger.isDebugEnabled()) {
+				_logger.debug(sqle.getMessage(), sqle);
+			}
+
+			return Collections.emptyList();
+		}
+	}
+
 	public static SyncFilePersistence getSyncFilePersistence() {
 		if (_syncFilePersistence != null) {
 			return _syncFilePersistence;
@@ -403,6 +418,19 @@ public class SyncFileService {
 	public static long getSyncFilesCount(int uiEvent) {
 		try {
 			return _syncFilePersistence.countByUIEvent(uiEvent);
+		}
+		catch (SQLException sqle) {
+			if (_logger.isDebugEnabled()) {
+				_logger.debug(sqle.getMessage(), sqle);
+			}
+
+			return 0;
+		}
+	}
+
+	public static long getSyncFilesCount(long syncAccountId, int uiEvent) {
+		try {
+			return _syncFilePersistence.countByS_U(syncAccountId, uiEvent);
 		}
 		catch (SQLException sqle) {
 			if (_logger.isDebugEnabled()) {

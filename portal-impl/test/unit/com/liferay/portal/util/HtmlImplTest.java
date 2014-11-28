@@ -77,6 +77,16 @@ public class HtmlImplTest {
 	}
 
 	@Test
+	public void testEscapeJSLink() {
+		Assert.assertEquals(
+			"javascript%3aalert('hello');",
+			_htmlImpl.escapeJSLink("javascript:alert('hello');"));
+		Assert.assertEquals(
+			"http://localhost:8080",
+			_htmlImpl.escapeJSLink("http://localhost:8080"));
+	}
+
+	@Test
 	public void testEscapeNoTrimmingPerformed() {
 		assertUnchangedEscape("  no trimming performed ");
 	}
@@ -283,6 +293,11 @@ public class HtmlImplTest {
 	@Test
 	public void testUnescapeHtmlEncodingAmpersandInBetween() {
 		Assert.assertEquals("You & Me", _htmlImpl.unescape("You &amp; Me"));
+	}
+
+	@Test
+	public void testUnescapeHtmlEncodingRightSingleQuote() {
+		Assert.assertEquals("\u2019", _htmlImpl.unescape("&rsquo;"));
 	}
 
 	protected void assertUnchangedEscape(String input) {

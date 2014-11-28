@@ -4,6 +4,10 @@
 	<set-up>
 		<execute macro="User#firstLoginPG" />
 
+		<execute macro="Portlet#shutdownServer" />
+
+		<execute macro="Portlet#startServer" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Sites" />
 		</execute>
@@ -277,7 +281,6 @@
 		<execute macro="ContentTargetingCampaign#addTrackingActionPageCP">
 			<var name="pageAlias" value="Page Alias" />
 			<var name="pageFriendlyURL" value="/test-page-name" />
-			<var name="pageTrackingActionSelect" value="View" />
 		</execute>
 
 		<execute macro="ContentTargetingCampaign#saveCP" />

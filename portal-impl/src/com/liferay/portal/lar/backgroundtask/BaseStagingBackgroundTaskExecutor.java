@@ -19,19 +19,29 @@ import com.liferay.portal.kernel.backgroundtask.BackgroundTaskResult;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
 import com.liferay.portal.kernel.backgroundtask.BaseBackgroundTaskExecutor;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.lar.MissingReference;
 import com.liferay.portal.kernel.lar.MissingReferences;
 import com.liferay.portal.kernel.staging.StagingUtil;
+import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.BackgroundTask;
+import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.service.BackgroundTaskLocalServiceUtil;
+import com.liferay.portal.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextThreadLocal;
+import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.spring.transaction.TransactionAttributeBuilder;
 
 import java.io.Serializable;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.transaction.interceptor.TransactionAttribute;
 
 /**
  * @author Mate Thurzo
@@ -60,6 +70,30 @@ public abstract class BaseStagingBackgroundTaskExecutor
 				backgroundTask.getBackgroundTaskId());
 
 		backgroundTaskStatus.clearAttributes();
+	}
+
+	protected void initThreadLocals(long groupId, boolean privateLayout)
+		throws PortalException {
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.popServiceContext();
+
+		if (serviceContext == null) {
+			serviceContext = new ServiceContext();
+		}
+
+		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+			groupId, privateLayout);
+
+		serviceContext.setCompanyId(layoutSet.getCompanyId());
+		serviceContext.setSignedIn(false);
+
+		long defaultUserId = UserLocalServiceUtil.getDefaultUserId(
+			layoutSet.getCompanyId());
+
+		serviceContext.setUserId(defaultUserId);
+
+		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 	}
 
 	protected void markBackgroundTask(
@@ -112,5 +146,9 @@ public abstract class BaseStagingBackgroundTaskExecutor
 
 		return backgroundTaskResult;
 	}
+
+	protected TransactionAttribute transactionAttribute =
+		TransactionAttributeBuilder.build(
+			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
 }

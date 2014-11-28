@@ -68,6 +68,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -1550,8 +1551,14 @@ public class HookHotDeployListener
 				servletContextName, dlFileEntryProcessorContainer);
 
 			for (String dlProcessorClassName : dlProcessorClassNames) {
-				DLProcessor dlProcessor = (DLProcessor)newInstance(
-					portletClassLoader, DLProcessor.class,
+				DLProcessor dlProcessor =
+					(DLProcessor)InstanceFactory.newInstance(
+						portletClassLoader, dlProcessorClassName);
+
+				dlProcessor = (DLProcessor)newInstance(
+					portletClassLoader,
+					ReflectionUtil.getInterfaces(
+						dlProcessor, portletClassLoader),
 					dlProcessorClassName);
 
 				dlFileEntryProcessorContainer.registerDLProcessor(dlProcessor);
@@ -1912,7 +1919,16 @@ public class HookHotDeployListener
 				serviceImplClass.getConstructor(
 					new Class<?>[] {serviceTypeClass});
 
-			Object serviceProxy = PortalBeanLocatorUtil.locate(serviceType);
+			Object serviceProxy = null;
+
+			try {
+				serviceProxy = PortalBeanLocatorUtil.locate(serviceType);
+			}
+			catch (BeanLocatorException ble) {
+				Registry registry = RegistryUtil.getRegistry();
+
+				serviceProxy = registry.getService(serviceTypeClass);
+			}
 
 			if (ProxyUtil.isProxyClass(serviceProxy.getClass())) {
 				initServices(

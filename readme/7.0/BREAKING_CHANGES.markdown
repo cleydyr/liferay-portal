@@ -20,7 +20,7 @@ feature or API will be dropped in an upcoming version.
 replaces an old API, in spite of the old API being kept in Liferay Portal for
 backwards compatibility.
 
-*This document has been reviewed through commit `67853c0`.*
+*This document has been reviewed through commit `6e26e7c`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -577,35 +577,92 @@ Portal by means of an OSGi container.
 
 ---------------------------------------
 
-### Replacement of the field type from the Journal Article API into a Vocabulary
+### Migration of the Field *Type* from the Journal Article API into a Vocabulary
 - **Date:** 2014-Oct-13
 - **JIRA Ticket:** LPS-50764
 
 #### What changed?
 
-The field "type" from the entity Journal Article has been removed. The Journal 
-API doesn't support this parameter anymore. A new vocabulary is created when
-migrating from previous versions of Liferay called "Web Content Types" and the
-types from the existing articles are kept as a categories of this vocabulary.
+The field *type* from the Journal Article entity has been removed. The Journal
+API no longer supports this parameter. A new vocabulary called *Web Content
+Types* is created when migrating from previous versions of Liferay, and the
+types from the existing articles are kept as categories of this vocabulary.
 
 #### Who is affected?
 
-Any call the the API JournalArticle.getType(), JournalFeed.getType(), 
-ArticleTypeException, to the JournalArticleService or the JournalFeedService
-using the type parameter.
+This affects any caller of the removed methods `JournalArticle.getType()` and
+`JournalFeed.getType()`, and callers of `ArticleTypeException`'s methods, that
+attempt to use the former `type` parameter of the `JournalArticle` or
+`JournalFeed` service.
 
 #### How should I update my code?
 
-If your logic was not affected by the type, you can simply remove this parameter
-from the call the Journal API. If your logic was affected by this type, you 
-should now use the AssetCategoryService to obtain the category of the journal
+If your logic was not affected by the type, you can simply remove the `type`
+parameter from the Journal API call. If your logic was affected by the type, you
+should now use the `AssetCategoryService` to obtain the category of the journal
 articles.
 
 #### Why was this change made?
 
-Web Content Types had to be updated in a properties file and could not be 
-translated easily. Categories provide a much more flexible behaviour and a
-better UI. In addition, all the features developed for categories can be used
-now, such as filters in asset publisher or faceted search.
+Web Content Types had to be updated in a properties file and could not be
+translated easily. Categories provide a much more flexible behavior and a better
+UI. In addition, all the features, such as filters, developed for categories can
+be used now in asset publishers and faceted search.
+
+---------------------------------------
+
+### Removed the *Header Web Content* and *Footer Web Content* Preferences from the RSS Portlet
+- **Date:** 2014-Nov-12
+- **JIRA Ticket:** LPS-46984
+
+#### What changed?
+
+The *Header Web Content* and *Footer Web Content* preferences from the RSS
+portlet were removed. The portlet now supports Application Display Templates
+(ADT), which provide templating capabilities that cover the need to support
+these configuration preferences.
+
+#### Who is affected?
+
+This affects RSS portlets displayed on pages using these preferences. The
+preferences will no longer be used in the RSS portlet.
+
+#### How should I update my code?
+
+Even though these preferences were removed, an ADT can be created to obtain the
+same result. Liferay will publish this ADT so that it can be used in the RSS
+portlet.
+
+#### Why was this change made?
+
+The support for ADTs in the RSS portlet not only covers this use case, but many
+others, providing a much simpler way to create custom preferences.
+
+---------------------------------------
+
+### Method getClassNamePortletId(String) in PortalUtil has been removed
+- **Date:** 2014-Nov-11
+- **JIRA Ticket:** LPS-50604
+
+#### What changed?
+
+The method getClassNamePortletId(String) from the class PortalUtil has
+been removed. 
+
+#### Who is affected?
+
+This will affect any plugin using the method.
+
+#### How should I update my code?
+
+If you are using that method, you should implement it yourself in a
+private utility class. The code is fairly simple so you shoul not have
+any problems with it.
+
+#### Why was this change made?
+
+This change was needed in order to modularize the portal and it has been 
+decided not to provide this method any more because it is not being used 
+anywhere inside the portal.
 
 ---------------------------------------

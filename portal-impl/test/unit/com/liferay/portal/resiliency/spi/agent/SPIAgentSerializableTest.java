@@ -26,9 +26,11 @@ import com.liferay.portal.kernel.resiliency.spi.agent.annotation.Direction;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.DistributedRegistry;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.MatchType;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.NewEnv;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.KeyValuePair;
@@ -41,7 +43,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.impl.PortletImpl;
 import com.liferay.portal.test.AdviseWith;
-import com.liferay.portal.test.runners.AspectJMockingNewClassLoaderJUnitTestRunner;
+import com.liferay.portal.test.AspectJNewEnvTestRule;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -68,8 +70,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
@@ -77,12 +79,13 @@ import org.springframework.mock.web.MockHttpSession;
 /**
  * @author Shuyang Zhou
  */
-@RunWith(AspectJMockingNewClassLoaderJUnitTestRunner.class)
 public class SPIAgentSerializableTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
 
 	@Before
 	public void setUp() {
@@ -126,14 +129,12 @@ public class SPIAgentSerializableTest {
 
 		mockHttpServletRequest.setAttribute(nondistributed, nondistributed);
 
-		CaptureHandler captureHandler = null;
+		CaptureHandler captureHandler = JDKLoggerTestUtil.configureJDKLogger(
+			SPIAgentSerializable.class.getName(), Level.OFF);
 
 		try {
 
 			// Without log
-
-			captureHandler = JDKLoggerTestUtil.configureJDKLogger(
-				SPIAgentSerializable.class.getName(), Level.OFF);
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
@@ -199,9 +200,7 @@ public class SPIAgentSerializableTest {
 				distributedRequestAttributes.get(distributedSerializable));
 		}
 		finally {
-			if (captureHandler != null) {
-				captureHandler.close();
-			}
+			captureHandler.close();
 		}
 	}
 
@@ -263,14 +262,12 @@ public class SPIAgentSerializableTest {
 
 	@Test
 	public void testExtractSessionAttributes() {
-		CaptureHandler captureHandler = null;
+		CaptureHandler captureHandler = JDKLoggerTestUtil.configureJDKLogger(
+			SPIAgentSerializable.class.getName(), Level.OFF);
 
 		try {
 
 			// Without log, no portlet session
-
-			captureHandler = JDKLoggerTestUtil.configureJDKLogger(
-				SPIAgentSerializable.class.getName(), Level.OFF);
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
@@ -473,15 +470,14 @@ public class SPIAgentSerializableTest {
 				portletSessionAttributes.get(serializeableAttribute));
 		}
 		finally {
-			if (captureHandler != null) {
-				captureHandler.close();
-			}
+			captureHandler.close();
 		}
 	}
 
 	@AdviseWith(
 		adviceClasses = {DeserializerAdvice.class, PropsUtilAdvice.class}
 	)
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testSerialization() throws IOException {
 

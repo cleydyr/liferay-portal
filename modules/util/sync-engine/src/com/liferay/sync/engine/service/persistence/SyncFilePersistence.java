@@ -37,6 +37,22 @@ public class SyncFilePersistence extends BasePersistenceImpl<SyncFile, Long> {
 		super(SyncFile.class);
 	}
 
+	public long countByS_U(long syncAccountId, int uiEvent)
+		throws SQLException {
+
+		QueryBuilder<SyncFile, Long> queryBuilder = queryBuilder();
+
+		Where<SyncFile, Long> where = queryBuilder.where();
+
+		where.eq("syncAccountId", syncAccountId);
+
+		where.and();
+
+		where.eq("uiEvent", uiEvent);
+
+		return where.countOf();
+	}
+
 	public long countByUIEvent(int uiEvent) throws SQLException {
 		QueryBuilder<SyncFile, Long> queryBuilder = queryBuilder();
 
@@ -131,6 +147,17 @@ public class SyncFilePersistence extends BasePersistenceImpl<SyncFile, Long> {
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
 		fieldValues.put("parentFolderId", parentFolderId);
+		fieldValues.put("syncAccountId", syncAccountId);
+
+		return queryForFieldValues(fieldValues);
+	}
+
+	public List<SyncFile> findByR_S(long repositoryId, long syncAccountId)
+		throws SQLException {
+
+		Map<String, Object> fieldValues = new HashMap<String, Object>();
+
+		fieldValues.put("repositoryId", repositoryId);
 		fieldValues.put("syncAccountId", syncAccountId);
 
 		return queryForFieldValues(fieldValues);

@@ -21,21 +21,6 @@ String tabs2 = ParamUtil.getString(request, "tabs2");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
-// Make sure the redirect is correct. This is a workaround for a layout that
-// has both the Journal and Journal Content portlets and the user edits an
-// article through the Journal Content portlet and then hits cancel.
-
-/*if (redirect.indexOf("p_p_id=" + PortletKeys.JOURNAL_CONTENT) != -1) {
-	if (layoutTypePortlet.hasPortletId(PortletKeys.JOURNAL)) {
-		PortletURL portletURL = renderResponse.createRenderURL();
-
-		portletURL.setPortletMode(PortletMode.VIEW);
-		portletURL.setWindowState(WindowState.NORMAL);
-
-		redirect = portletURL.toString();
-	}
-}*/
-
 String backURL = ParamUtil.getString(request, "backURL");
 
 String portletResource = ParamUtil.getString(request, "portletResource");
@@ -55,7 +40,11 @@ String articleId = BeanParamUtil.getString(article, request, "articleId");
 
 double version = BeanParamUtil.getDouble(article, request, "version", JournalArticleConstants.VERSION_DEFAULT);
 
-String ddmStructureKey = BeanParamUtil.getString(article, request, "ddmStructureKey");
+String ddmStructureKey = ParamUtil.getString(request, "ddmStructureKey");
+
+if (Validator.isNull(ddmStructureKey) && (article != null)) {
+	ddmStructureKey = article.getDDMStructureKey();
+}
 
 DDMStructure ddmStructure = null;
 
@@ -68,7 +57,11 @@ else if (Validator.isNotNull(ddmStructureKey)) {
 	ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(JournalArticle.class), ddmStructureKey, true);
 }
 
-String ddmTemplateKey = BeanParamUtil.getString(article, request, "ddmTemplateKey");
+String ddmTemplateKey = ParamUtil.getString(request, "ddmTemplateKey");
+
+if (Validator.isNull(ddmTemplateKey) && (article != null)) {
+	ddmTemplateKey = article.getDDMTemplateKey();
+}
 
 DDMTemplate ddmTemplate = null;
 
@@ -164,6 +157,7 @@ request.setAttribute("edit_article.jsp-defaultLanguageId", defaultLanguageId);
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_SAVE_DRAFT) %>" />
 
 		<liferay-ui:error exception="<%= ArticleContentSizeException.class %>" message="you-have-exceeded-the-maximum-web-content-size-allowed" />
+		<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="a-file-with-that-name-already-exists" />
 
 		<liferay-ui:error exception="<%= FileSizeException.class %>">
 
@@ -244,7 +238,7 @@ request.setAttribute("edit_article.jsp-defaultLanguageId", defaultLanguageId);
 						<%
 						boolean hasSavePermission = false;
 
-						if (article != null) {
+						if ((article != null) && !article.isNew()) {
 							hasSavePermission = JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE);
 						}
 						else {

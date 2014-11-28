@@ -63,8 +63,7 @@
 							'dd-drop',
 							'dd-proxy',
 							'liferay-history-manager',
-							'liferay-portlet-base',
-							'liferay-util-list-fields'
+							'liferay-portlet-base'
 						]
 					},
 					'liferay-app-view-move-touch': {
@@ -78,8 +77,7 @@
 						requires: [
 							'liferay-app-view-move',
 							'liferay-history-manager',
-							'liferay-portlet-base',
-							'liferay-util-list-fields'
+							'liferay-portlet-base'
 						]
 					},
 					'liferay-asset-categories-selector': {
@@ -188,6 +186,22 @@
 						path: 'browser_selectors.js',
 						requires: ['yui-base']
 					},
+					'liferay-cover-cropper': {
+						path: 'cover_cropper.js',
+						requires: [
+							'aui-base',
+							'dd-constrain',
+							'dd-drag',
+							'liferay-crop-region',
+							'plugin'
+						]
+					},
+					'liferay-crop-region': {
+						path: 'crop_region.js',
+						requires: [
+							'aui-base'
+						]
+					},
 					'liferay-ddm-form': {
 						path: 'ddm_form.js',
 						requires: [
@@ -195,6 +209,7 @@
 							'aui-datatype',
 							'aui-io-request',
 							'aui-parse-content',
+							'liferay-map-base',
 							'liferay-translation-manager'
 						]
 					},
@@ -521,6 +536,7 @@
 						requires: [
 							'aui-image-cropper',
 							'aui-io-request',
+							'liferay-crop-region',
 							'liferay-portlet-base',
 							'liferay-storage-formatter'
 						]
@@ -539,6 +555,26 @@
 							'aui-io-request',
 							'aui-modal',
 							'aui-tabview'
+						]
+					},
+					'liferay-map-base': {
+						path: 'map_base.js',
+						requires: [
+							'aui-base'
+						]
+					},
+					'liferay-map-google': {
+						path: 'map_google.js',
+						requires: [
+							'liferay-map-base'
+						]
+					},
+					'liferay-map-openstreet': {
+						path: 'map_openstreet.js',
+						requires: [
+							'jsonp',
+							'liferay-map-base',
+							'timers'
 						]
 					},
 					'liferay-menu': {
@@ -838,12 +874,6 @@
 							'liferay-portlet-base',
 							'liferay-storage-formatter',
 							'uploader'
-						]
-					},
-					'liferay-util-list-fields': {
-						path: 'util_list_fields.js',
-						requires: [
-							'aui-base'
 						]
 					},
 					'liferay-util-window': {

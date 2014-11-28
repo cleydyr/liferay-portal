@@ -338,11 +338,39 @@ public class VerifyProperties extends VerifyProcess {
 			"com.liferay.bookmarks.service"
 		},
 
+		// Journal
+
+		new String[] {
+			"journal.content.publish.to.live.by.default",
+			"publish.to.live.by.default", "com.liferay.journal.content.web"
+		},
+
 		// Polls
 
 		new String[] {
 			"polls.publish.to.live.by.default", "publish.to.live.by.default",
 			"com.liferay.polls.service"
+		},
+
+		// XSL content
+
+		new String[] {
+			"xsl.content.xml.doctype.declaration.allowed",
+			"xml.doctype.declaration.allowed", "com.liferay.xsl.content.web"
+		},
+		new String[] {
+			"xsl.content.xml.external.general.entities.allowed",
+			"xml.external.general.entities.allowed",
+			"com.liferay.xsl.content.web"
+		},
+		new String[] {
+			"xsl.content.xml.external.parameter.entities.allowed",
+			"xml.external.parameter.entities.allowed",
+			"com.liferay.xsl.content.web"
+		},
+		new String[] {
+			"xsl.content.xsl.secure.processing.enabled",
+			"xsl.secure.processing.enabled", "com.liferay.xsl.content.web"
 		}
 	};
 
@@ -384,6 +412,7 @@ public class VerifyProperties extends VerifyProcess {
 		"invitation.email.message.subject", "javax.persistence.validation.mode",
 		"jbi.workflow.url", "json.deserializer.strict.mode",
 		"journal.article.form.translate", "journal.article.types",
+		"journal.articles.page.delta.values",
 		"journal.template.language.parser[css]",
 		"journal.template.language.parser[ftl]",
 		"journal.template.language.parser[vm]",
@@ -410,7 +439,8 @@ public class VerifyProperties extends VerifyProcess {
 		"portal.security.manager.enable", "permissions.list.filter",
 		"permissions.thread.local.cache.max.size",
 		"permissions.user.check.algorithm", "persistence.provider",
-		"scheduler.classes", "schema.run.minimal", "shard.available.names",
+		"ratings.max.score", "ratings.min.score", "scheduler.classes",
+		"schema.run.minimal", "shard.available.names",
 		"velocity.engine.resource.manager",
 		"velocity.engine.resource.manager.cache.enabled",
 		"webdav.storage.class", "webdav.storage.show.edit.url",

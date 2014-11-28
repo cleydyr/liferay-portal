@@ -21,6 +21,8 @@ import com.liferay.portal.fabric.netty.repository.NettyRepository;
 import com.liferay.portal.fabric.repository.Repository;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -46,7 +48,7 @@ public class NettyFabricAgentRegistrationChannelHandler
 	public NettyFabricAgentRegistrationChannelHandler(
 		FabricAgentRegistry fabricAgentRegistry, Path repositoryParentPath,
 		EventExecutorGroup eventExecutorGroup, long getFileTimeout,
-		long rpcRelayTimeout) {
+		long rpcRelayTimeout, long startupTimeout) {
 
 		if (fabricAgentRegistry == null) {
 			throw new NullPointerException("Fabric agent registry is null");
@@ -65,6 +67,30 @@ public class NettyFabricAgentRegistrationChannelHandler
 		_eventExecutorGroup = eventExecutorGroup;
 		_getFileTimeout = getFileTimeout;
 		_rpcRelayTimeout = rpcRelayTimeout;
+		_startupTimeout = startupTimeout;
+	}
+
+	@Override
+	public void exceptionCaught(
+		ChannelHandlerContext channelHandlerContext, Throwable throwable) {
+
+		final Channel channel = channelHandlerContext.channel();
+
+		_log.error("Closing " + channel + " due to:", throwable);
+
+		ChannelFuture channelFuture = channel.close();
+
+		channelFuture.addListener(
+			new ChannelFutureListener() {
+
+				@Override
+				public void operationComplete(ChannelFuture channelFuture) {
+					if (_log.isInfoEnabled()) {
+						_log.info(channel + " is closed");
+					}
+				}
+
+			});
 	}
 
 	@Override
@@ -73,24 +99,30 @@ public class NettyFabricAgentRegistrationChannelHandler
 			NettyFabricAgentConfig nettyFabricAgentConfig)
 		throws IOException {
 
-		final Channel channel = channelHandlerContext.channel();
+		Channel channel = channelHandlerContext.channel();
 
 		SocketAddress socketAddress = channel.localAddress();
 
 		Path repositoryPath = Paths.get(
-			_repositoryParentPath.toString(), socketAddress.toString());
+			_repositoryParentPath.toString(),
+			StringUtil.replace(
+				socketAddress.toString(), CharPool.COLON, CharPool.DASH));
 
 		Files.createDirectories(repositoryPath);
 
-		final Repository repository = new NettyRepository(
+		Repository repository = new NettyRepository(
 			repositoryPath, channel, _eventExecutorGroup, _getFileTimeout);
 
-		final NettyFabricAgentStub nettyFabricAgentStub =
+		NettyFabricAgentStub nettyFabricAgentStub =
 			new NettyFabricAgentStub(
 				channel, repository, nettyFabricAgentConfig.getRepositoryPath(),
-				_rpcRelayTimeout);
+				_rpcRelayTimeout, _startupTimeout);
 
-		if (!_fabricAgentRegistry.registerFabricAgent(nettyFabricAgentStub)) {
+		if (!_fabricAgentRegistry.registerFabricAgent(
+				nettyFabricAgentStub,
+				new OnRegistration(
+					channel, nettyFabricAgentStub, repository))) {
+
 			if (_log.isWarnEnabled()) {
 				_log.warn("Rejected duplicated fabric agent on " + channel);
 			}
@@ -101,34 +133,69 @@ public class NettyFabricAgentRegistrationChannelHandler
 		if (_log.isInfoEnabled()) {
 			_log.info("Registered fabric agent on " + channel);
 		}
+	}
 
-		NettyChannelAttributes.setNettyFabricAgentStub(
-			channel, nettyFabricAgentStub);
+	protected class OnRegistration implements Runnable {
 
-		ChannelFuture channelFuture = channel.closeFuture();
+		public OnRegistration(
+			Channel channel, NettyFabricAgentStub nettyFabricAgentStub,
+			Repository repository) {
 
-		channelFuture.addListener(
-			new ChannelFutureListener() {
+			_channel = channel;
+			_nettyFabricAgentStub = nettyFabricAgentStub;
+			_repository = repository;
+		}
 
-				@Override
-				public void operationComplete(ChannelFuture channelFuture) {
-					if (_fabricAgentRegistry.unregisterFabricAgent(
-							nettyFabricAgentStub)) {
+		@Override
+		public void run() {
+			NettyChannelAttributes.setNettyFabricAgentStub(
+				_channel, _nettyFabricAgentStub);
 
-						if (_log.isInfoEnabled()) {
-							_log.info(
-								"Unregistered fabric agent on " + channel);
-						}
-					}
-					else if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Unable to unregister fabric agent on " + channel);
-					}
+			ChannelFuture channelFuture = _channel.closeFuture();
 
-					repository.dispose(true);
+			channelFuture.addListener(
+				new PostDisconnectChannelFutureListener(
+					_channel, _nettyFabricAgentStub, _repository));
+		}
+
+		private final Channel _channel;
+		private final NettyFabricAgentStub _nettyFabricAgentStub;
+		private final Repository _repository;
+
+	}
+
+	protected class PostDisconnectChannelFutureListener
+		implements ChannelFutureListener {
+
+		public PostDisconnectChannelFutureListener(
+			Channel channel, NettyFabricAgentStub nettyFabricAgentStub,
+			Repository repository) {
+
+			_channel = channel;
+			_nettyFabricAgentStub = nettyFabricAgentStub;
+			_repository = repository;
+		}
+
+		@Override
+		public void operationComplete(ChannelFuture channelFuture) {
+			if (_fabricAgentRegistry.unregisterFabricAgent(
+					_nettyFabricAgentStub, null)) {
+
+				if (_log.isInfoEnabled()) {
+					_log.info("Unregistered fabric agent on " + _channel);
 				}
+			}
+			else if (_log.isWarnEnabled()) {
+				_log.warn("Unable to unregister fabric agent on " + _channel);
+			}
 
-			});
+			_repository.dispose(true);
+		}
+
+		private final Channel _channel;
+		private final NettyFabricAgentStub _nettyFabricAgentStub;
+		private final Repository _repository;
+
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -139,5 +206,6 @@ public class NettyFabricAgentRegistrationChannelHandler
 	private final long _getFileTimeout;
 	private final Path _repositoryParentPath;
 	private final long _rpcRelayTimeout;
+	private final long _startupTimeout;
 
 }

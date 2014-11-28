@@ -38,9 +38,22 @@ public class AsyncBroker<K, V> {
 			_defaultNoticeableFutures);
 	}
 
-	public NoticeableFuture<V> post(final K key) {
+	public NoticeableFuture<V> post(K key) {
 		DefaultNoticeableFuture<V> defaultNoticeableFuture =
 			new DefaultNoticeableFuture<V>();
+
+		NoticeableFuture<V> previousNoticeableFuture = post(
+			key, defaultNoticeableFuture);
+
+		if (previousNoticeableFuture == null) {
+			return defaultNoticeableFuture;
+		}
+
+		return previousNoticeableFuture;
+	}
+
+	public NoticeableFuture<V> post(
+		final K key, final DefaultNoticeableFuture<V> defaultNoticeableFuture) {
 
 		DefaultNoticeableFuture<V> previousDefaultNoticeableFuture =
 			_defaultNoticeableFutures.putIfAbsent(key, defaultNoticeableFuture);
@@ -54,7 +67,8 @@ public class AsyncBroker<K, V> {
 
 				@Override
 				public void complete(Future<V> future) {
-					_defaultNoticeableFutures.remove(key);
+					_defaultNoticeableFutures.remove(
+						key, defaultNoticeableFuture);
 				}
 
 			});
@@ -65,7 +79,7 @@ public class AsyncBroker<K, V> {
 				FinalizeManager.PHANTOM_REFERENCE_FACTORY);
 		}
 
-		return defaultNoticeableFuture;
+		return null;
 	}
 
 	public NoticeableFuture<V> take(K key) {

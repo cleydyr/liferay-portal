@@ -20,8 +20,12 @@ import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.process.local.LocalProcessLauncher;
 import com.liferay.portal.kernel.resiliency.spi.MockSPI;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
+import com.liferay.portal.kernel.test.AggregateTestRule;
+import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
-import com.liferay.portal.kernel.test.NewClassLoaderJUnitTestRunner;
+import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.NewEnv;
+import com.liferay.portal.kernel.test.NewEnvTestRule;
 import com.liferay.portal.kernel.upload.FileItem;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.CookieUtil;
@@ -56,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.Cookie;
@@ -63,11 +68,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
@@ -75,12 +81,13 @@ import org.springframework.mock.web.MockHttpSession;
 /**
  * @author Shuyang Zhou
  */
-@RunWith(NewClassLoaderJUnitTestRunner.class)
 public class SPIAgentRequestTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, NewEnvTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -206,6 +213,14 @@ public class SPIAgentRequestTest {
 			_SESSION_ATTRIBUTE_NAME_2, _SESSION_ATTRIBUTE_VALUE_2);
 		session.setAttribute(
 			_SESSION_ATTRIBUTE_NAME_3, _SESSION_ATTRIBUTE_VALUE_3);
+
+		_captureHandler = JDKLoggerTestUtil.configureJDKLogger(
+			SPIAgentSerializable.class.getName(), Level.OFF);
+	}
+
+	@After
+	public void tearDown() {
+		_captureHandler.close();
 	}
 
 	@Test
@@ -729,6 +744,7 @@ public class SPIAgentRequestTest {
 		Assert.assertFalse(enumeration.hasMoreElements());
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPopulatePortletSessionAttributes2() {
 
@@ -776,6 +792,7 @@ public class SPIAgentRequestTest {
 		Assert.assertFalse(enumeration.hasMoreElements());
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPopulatePortletSessionAttributes3() {
 
@@ -819,6 +836,7 @@ public class SPIAgentRequestTest {
 		Assert.assertFalse(enumeration.hasMoreElements());
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPopulatePortletSessionAttributes4() throws IOException {
 
@@ -870,6 +888,7 @@ public class SPIAgentRequestTest {
 		Assert.assertFalse(enumeration.hasMoreElements());
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPopulatePortletSessionAttributes5() throws IOException {
 
@@ -1060,6 +1079,7 @@ public class SPIAgentRequestTest {
 	private static final ThreadLocal<String> _threadLocal =
 		new ThreadLocal<String>();
 
+	private CaptureHandler _captureHandler;
 	private MockHttpServletRequest _mockHttpServletRequest;
 
 }

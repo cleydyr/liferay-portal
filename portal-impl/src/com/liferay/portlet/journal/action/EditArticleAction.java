@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -48,6 +49,7 @@ import com.liferay.portlet.PortletURLImpl;
 import com.liferay.portlet.asset.AssetCategoryException;
 import com.liferay.portlet.asset.AssetTagException;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
+import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.dynamicdatamapping.NoSuchStructureException;
 import com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException;
@@ -193,27 +195,15 @@ public class EditArticleAction extends PortletAction {
 			if (cmd.equals(Constants.DELETE) &&
 				!ActionUtil.hasArticle(actionRequest)) {
 
-				String referringPortletResource = ParamUtil.getString(
-					actionRequest, "referringPortletResource");
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)actionRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
 
-				if (Validator.isNotNull(referringPortletResource)) {
-					setForward(
-						actionRequest,
-						"portlet.journal.asset.add_asset_redirect");
+				PortletURL portletURL = PortletURLFactoryUtil.create(
+					actionRequest, portletConfig.getPortletName(),
+					themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
-					return;
-				}
-				else {
-					ThemeDisplay themeDisplay =
-						(ThemeDisplay)actionRequest.getAttribute(
-							WebKeys.THEME_DISPLAY);
-
-					PortletURL portletURL = PortletURLFactoryUtil.create(
-						actionRequest, portletConfig.getPortletName(),
-						themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
-
-					redirect = portletURL.toString();
-				}
+				redirect = portletURL.toString();
 			}
 
 			if ((article != null) &&
@@ -275,6 +265,7 @@ public class EditArticleAction extends PortletAction {
 					 e instanceof ArticleTitleException ||
 					 e instanceof ArticleVersionException ||
 					 e instanceof DuplicateArticleIdException ||
+					 e instanceof DuplicateFileException ||
 					 e instanceof FileSizeException ||
 					 e instanceof LiferayFileItemException ||
 					 e instanceof StorageFieldRequiredException) {
@@ -480,15 +471,10 @@ public class EditArticleAction extends PortletAction {
 			uploadPortletRequest, "autoArticleId");
 		double version = ParamUtil.getDouble(uploadPortletRequest, "version");
 
-		String defaultLanguageId = ParamUtil.getString(
-			uploadPortletRequest, "defaultLanguageId");
-
-		Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
-
-		String title = ParamUtil.getString(
-			uploadPortletRequest, "title_" + defaultLanguageId);
-		String description = ParamUtil.getString(
-			uploadPortletRequest, "description_" + defaultLanguageId);
+		Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
+			actionRequest, "title");
+		Map<Locale, String> descriptionMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "description");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			JournalArticle.class.getName(), uploadPortletRequest);
@@ -501,10 +487,11 @@ public class EditArticleAction extends PortletAction {
 			PortalUtil.getClassNameId(JournalArticle.class), ddmStructureKey,
 			true);
 
-		String languageId = defaultLanguageId;
+		String defaultLanguageId = ParamUtil.getString(
+			uploadPortletRequest, "defaultLanguageId");
 
 		Object[] contentAndImages = ActionUtil.getContentAndImages(
-			ddmStructure, LocaleUtil.fromLanguageId(languageId),
+			ddmStructure, LocaleUtil.fromLanguageId(defaultLanguageId),
 			serviceContext);
 
 		String content = (String)contentAndImages[0];
@@ -605,13 +592,6 @@ public class EditArticleAction extends PortletAction {
 		String oldUrlTitle = StringPool.BLANK;
 
 		if (cmd.equals(Constants.ADD)) {
-			Map<Locale, String> titleMap = new HashMap<Locale, String>();
-
-			titleMap.put(defaultLocale, title);
-
-			Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
-
-			descriptionMap.put(defaultLocale, description);
 
 			// Add article
 
@@ -638,15 +618,9 @@ public class EditArticleAction extends PortletAction {
 			article = JournalArticleServiceUtil.getArticle(
 				groupId, articleId, version);
 
-			Map<Locale, String> titleMap = article.getTitleMap();
-			Map<Locale, String> descriptionMap = article.getDescriptionMap();
-
 			String tempOldUrlTitle = article.getUrlTitle();
 
 			if (cmd.equals(Constants.PREVIEW) || cmd.equals(Constants.UPDATE)) {
-				titleMap.put(defaultLocale, title);
-				descriptionMap.put(defaultLocale, description);
-
 				article = JournalArticleServiceUtil.updateArticle(
 					groupId, folderId, articleId, version, titleMap,
 					descriptionMap, content, ddmStructureKey, ddmTemplateKey,

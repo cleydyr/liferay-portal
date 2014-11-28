@@ -38,7 +38,6 @@ import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.SystemEnv;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xuggler.XugglerUtil;
 import com.liferay.portal.log.Log4jLogFactoryImpl;
@@ -166,16 +165,8 @@ public class VideoProcessorImpl
 
 	@Override
 	public boolean isSupported(String mimeType) {
-		if (Validator.isNull(mimeType)) {
-			return false;
-		}
-
-		try {
-			if (XugglerUtil.isEnabled()) {
-				return _videoMimeTypes.contains(mimeType);
-			}
-		}
-		catch (Exception e) {
+		if (_videoMimeTypes.contains(mimeType) && XugglerUtil.isEnabled()) {
+			return true;
 		}
 
 		return false;
@@ -457,9 +448,7 @@ public class VideoProcessorImpl
 
 				try {
 					_generateVideoXuggler(
-						destinationFileVersion, file, previewTempFiles,
-						PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_HEIGHT,
-						PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_WIDTH);
+						destinationFileVersion, file, previewTempFiles);
 				}
 				catch (Exception e) {
 					_log.error(e, e);
@@ -553,8 +542,7 @@ public class VideoProcessorImpl
 	}
 
 	private void _generateVideoXuggler(
-		FileVersion fileVersion, File sourceFile, File[] destinationFiles,
-		int height, int width) {
+		FileVersion fileVersion, File sourceFile, File[] destinationFiles) {
 
 		try {
 			for (int i = 0; i < destinationFiles.length; i++) {
@@ -631,6 +619,8 @@ public class VideoProcessorImpl
 
 		@Override
 		public String call() throws ProcessException {
+			XugglerAutoInstallHelper.installNativeLibraries();
+
 			Properties systemProperties = System.getProperties();
 
 			SystemEnv.setProperties(systemProperties);
@@ -699,6 +689,8 @@ public class VideoProcessorImpl
 
 		@Override
 		public String call() throws ProcessException {
+			XugglerAutoInstallHelper.installNativeLibraries();
+
 			Class<?> clazz = getClass();
 
 			ClassLoader classLoader = clazz.getClassLoader();

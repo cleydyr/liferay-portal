@@ -1484,6 +1484,8 @@
 		<property name="allowPingbacks" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
 		<property name="allowTrackbacks" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
 		<property name="trackbacks" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="coverImageFileEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="coverImageURL" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="smallImage" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
 		<property name="smallImageFileEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property name="smallImageId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
@@ -1705,7 +1707,7 @@
 		<property name="lastPostDate" type="org.hibernate.type.TimestampType" />
 		<property name="defaultFileEntryTypeId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property name="hidden" type="com.liferay.portal.dao.orm.hibernate.BooleanType" column="hidden_" />
-		<property name="overrideFileEntryTypes" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="restrictionType" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 		<property name="status" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 		<property name="statusByUserId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property name="statusByUserName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
@@ -2011,9 +2013,9 @@
 		<property name="feedId" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="description" type="com.liferay.portal.dao.orm.hibernate.StringType" />
-		<property name="structureId" type="com.liferay.portal.dao.orm.hibernate.StringType" />
-		<property name="templateId" type="com.liferay.portal.dao.orm.hibernate.StringType" />
-		<property name="rendererTemplateId" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="DDMStructureKey" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="DDMTemplateKey" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="DDMRendererTemplateKey" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="delta" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 		<property name="orderByCol" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="orderByType" type="com.liferay.portal.dao.orm.hibernate.StringType" />

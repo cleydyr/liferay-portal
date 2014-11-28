@@ -15,15 +15,17 @@
 package com.liferay.portal.kernel.concurrent;
 
 import com.liferay.portal.kernel.memory.FinalizeManager;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.GCUtil;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.NewEnv;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.AdviseWith;
+import com.liferay.portal.test.AspectJNewEnvTestRule;
 import com.liferay.portal.test.aspects.ReflectionUtilAdvice;
-import com.liferay.portal.test.runners.AspectJMockingNewClassLoaderJUnitTestRunner;
 
 import java.lang.reflect.Field;
 
@@ -36,18 +38,19 @@ import java.util.logging.LogRecord;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-@RunWith(AspectJMockingNewClassLoaderJUnitTestRunner.class)
 public class AsyncBrokerTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
 
 	@After
 	public void tearDown() {
@@ -81,6 +84,7 @@ public class AsyncBrokerTest {
 		Assert.assertTrue(map.isEmpty());
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testOrphanCancellationAlreadyDone()
 		throws InterruptedException {
@@ -102,6 +106,7 @@ public class AsyncBrokerTest {
 			FinalizeManager.class, "_pollingCleanup", new Class<?>[0]);
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testOrphanCancellationNotDoneYet() throws InterruptedException {
 
@@ -164,6 +169,7 @@ public class AsyncBrokerTest {
 		}
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testOrphanCancellationNotSupported() throws Exception {
 		System.setProperty(_THREAD_ENABLED_KEY, StringPool.FALSE);
@@ -209,6 +215,7 @@ public class AsyncBrokerTest {
 	}
 
 	@AdviseWith(adviceClasses = ReflectionUtilAdvice.class)
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPhantomReferenceResurrectionNotSupported()
 		throws ClassNotFoundException {
@@ -267,11 +274,36 @@ public class AsyncBrokerTest {
 	}
 
 	@AdviseWith(adviceClasses = ReflectionUtilAdvice.class)
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testPostPhantomReferenceResurrectionNotSupported()
 		throws Exception {
 
-		testPost();
+		CaptureHandler captureHandler = JDKLoggerTestUtil.configureJDKLogger(
+			AsyncBroker.class.getName(), Level.WARNING);
+
+		try {
+			testPost();
+
+			List<LogRecord> logRecords = captureHandler.getLogRecords();
+
+			Assert.assertEquals(1, logRecords.size());
+
+			LogRecord logRecord = logRecords.get(0);
+
+			Assert.assertEquals(
+				"Cancellation of orphaned noticeable futures is disabled " +
+					"because the JVM does not support phantom reference " +
+						"resurrection",
+				logRecord.getMessage());
+
+			Throwable throwable = logRecord.getThrown();
+
+			Assert.assertSame(Throwable.class, throwable.getClass());
+		}
+		finally {
+			captureHandler.close();
+		}
 	}
 
 	@Test
@@ -293,6 +325,7 @@ public class AsyncBrokerTest {
 		Assert.assertSame(noticeableFuture, asyncBroker.take(_KEY));
 		Assert.assertTrue(defaultNoticeableFutures.isEmpty());
 		Assert.assertNull(asyncBroker.take(_KEY));
+		Assert.assertTrue(noticeableFuture.cancel(true));
 	}
 
 	@Test

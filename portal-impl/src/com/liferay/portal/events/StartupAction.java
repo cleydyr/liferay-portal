@@ -15,9 +15,11 @@
 package com.liferay.portal.events;
 
 import com.liferay.portal.cache.bootstrap.ClusterLinkBootstrapLoaderHelperUtil;
+import com.liferay.portal.fabric.server.FabricServerUtil;
 import com.liferay.portal.jericho.CachedLoggerProvider;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
+import com.liferay.portal.kernel.cluster.ClusterLinkUtil;
 import com.liferay.portal.kernel.cluster.ClusterMasterExecutorUtil;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.events.SimpleAction;
@@ -47,6 +49,7 @@ import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.service.BackgroundTaskLocalServiceUtil;
 import com.liferay.portal.service.LockLocalServiceUtil;
 import com.liferay.portal.tools.DBUpgrader;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.messageboards.util.MBMessageIndexer;
 import com.liferay.taglib.servlet.JspFactorySwapper;
@@ -114,6 +117,12 @@ public class StartupAction extends SimpleAction {
 		intraband.registerDatagramReceiveHandler(
 			SystemDataType.RPC.getValue(), new RPCDatagramReceiveHandler());
 
+		// Portal fabric
+
+		if (PropsValues.PORTAL_FABRIC_ENABLED) {
+			FabricServerUtil.start();
+		}
+
 		// Shutdown hook
 
 		if (_log.isDebugEnabled()) {
@@ -178,6 +187,10 @@ public class StartupAction extends SimpleAction {
 			DoPrivilegedUtil.wrap(messageBus),
 			DoPrivilegedUtil.wrap(messageSender),
 			DoPrivilegedUtil.wrap(synchronousMessageSender));
+
+		// Cluster link
+
+		ClusterLinkUtil.initialize();
 
 		// Cluster executor
 

@@ -14,7 +14,6 @@
 
 package com.liferay.sync.engine.service;
 
-import com.liferay.sync.engine.documentlibrary.event.GetSyncContextEvent;
 import com.liferay.sync.engine.model.ModelListener;
 import com.liferay.sync.engine.model.SyncAccount;
 import com.liferay.sync.engine.model.SyncAccountModelListener;
@@ -26,25 +25,22 @@ import com.liferay.sync.engine.util.Encryptor;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.OSDetector;
 
-import java.io.File;
 import java.io.IOException;
 
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import java.sql.SQLException;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,15 +142,17 @@ public class SyncAccountService {
 
 			// Sync account
 
+			SyncAccount syncAccount = fetchSyncAccount(syncAccountId);
+
 			_syncAccountPersistence.deleteById(syncAccountId);
 
 			// Sync files
 
-			List<SyncFile> syncFiles = SyncFileService.findSyncFiles(
-				syncAccountId);
-
-			for (SyncFile syncFile : syncFiles) {
-				SyncFileService.deleteSyncFile(syncFile, false);
+			try {
+				deleteSyncFiles(syncAccount);
+			}
+			catch (IOException ioe) {
+				_logger.error(ioe.getMessage(), ioe);
 			}
 
 			// Sync sites
@@ -171,6 +169,10 @@ public class SyncAccountService {
 			SyncUser syncUser = SyncUserService.fetchSyncUser(syncAccountId);
 
 			SyncUserService.deleteSyncUser(syncUser.getSyncUserId());
+
+			// Sync watch events
+
+			SyncWatchEventService.deleteSyncWatchEvents(syncAccountId);
 		}
 		catch (SQLException sqle) {
 			if (_logger.isDebugEnabled()) {
@@ -302,23 +304,6 @@ public class SyncAccountService {
 		return syncAccount;
 	}
 
-	public static SyncAccount synchronizeSyncAccount(
-		long syncAccountId, boolean checkState, long delay) {
-
-		Map<String, Object> parameters = new HashMap<String, Object>();
-
-		parameters.put("checkState", checkState);
-		parameters.put("uuid", null);
-
-		GetSyncContextEvent getSyncContextEvent = new GetSyncContextEvent(
-			syncAccountId, parameters);
-
-		_scheduledExecutorService.schedule(
-			getSyncContextEvent, delay, TimeUnit.MILLISECONDS);
-
-		return SyncAccountService.fetchSyncAccount(syncAccountId);
-	}
-
 	public static void unregisterModelListener(
 		ModelListener<SyncAccount> modelListener) {
 
@@ -341,53 +326,91 @@ public class SyncAccountService {
 	}
 
 	public static void updateSyncAccountSyncFile(
-		Path filePath, long syncAccountId, boolean moveFile) {
-
-		if (moveFile && Files.exists(filePath)) {
-			File file = filePath.toFile();
-
-			String[] files = file.list();
-
-			if (files.length > 0) {
-				return;
-			}
-		}
+			Path filePath, long syncAccountId, boolean moveFile)
+		throws Exception {
 
 		SyncAccount syncAccount = SyncAccountService.fetchSyncAccount(
 			syncAccountId);
+
+		if (!moveFile) {
+			SyncFile syncFile = SyncFileService.fetchSyncFile(
+				syncAccount.getFilePathName());
+
+			String sourceFileKey = syncFile.getFileKey();
+
+			String targetFileKey = FileUtil.getFileKey(filePath);
+
+			if (!sourceFileKey.equals(targetFileKey)) {
+				throw new Exception(
+					"Target folder is not the moved sync data folder");
+			}
+		}
 
 		syncAccount.setActive(false);
 
 		SyncAccountService.update(syncAccount);
 
-		try {
-			if (moveFile) {
-				Files.createDirectories(filePath);
+		if (moveFile) {
+			Files.createDirectories(filePath);
 
-				Files.move(
-					Paths.get(syncAccount.getFilePathName()), filePath,
-					StandardCopyOption.REPLACE_EXISTING);
-			}
-
-			syncAccount = setFilePathName(syncAccountId, filePath.toString());
-
-			syncAccount.setActive(true);
-
-			SyncAccountService.update(syncAccount);
+			Files.move(
+				Paths.get(syncAccount.getFilePathName()), filePath,
+				StandardCopyOption.REPLACE_EXISTING);
 		}
-		catch (IOException ioe) {
-			if (_logger.isDebugEnabled()) {
-				_logger.debug(ioe.getMessage(), ioe);
-			}
+
+		syncAccount = setFilePathName(syncAccountId, filePath.toString());
+
+		syncAccount.setActive(true);
+		syncAccount.setUiEvent(SyncAccount.UI_EVENT_DEFAULT);
+
+		SyncAccountService.update(syncAccount);
+	}
+
+	protected static void deleteSyncFiles(SyncAccount syncAccount)
+		throws IOException {
+
+		SyncFile syncFile = SyncFileService.fetchSyncFile(
+			syncAccount.getFilePathName());
+
+		SyncFileService.deleteSyncFile(syncFile, false);
+
+		Path filePath = Paths.get(syncAccount.getFilePathName());
+
+		if (!Files.exists(filePath)) {
+			return;
 		}
+
+		Files.walkFileTree(
+			filePath,
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult postVisitDirectory(
+						Path filePath, IOException ioe)
+					throws IOException {
+
+					Files.deleteIfExists(filePath);
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(
+						Path filePath, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					Files.deleteIfExists(filePath);
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
 	}
 
 	private static final Logger _logger = LoggerFactory.getLogger(
 		SyncAccountService.class);
 
 	private static Set<Long> _activeSyncAccountIds;
-	private static final ScheduledExecutorService _scheduledExecutorService =
-		Executors.newScheduledThreadPool(5);
 	private static SyncAccountPersistence _syncAccountPersistence =
 		getSyncAccountPersistence();
 

@@ -1,4 +1,6 @@
 alter table BlogsEntry add subtitle STRING null;
+alter table BlogsEntry add coverImageFileEntryId LONG;
+alter table BlogsEntry add coverImageURL STRING null;
 alter table BlogsEntry add smallImageFileEntryId LONG;
 
 alter table DDMStructure add version VARCHAR(75) null;
@@ -20,6 +22,12 @@ create table DDMStructureVersion (
 	storageType VARCHAR(75) null,
 	type_ INTEGER
 );
+
+alter table DLFolder add restrictionType INTEGER;
+
+update DLFolder set restrictionType = 1 where overrideFileEntryTypes = 1;
+
+alter table DLFolder drop column overrideFileEntryTypes;
 
 create table ExportImportConfiguration (
 	mvccVersion LONG default 0,

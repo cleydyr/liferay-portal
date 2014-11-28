@@ -608,10 +608,10 @@ public class JournalArticleLocalServiceWrapper
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -620,11 +620,11 @@ public class JournalArticleLocalServiceWrapper
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -1863,6 +1863,13 @@ public class JournalArticleLocalServiceWrapper
 		return _journalArticleLocalService.getJournalArticles(start, end);
 	}
 
+	/**
+	* Returns all the journal articles matching the UUID and company.
+	*
+	* @param uuid the UUID of the journal articles
+	* @param companyId the primary key of the company
+	* @return the matching journal articles, or an empty list if no matches were found
+	*/
 	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getJournalArticlesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId) {
@@ -1870,6 +1877,16 @@ public class JournalArticleLocalServiceWrapper
 			companyId);
 	}
 
+	/**
+	* Returns a range of journal articles matching the UUID and company.
+	*
+	* @param uuid the UUID of the journal articles
+	* @param companyId the primary key of the company
+	* @param start the lower bound of the range of journal articles
+	* @param end the upper bound of the range of journal articles (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the range of matching journal articles, or an empty list if no matches were found
+	*/
 	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getJournalArticlesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId, int start, int end,
@@ -2071,6 +2088,16 @@ public class JournalArticleLocalServiceWrapper
 		int status) throws com.liferay.portal.kernel.exception.PortalException {
 		return _journalArticleLocalService.getLatestVersion(groupId, articleId,
 			status);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getNoAssetArticles() {
+		return _journalArticleLocalService.getNoAssetArticles();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getNoPermissionArticles() {
+		return _journalArticleLocalService.getNoPermissionArticles();
 	}
 
 	/**
@@ -2600,8 +2627,8 @@ public class JournalArticleLocalServiceWrapper
 
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link #search(long, long, List,
-	long, String, String, String, String, int, String,
-	String, LinkedHashMap, boolean, int, int, Sort)}
+	long, String, String, String, String, int, String, String,
+	LinkedHashMap, boolean, int, int, Sort)}
 	*/
 	@Deprecated
 	@Override
@@ -2626,9 +2653,9 @@ public class JournalArticleLocalServiceWrapper
 	* article ID, title, description, and content, a DDM structure key
 	* parameter, a DDM template key parameter, and an AND operator switch. It
 	* is preferable to use the indexed version {@link #search(long, long, List,
-	* long, String, String, String, String, int, String, String,
-	* LinkedHashMap, boolean, int, int, Sort)} instead of this method wherever
-	* possible for performance reasons.
+	* long, String, String, String, String, int, String, String, LinkedHashMap,
+	* boolean, int, int, Sort)} instead of this method wherever possible for
+	* performance reasons.
 	*
 	* <p>
 	* Useful when paginating results. Returns a maximum of <code>end -
@@ -3892,16 +3919,18 @@ public class JournalArticleLocalServiceWrapper
 	* DDM template key, replacing the DDM template key with a new one.
 	*
 	* @param groupId the primary key of the web content article's group
-	* @param classNameId the primary key of the DDMStructure class if the web
-	content article is related to a DDM structure, the primary key of
-	the class name associated with the article, or {@link
-	JournalArticleConstants#CLASSNAME_ID_DEFAULT} otherwise
-	* @param oldDDMTemplateKey the primary key of the web content article's old
-	DDM template
-	* @param newDDMTemplateKey the primary key of the web content article's new
-	DDM template
+	* @param classNameId the primary key of the DDMStructure class if the
+	web content article is related to a DDM structure, the
+	primary key of the class name associated with the article, or
+	{@link JournalArticleConstants#CLASSNAME_ID_DEFAULT}
+	otherwise
+	* @param oldDDMTemplateKey the primary key of the web content
+	article's old DDM template
+	* @param newDDMTemplateKey the primary key of the web content
+	article's new DDM template
 	* @deprecated As of 7.0.0, replaced by {@link #updateDDMTemplateKey}
 	*/
+	@Deprecated
 	@Override
 	public void updateTemplateId(long groupId, long classNameId,
 		java.lang.String oldDDMTemplateKey, java.lang.String newDDMTemplateKey) {

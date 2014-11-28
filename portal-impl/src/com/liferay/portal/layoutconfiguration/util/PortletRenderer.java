@@ -41,8 +41,8 @@ public class PortletRenderer {
 		Integer columnPos) {
 
 		_portlet = portlet;
-		_columnCount = columnCount;
 		_columnId = columnId;
+		_columnCount = columnCount;
 		_columnPos = columnPos;
 	}
 
@@ -197,6 +197,7 @@ public class PortletRenderer {
 
 		private final HttpServletRequest _request;
 		private final HttpServletResponse _response;
+
 	}
 
 }

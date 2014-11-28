@@ -157,7 +157,7 @@
 		<execute action="PGCreateAccount#type" locator-key1="CREATE_ACCOUNT_SCREEN_NAME" value1="${userScreenName}" />
 		<execute action="PGCreateAccount#type" locator-key1="CREATE_ACCOUNT_EMAIL_ADDRESS" value1="${userEmailAddress}" />
 		<execute action="PGCreateAccount#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
-		<execute action="PGCreateAccount#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Thank you for creating an account. Your email verification code has been sent to liferay.qa1@gmail.com. Your password has been sent to liferay.qa1@gmail.com." />
+		<execute action="PGCreateAccount#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Thank you for creating an account. Your email verification code has been sent to ${userEmailAddress}. Your password has been sent to ${userEmailAddress}." />
 	</command>
 
 	<command name="addInstantMessengerViaMyAccount">
@@ -1200,12 +1200,32 @@
 		<execute action="CPUsersandorganizationsViewusers#assertClick" locator-key1="USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 		<execute action="CPUsersandorganizationsUser#assertClick" locator-key1="MENU_MISCELLANEOUS_DISPLAY_SETTINGS" value1="Display Settings" />
-		<execute action="CPUsersandorganizationsUser#select" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time" />
+
+		<if>
+			<condition action="CPUsersandorganizationsUser#isTextNotEqual" locator-key1="DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />
+			<then>
+				<execute action="CPUsersandorganizationsUser#select" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -08:00) Pacific Standard Time" />
+			</then>
+			<else>
+				<execute action="CPUsersandorganizationsUser#select" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time" />
+			</else>
+		</if>
+
 		<execute action="CPUsersandorganizationsUser#type" locator-key1="DISPLAY_SETTINGS_GREETING_FIELD" value1="${displaySettingsGreeting}" />
 
 		<execute action="CPUsersandorganizationsUser#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 		<execute action="CPUsersandorganizationsUser#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
-		<execute action="CPUsersandorganizationsUser#assertSelectedLabel" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time" />
+
+		<if>
+			<condition action="CPUsersandorganizationsUser#isTextNotEqual" locator-key1="DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />
+			<then>
+				<execute action="CPUsersandorganizationsUser#assertSelectedLabel" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -08:00) Pacific Standard Time" />
+			</then>
+			<else>
+				<execute action="CPUsersandorganizationsUser#assertSelectedLabel" locator-key1="DISPLAY_SETTINGS_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time" />
+			</else>
+		</if>
+
 		<execute action="CPUsersandorganizationsUser#assertTextEquals" locator-key1="DISPLAY_SETTINGS_GREETING_FIELD" value1="${displaySettingsGreeting}" />
 	</command>
 
@@ -1288,7 +1308,7 @@
 		<execute action="CPUsersandorganizationsUser#selectFrame" locator-key1="SITES_SELECT_IFRAME" />
 
 		<execute action="CPUsersandorganizationsUser#type" locator-key1="SITES_SELECT_SEARCH_FIELD" value1="${siteName}" />
-		<execute action="CPUsersandorganizationsUser#keyPress" locator-key1="SITES_SELECT_SEARCH_FIELD" value1="\\13" />
+		<execute action="CPUsersandorganizationsUser#keyPress" locator-key1="SITES_SELECT_SEARCH_FIELD" value1="\RETURN" />
 		<execute action="CPUsersandorganizationsUser#assertTextEquals" locator-key1="SITES_SELECT_TABLE_NAME" value1="${siteName}" />
 		<execute action="CPUsersandorganizationsUser#assertClick" locator-key1="SITES_SELECT_CHOOSE_BUTTON" value1="Choose" />
 
