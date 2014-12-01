@@ -14,11 +14,12 @@
 
 package com.liferay.portal.kernel.bean;
 
+import java.util.Locale;
+
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import javax.portlet.PortletRequest;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -98,12 +99,28 @@ public class BeanParamUtil {
 	}
 
 	public static double getDouble(
+			Object bean, HttpServletRequest request, String param,
+			Locale locale) {
+
+			return getDouble(bean, request, param, GetterUtil.DEFAULT_DOUBLE, locale);
+	}
+
+	public static double getDouble(
 		Object bean, HttpServletRequest request, String param,
 		double defaultValue) {
 
 		defaultValue = BeanPropertiesUtil.getDouble(bean, param, defaultValue);
 
 		return ParamUtil.get(request, param, defaultValue);
+	}
+
+	public static double getDouble(
+		Object bean, HttpServletRequest request, String param,
+		double defaultValue, Locale locale) {
+
+		defaultValue = BeanPropertiesUtil.getDouble(bean, param, defaultValue);
+
+		return ParamUtil.getDouble(request, param, defaultValue, locale);
 	}
 
 	public static double getDouble(
@@ -115,6 +132,14 @@ public class BeanParamUtil {
 
 	public static double getDouble(
 		Object bean, PortletRequest portletRequest, String param,
+		Locale locale) {
+
+		return getDouble(
+			bean, portletRequest, param, GetterUtil.DEFAULT_DOUBLE, locale);
+	}
+
+	public static double getDouble(
+		Object bean, PortletRequest portletRequest, String param,
 		double defaultValue) {
 
 		defaultValue = BeanPropertiesUtil.getDouble(bean, param, defaultValue);
@@ -122,10 +147,26 @@ public class BeanParamUtil {
 		return ParamUtil.get(portletRequest, param, defaultValue);
 	}
 
+	public static double getDouble(
+		Object bean, PortletRequest portletRequest, String param,
+		double defaultValue, Locale locale) {
+
+		defaultValue = BeanPropertiesUtil.getDouble(bean, param, defaultValue);
+
+		return ParamUtil.getDouble(portletRequest, param, defaultValue, locale);
+	}
+
 	public static double getDoubleSilent(
 		Object bean, HttpServletRequest request, String param) {
 
 		return getDoubleSilent(bean, request, param, GetterUtil.DEFAULT_DOUBLE);
+	}
+
+	public static double getDoubleSilent(
+		Object bean, HttpServletRequest request, String param, Locale locale) {
+
+		return getDoubleSilent(bean, request, param, GetterUtil.DEFAULT_DOUBLE,
+				locale);
 	}
 
 	public static double getDoubleSilent(
@@ -139,10 +180,30 @@ public class BeanParamUtil {
 	}
 
 	public static double getDoubleSilent(
+		Object bean, HttpServletRequest request, String param,
+		double defaultValue, Locale locale) {
+
+		defaultValue = BeanPropertiesUtil.getDoubleSilent(
+			bean, param, defaultValue);
+
+		return ParamUtil.getDouble(request, param, defaultValue,
+				locale);
+	}
+
+	public static double getDoubleSilent(
 		Object bean, PortletRequest portletRequest, String param) {
 
 		return getDoubleSilent(
 			bean, portletRequest, param, GetterUtil.DEFAULT_DOUBLE);
+	}
+
+	public static double getDoubleSilent(
+		Object bean, PortletRequest portletRequest, String param,
+		Locale locale) {
+
+		return getDoubleSilent(
+			bean, portletRequest, param, GetterUtil.DEFAULT_DOUBLE,
+			locale);
 	}
 
 	public static double getDoubleSilent(
@@ -153,6 +214,17 @@ public class BeanParamUtil {
 			bean, param, defaultValue);
 
 		return ParamUtil.get(portletRequest, param, defaultValue);
+	}
+
+	public static double getDoubleSilent(
+		Object bean, PortletRequest portletRequest, String param,
+		double defaultValue, Locale locale) {
+
+		defaultValue = BeanPropertiesUtil.getDoubleSilent(
+			bean, param, defaultValue);
+
+		return ParamUtil.getDouble(portletRequest, param, defaultValue,
+				locale);
 	}
 
 	public static int getInteger(
