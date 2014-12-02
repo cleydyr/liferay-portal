@@ -4,8 +4,8 @@ import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
 
+import org.springframework.mock.web.MockHttpServletRequest;
 public class ParamUtilTest {
 	@Test
 	public void testGetDouble() {
@@ -21,10 +21,13 @@ public class ParamUtilTest {
 		String paramName = "value";
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter(paramName, expectedStr);
-		double actual = ParamUtil.getDouble(request, paramName, _DEFAULT_VALUE, locale);
+		double actual = ParamUtil.getDouble(
+			request, paramName, _DEFAULT_VALUE, locale);
 		Assert.assertEquals(expected, actual, _DEFAULT_DELTA);
 	}
-	
-	private final double _DEFAULT_DELTA = 0.001;
-	private final double _DEFAULT_VALUE = -1.0;
+
+	private static final double _DEFAULT_DELTA = 0.001;
+
+	private static final double _DEFAULT_VALUE = -1.0;
+
 }

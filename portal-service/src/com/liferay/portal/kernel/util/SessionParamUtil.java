@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletSession;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -95,11 +96,6 @@ public class SessionParamUtil {
 		return getDouble(request, param, GetterUtil.DEFAULT_DOUBLE);
 	}
 
-	public static double getDouble(HttpServletRequest request, String param,
-			Locale locale) {
-		return getDouble(request, param, GetterUtil.DEFAULT_DOUBLE, locale);
-	}
-
 	public static double getDouble(
 		HttpServletRequest request, String param, double defaultValue) {
 
@@ -157,17 +153,16 @@ public class SessionParamUtil {
 		return defaultValue;
 	}
 
+	public static double getDouble(HttpServletRequest request, String param,
+			Locale locale) {
+
+		return getDouble(request, param, GetterUtil.DEFAULT_DOUBLE, locale);
+	}
+
 	public static double getDouble(
 		PortletRequest portletRequest, String param) {
 
 		return getDouble(portletRequest, param, GetterUtil.DEFAULT_DOUBLE);
-	}
-
-	public static double getDouble(
-		PortletRequest portletRequest, String param, Locale locale) {
-
-		return getDouble(portletRequest, param, GetterUtil.DEFAULT_DOUBLE,
-				locale);
 	}
 
 	public static double getDouble(
@@ -223,6 +218,13 @@ public class SessionParamUtil {
 		}
 
 		return defaultValue;
+	}
+
+	public static double getDouble(
+		PortletRequest portletRequest, String param, Locale locale) {
+
+		return getDouble(portletRequest, param, GetterUtil.DEFAULT_DOUBLE,
+			locale);
 	}
 
 	public static int getInteger(HttpServletRequest request, String param) {

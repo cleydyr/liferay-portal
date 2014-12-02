@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -75,15 +76,6 @@ public class PrefsParamUtil {
 
 	public static double getDouble(
 		PortletPreferences preferences, HttpServletRequest request,
-		String param, Locale locale) {
-
-		return getDouble(
-			preferences, request, param, GetterUtil.DEFAULT_DOUBLE,
-			locale);
-	}
-
-	public static double getDouble(
-		PortletPreferences preferences, HttpServletRequest request,
 		String param, double defaultValue) {
 
 		String preferencesValue = preferences.getValue(param, null);
@@ -103,8 +95,15 @@ public class PrefsParamUtil {
 		double getterUtilValue = GetterUtil.getDouble(
 			preferencesValue, defaultValue);
 
-		return ParamUtil.getDouble(request, param, getterUtilValue,
-				locale);
+		return ParamUtil.getDouble(request, param, getterUtilValue, locale);
+	}
+
+	public static double getDouble(
+		PortletPreferences preferences, HttpServletRequest request,
+		String param, Locale locale) {
+
+		return getDouble(
+			preferences, request, param, GetterUtil.DEFAULT_DOUBLE, locale);
 	}
 
 	public static double getDouble(
@@ -113,14 +112,6 @@ public class PrefsParamUtil {
 
 		return getDouble(
 			preferences, portletRequest, param, GetterUtil.DEFAULT_DOUBLE);
-	}
-
-	public static double getDouble(
-		PortletPreferences preferences, PortletRequest portletRequest,
-		String param, Locale locale) {
-
-		return getDouble(
-			preferences, portletRequest, param, GetterUtil.DEFAULT_DOUBLE, locale);
 	}
 
 	public static double getDouble(
@@ -144,7 +135,17 @@ public class PrefsParamUtil {
 		double getterUtilValue = GetterUtil.getDouble(
 			preferencesValue, defaultValue);
 
-		return ParamUtil.getDouble(portletRequest, param, getterUtilValue, locale);
+		return ParamUtil.getDouble(
+			portletRequest, param, getterUtilValue, locale);
+	}
+
+	public static double getDouble(
+		PortletPreferences preferences, PortletRequest portletRequest,
+		String param, Locale locale) {
+
+		return getDouble(
+			preferences, portletRequest, param, GetterUtil.DEFAULT_DOUBLE,
+			locale);
 	}
 
 	public static int getInteger(
