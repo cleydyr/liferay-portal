@@ -319,11 +319,11 @@ else {
 						<%
 						List<Layout> exportLayouts = new ArrayList<Layout>();
 
-						if (selLayout != null) {
-							exportLayouts.add(selLayout);
-						}
-						else if (!selectedLayouts.isEmpty()) {
+						if (!selectedLayouts.isEmpty()) {
 							exportLayouts = selectedLayouts;
+						}
+						else if (selLayout != null) {
+							exportLayouts.add(selLayout);
 						}
 						else {
 							exportLayouts = LayoutLocalServiceUtil.getLayouts(selGroup.getGroupId(), privateLayout);
