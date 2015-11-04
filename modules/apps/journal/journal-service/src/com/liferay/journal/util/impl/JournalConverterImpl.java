@@ -653,9 +653,9 @@ public class JournalConverterImpl implements JournalConverter {
 			type = fieldType;
 		}
 
-		dynamicElementElement.addAttribute("type", type);
-
-		dynamicElementElement.addAttribute("index-type", indexType);
+		dynamicElementElement.addAttribute(
+			"default-language-id",
+			LocaleUtil.toLanguageId(ddmFields.getDefaultLocale()));
 
 		int count = ddmFieldsCounter.get(fieldName);
 
@@ -664,6 +664,8 @@ public class JournalConverterImpl implements JournalConverter {
 		String instanceId = getFieldInstanceId(ddmFields, fieldName, count);
 
 		dynamicElementElement.addAttribute("instance-id", instanceId);
+		dynamicElementElement.addAttribute("type", type);
+		dynamicElementElement.addAttribute("index-type", indexType);
 
 		Field ddmField = ddmFields.get(fieldName);
 
