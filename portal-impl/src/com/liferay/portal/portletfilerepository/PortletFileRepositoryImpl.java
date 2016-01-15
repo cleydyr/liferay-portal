@@ -524,12 +524,10 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		ThemeDisplay themeDisplay, FileEntry fileEntry, String queryString,
 		boolean absoluteURL) {
 
-		StringBundler sb = new StringBundler(10);
+		StringBundler sb = new StringBundler(12);
 
-		if (themeDisplay != null) {
-			if (absoluteURL) {
-				sb.append(themeDisplay.getPortalURL());
-			}
+		if ((themeDisplay != null) && absoluteURL) {
+			sb.append(themeDisplay.getPortalURL());
 		}
 
 		sb.append(PortalUtil.getPathContext());
@@ -643,6 +641,28 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		FileEntry fileEntry = localRepository.getFileEntry(folderId, fileName);
 
 		return movePortletFileEntryToTrash(userId, fileEntry.getFileEntryId());
+	}
+
+	@Override
+	public Folder movePortletFolder(
+			long groupId, long userId, long folderId, long parentFolderId,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		boolean dlAppHelperEnabled = DLAppHelperThreadLocal.isEnabled();
+
+		try {
+			DLAppHelperThreadLocal.setEnabled(false);
+
+			LocalRepository localRepository =
+				RepositoryProviderUtil.getLocalRepository(groupId);
+
+			return localRepository.moveFolder(
+				userId, folderId, parentFolderId, serviceContext);
+		}
+		finally {
+			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
+		}
 	}
 
 	@Override
