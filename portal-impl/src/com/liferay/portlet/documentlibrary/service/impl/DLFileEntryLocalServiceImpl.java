@@ -1675,7 +1675,8 @@ public class DLFileEntryLocalServiceImpl
 
 		serviceContext.setCommand(Constants.REVERT);
 
-		DLFileEntry dlFileEntry = dlFileEntryLocalService.getDLFileEntry(fileEntryId);
+		DLFileEntry dlFileEntry = dlFileEntryLocalService.getFileEntry(
+			fileEntryId);
 
 		try {
 			validateFileEntryTypeId(
@@ -1684,16 +1685,9 @@ public class DLFileEntryLocalServiceImpl
 				dlFileEntry.getFolderId(), fileEntryTypeId);
 		}
 		catch (InvalidFileEntryTypeException ifete) {
-			long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
-
-			DLFolder dlFolder = dlFolderPersistence.fetchByPrimaryKey(
-				dlFileEntry.getFolderId());
-
-			if (dlFolder != null) {
-				folderId = dlFolder.getFolderId();
-			}
-
-			fileEntryTypeId = dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(folderId);
+			fileEntryTypeId =
+				dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(
+					dlFileEntry.getFolderId());
 		}
 
 		updateFileEntry(
