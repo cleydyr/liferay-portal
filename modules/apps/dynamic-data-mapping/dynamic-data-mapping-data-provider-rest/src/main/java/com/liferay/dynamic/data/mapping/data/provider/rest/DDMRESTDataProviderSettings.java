@@ -25,39 +25,76 @@ import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutRow;
  * @author Marcellus Tavares
  */
 @DDMForm
-@DDMFormLayout( {
-	@DDMFormLayoutPage( {
-		@DDMFormLayoutRow(
+@DDMFormLayout(
+	{
+		@DDMFormLayoutPage(
 			{
-				@DDMFormLayoutColumn(
-					size = 12,
-					value = {
-						"url", "username", "password", "key", "value",
-						"cacheable"
+				@DDMFormLayoutRow(
+					{
+						@DDMFormLayoutColumn(
+							size = 12,
+							value = {
+								"url", "key", "value", "username", "password",
+								"cacheable"
+							}
+						)
 					}
 				)
 			}
 		)
-	})
-})
+	}
+)
 public interface DDMRESTDataProviderSettings {
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%cache-data-on-the-first-request",
+		properties = "showAsSwitcher=true"
+	)
 	public boolean cacheable();
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%displayed-json-attribute",
+		properties = {
+			"placeholder=%enter-the-attribute-to-be-displayed",
+			"tooltip=%the-attribute-whose-value-is-displayed-to-the-end-user-for-selection"
+		},
+		required = true
+	)
 	public String key();
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%password",
+		properties = {
+			"placeholder=%enter-a-password",
+			"tooltip=%provide-the-password-for-authenticating-to-the-rest-provider"
+		}
+	)
 	public String password();
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%url",
+		properties = {"placeholder=%enter-the-rest-service-url"},
+		required = true
+	)
 	public String url();
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%user-name",
+		properties = {
+			"placeholder=%enter-a-user-name",
+			"tooltip=%provide-the-user-name-for-authenticating-to-the-rest-provider"
+		}
+	)
 	public String username();
 
-	@DDMFormField
+	@DDMFormField(
+		label = "%stored-json-attribute",
+		properties = {
+			"placeholder=%enter-the-attribute-to-be-stored",
+			"tooltip=%the-attribute-whose-value-is-stored-in-the-database-when-selected-by-a-user"
+		},
+		required = true
+	)
 	public String value();
 
 }

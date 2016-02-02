@@ -23,10 +23,10 @@ import com.liferay.portal.kernel.comment.DiscussionPermission;
 import com.liferay.portal.kernel.comment.DiscussionStagingHandler;
 import com.liferay.portal.kernel.comment.DuplicateCommentException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.Function;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
@@ -342,10 +342,10 @@ public class MBCommentManagerImpl implements CommentManager {
 		_mbThreadLocalService = mbThreadLocalService;
 	}
 
-	private volatile MBDiscussionLocalService _mbDiscussionLocalService;
-	private volatile MBMessageLocalService _mbMessageLocalService;
-	private volatile MBThreadLocalService _mbThreadLocalService;
-	private volatile RatingsEntryLocalService _ratingsEntryLocalService;
-	private volatile RatingsStatsLocalService _ratingsStatsLocalService;
+	private MBDiscussionLocalService _mbDiscussionLocalService;
+	private MBMessageLocalService _mbMessageLocalService;
+	private MBThreadLocalService _mbThreadLocalService;
+	private RatingsEntryLocalService _ratingsEntryLocalService;
+	private RatingsStatsLocalService _ratingsStatsLocalService;
 
 }

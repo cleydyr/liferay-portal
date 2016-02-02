@@ -29,15 +29,15 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationFactoryUtil;
+import com.liferay.portal.kernel.portlet.toolbar.contributor.BasePortletToolbarContributor;
 import com.liferay.portal.kernel.portlet.toolbar.contributor.PortletToolbarContributor;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.BaseModelPermissionChecker;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
@@ -60,7 +61,8 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + BookmarksPortletKeys.BOOKMARKS,
-		"mvc.render.command.name=-", "mvc.render.command.name=/bookmarks/view"
+		"mvc.render.command.name=-", "mvc.render.command.name=/bookmarks/view",
+		"mvc.render.command.name=/bookmarks/view_folder"
 	},
 	service = {
 		BookmarksPortletToolbarContributor.class,
@@ -68,24 +70,7 @@ import org.osgi.service.component.annotations.Reference;
 	}
 )
 public class BookmarksPortletToolbarContributor
-	implements PortletToolbarContributor {
-
-	@Override
-	public List<Menu> getPortletTitleMenus(PortletRequest portletRequest) {
-		List<Menu> menus = new ArrayList<>();
-
-		Menu menu = new Menu();
-
-		menu.setDirection("down");
-		menu.setExtended(false);
-		menu.setIcon("../aui/plus-sign-2");
-		menu.setMenuItems(getPortletTitleMenuItems(portletRequest));
-		menu.setShowArrow(false);
-
-		menus.add(menu);
-
-		return menus;
-	}
+	extends BasePortletToolbarContributor {
 
 	protected void addPortletTitleAddBookmarkMenuItem(
 			List<MenuItem> menuItems, BookmarksFolder folder,
@@ -179,8 +164,9 @@ public class BookmarksPortletToolbarContributor
 		return true;
 	}
 
+	@Override
 	protected List<MenuItem> getPortletTitleMenuItems(
-		PortletRequest portletRequest) {
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -286,7 +272,7 @@ public class BookmarksPortletToolbarContributor
 	private static final Log _log = LogFactoryUtil.getLog(
 		BookmarksPortletToolbarContributor.class);
 
-	private volatile BaseModelPermissionChecker _baseModelPermissionChecker;
-	private volatile BookmarksFolderService _bookmarksFolderService;
+	private BaseModelPermissionChecker _baseModelPermissionChecker;
+	private BookmarksFolderService _bookmarksFolderService;
 
 }

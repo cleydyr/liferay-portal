@@ -28,31 +28,41 @@ import com.liferay.portal.kernel.util.StringPool;
  * @author Marcellus Tavares
  */
 @DDMForm
-@DDMFormLayout( {
-	@DDMFormLayoutPage(title = "basic", value = {
-		@DDMFormLayoutRow(
-			{
-				@DDMFormLayoutColumn(
-					size = 12,
-					value = {"label", "predefinedValue", "required", "tip"}
+@DDMFormLayout(
+	{
+		@DDMFormLayoutPage(
+			title = "basic",
+			value = {
+				@DDMFormLayoutRow(
+					{
+						@DDMFormLayoutColumn(
+							size = 12,
+							value = {
+								"label", "predefinedValue", "required", "tip"
+							}
+						)
+					}
 				)
 			}
-		)
-	}),
-	@DDMFormLayoutPage(title = "advanced", value = {
-		@DDMFormLayoutRow(
-			{
-				@DDMFormLayoutColumn(
-					size = 12,
-					value = {
-						"repeatable", "showLabel", "validation",
-						"visibilityExpression"
+		),
+		@DDMFormLayoutPage(
+			title = "advanced",
+			value = {
+				@DDMFormLayoutRow(
+					{
+						@DDMFormLayoutColumn(
+							size = 12,
+							value = {
+								"repeatable", "showLabel", "validation",
+								"visibilityExpression"
+							}
+						)
 					}
 				)
 			}
 		)
-	})
-})
+	}
+)
 public interface DefaultDDMFormFieldTypeSettings
 	extends DDMFormFieldTypeSettings {
 
@@ -64,14 +74,18 @@ public interface DefaultDDMFormFieldTypeSettings
 		optionLabels = {
 			"%not-indexable", "%indexable-keyword", "%indexable-text"
 		},
-		optionValues = {StringPool.BLANK, "keyword", "text"},
-		type = "select", visibilityExpression = "false"
+		optionValues = {StringPool.BLANK, "keyword", "text"}, type = "select",
+		visibilityExpression = "false"
 	)
 	public String indexType();
 
 	@DDMFormField(
-		label = "%question", properties = {"placeholder=%type-your-question"},
-		required = true, tip = "%type-what-you-want-to-ask", type = "key-value"
+		label = "%label",
+		properties = {
+			"placeholder=%enter-a-field-label",
+			"tooltip=%enter-a-descriptive-field-label-that-guides-users-to-enter-the-information-you-want"
+		},
+		required = true, type = "key-value"
 	)
 	public LocalizedValue label();
 
@@ -79,7 +93,11 @@ public interface DefaultDDMFormFieldTypeSettings
 	public boolean localizable();
 
 	@DDMFormField(
-		label = "%predefined-value", tip = "%set-the-default-value-of-a-field",
+		label = "%predefined-value",
+		properties = {
+			"placeholder=%enter-a-default-value",
+			"tooltip=%enter-a-default-value-that-is-submitted-if-no-other-value-is-entered"
+		},
 		type = "text"
 	)
 	public LocalizedValue predefinedValue();
@@ -90,7 +108,9 @@ public interface DefaultDDMFormFieldTypeSettings
 	@DDMFormField(label = "%repeatable", properties = {"showAsSwitcher=true"})
 	public boolean repeatable();
 
-	@DDMFormField(label = "%required", properties = {"showAsSwitcher=true"})
+	@DDMFormField(
+		label = "%required-field", properties = {"showAsSwitcher=true"}
+	)
 	public boolean required();
 
 	@DDMFormField(label = "%show-label", properties = {"showAsSwitcher=true"})
@@ -99,9 +119,9 @@ public interface DefaultDDMFormFieldTypeSettings
 	@DDMFormField(
 		label = "%help-text",
 		properties = {
-			"placeholder=%add-text-to-help-users-better-understand-what-you-want"
+			"placeholder=%enter-text-to-help-users-understand",
+			"tooltip=%type-a-short-comment-to-help-users-understand-the-question"
 		},
-		tip = "%type-a-short-comment-to-help-users-understand-the-question",
 		type = "text"
 	)
 	public LocalizedValue tip();
@@ -111,7 +131,13 @@ public interface DefaultDDMFormFieldTypeSettings
 	)
 	public DDMFormFieldValidation validation();
 
-	@DDMFormField(label = "%visibility")
+	@DDMFormField(
+		label = "%field-visibility-expression",
+		properties = {
+			"placeholder=%Country.equals(\"US\")",
+			"tooltip=%write-a-conditional-expression-to-control-whether-this-field-is-displayed"
+		}
+	)
 	public String visibilityExpression();
 
 }

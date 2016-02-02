@@ -16,12 +16,13 @@ package com.liferay.blogs.portlet.toolbar.contributor;
 
 import com.liferay.blogs.web.constants.BlogsPortletKeys;
 import com.liferay.portal.kernel.portlet.toolbar.contributor.PortletToolbarContributor;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.ResourcePermissionChecker;
 import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.ResourcePermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.PortletURLFactoryUtil;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
@@ -48,21 +50,37 @@ public class BlogsPortletToolbarContributor
 	implements PortletToolbarContributor {
 
 	@Override
-	public List<Menu> getPortletTitleMenus(PortletRequest portletRequest) {
+	public List<Menu> getPortletTitleMenus(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
+		Menu addEntryPortletTitleMenu = getAddEntryPortletTitleMenu(
+			portletRequest);
+
+		if (addEntryPortletTitleMenu == null) {
+			return Collections.emptyList();
+		}
+
 		List<Menu> menus = new ArrayList<>();
 
-		menus.add(getAddEntryPortletTitleMenu(portletRequest));
+		menus.add(addEntryPortletTitleMenu);
 
 		return menus;
 	}
 
 	protected Menu getAddEntryPortletTitleMenu(PortletRequest portletRequest) {
+		List<MenuItem> portletTitleMenuItems = getPortletTitleMenuItems(
+			portletRequest);
+
+		if (ListUtil.isEmpty(portletTitleMenuItems)) {
+			return null;
+		}
+
 		Menu menu = new Menu();
 
 		menu.setDirection("down");
 		menu.setExtended(false);
 		menu.setIcon("../aui/plus-sign-2");
-		menu.setMenuItems(getPortletTitleMenuItems(portletRequest));
+		menu.setMenuItems(portletTitleMenuItems);
 		menu.setShowArrow(false);
 
 		return menu;
@@ -120,6 +138,6 @@ public class BlogsPortletToolbarContributor
 		_resourcePermissionChecker = resourcePermissionChecker;
 	}
 
-	private volatile ResourcePermissionChecker _resourcePermissionChecker;
+	private ResourcePermissionChecker _resourcePermissionChecker;
 
 }

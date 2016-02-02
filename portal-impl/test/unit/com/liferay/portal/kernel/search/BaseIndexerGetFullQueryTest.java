@@ -49,9 +49,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * @author André de Oliveira
  */
-@PrepareOnlyThisForTest( {
-	SearchEngineHelperUtil.class
-})
+@PrepareOnlyThisForTest({SearchEngineHelperUtil.class})
 @RunWith(PowerMockRunner.class)
 public class BaseIndexerGetFullQueryTest extends PowerMockito {
 
@@ -208,7 +206,7 @@ public class BaseIndexerGetFullQueryTest extends PowerMockito {
 	private Indexer<Object> _indexer;
 	private final SearchContext _searchContext = new SearchContext();
 
-	private class TestIndexer extends BaseIndexer<Object> {
+	private static class TestIndexer extends BaseIndexer<Object> {
 
 		@Override
 		public String getClassName() {

@@ -3,14 +3,7 @@
 	<property name="testray.main.component.name" value="Akismet" />
 
 	<set-up>
-		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
-
-		<if>
-			<equals arg1="${testPortalInstance}" arg2="true" />
-			<then>
-				<execute macro="SignIn#signInPortalInstanceSetUp" />
-			</then>
-		</if>
+		<execute macro="TestCase#setUpPortalInstance" />
 
 		<execute macro="User#firstLoginPG" />
 
@@ -135,8 +128,10 @@
 			<var name="wikiPageRevision" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Spam Moderation" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Spam Moderation" />
 		</execute>
 
 		<execute macro="SpamModerationPortlet#navigateToWikis" />
@@ -148,8 +143,10 @@
 			<var name="wikiPageUsername" value="userfn userln" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Spam Moderation" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Spam Moderation" />
 		</execute>
 
 		<execute macro="SpamModerationPortlet#viewDefault">
@@ -276,8 +273,10 @@
 			<var name="wikiPageRevision" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Spam Moderation" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Spam Moderation" />
 		</execute>
 
 		<execute macro="SpamModerationPortlet#navigateToWikis" />

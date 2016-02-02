@@ -44,7 +44,7 @@ String version = ParamUtil.getString(request, "version");
 
 Bundle bundle = BundleManagerUtil.getBundle(symbolicName, version);
 
-String pluginType = ParamUtil.getString(request, "pluginType", "portlets");
+String pluginType = ParamUtil.getString(request, "pluginType", "components");
 
 String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 
@@ -58,27 +58,43 @@ portletURL.setParameter("version", String.valueOf(bundle.getVersion()));
 portletURL.setParameter("pluginType", pluginType);
 portletURL.setParameter("orderByType", orderByType);
 
-MarketplaceAppManagerUtil.addPortletBreadcrumbEntry(appDisplay, moduleGroupDisplay, bundle, request, renderResponse);
+portletDisplay.setShowBackIcon(true);
+
+PortletURL backURL = renderResponse.createRenderURL();
+
+if (Validator.isNull(app)) {
+	backURL.setParameter("mvcPath", "/view.jsp");
+}
+else {
+	backURL.setParameter("mvcPath", "/view_modules.jsp");
+	backURL.setParameter("app", app);
+	backURL.setParameter("moduleGroup", moduleGroup);
+}
+
+portletDisplay.setURLBack(backURL.toString());
+
+Dictionary<String, String> headers = bundle.getHeaders();
+
+String bundleName = GetterUtil.getString(headers.get(BundleConstants.BUNDLE_NAME));
+
+renderResponse.setTitle(bundleName);
+
+if (Validator.isNull(app)) {
+	PortletURL viewURL = renderResponse.createRenderURL();
+
+	viewURL.setParameter("mvcPath", "/view.jsp");
+
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "app-manager"), viewURL.toString());
+
+	PortalUtil.addPortletBreadcrumbEntry(request, bundleName, null);
+}
+else {
+	MarketplaceAppManagerUtil.addPortletBreadcrumbEntry(appDisplay, moduleGroupDisplay, bundle, request, renderResponse);
+}
 %>
 
-<aui:nav-bar markupView="lexicon">
+<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
 	<aui:nav cssClass="navbar-nav">
-		<portlet:renderURL var="viewModulePortletsURL">
-			<portlet:param name="mvcPath" value="/view_module.jsp" />
-			<portlet:param name="app" value="<%= app %>" />
-			<portlet:param name="moduleGroup" value="<%= moduleGroup %>" />
-			<portlet:param name="symbolicName" value="<%= bundle.getSymbolicName() %>" />
-			<portlet:param name="version" value="<%= bundle.getVersion().toString() %>" />
-			<portlet:param name="pluginType" value="portlets" />
-			<portlet:param name="orderByType" value="<%= orderByType %>" />
-		</portlet:renderURL>
-
-		<aui:nav-item
-			href="<%= viewModulePortletsURL %>"
-			label="portlets"
-			selected='<%= pluginType.equals("portlets") %>'
-		/>
-
 		<portlet:renderURL var="viewModuleComponentsURL">
 			<portlet:param name="mvcPath" value="/view_module.jsp" />
 			<portlet:param name="app" value="<%= app %>" />
@@ -94,11 +110,39 @@ MarketplaceAppManagerUtil.addPortletBreadcrumbEntry(appDisplay, moduleGroupDispl
 			label="components"
 			selected='<%= pluginType.equals("components") %>'
 		/>
+
+		<portlet:renderURL var="viewModulePortletsURL">
+			<portlet:param name="mvcPath" value="/view_module.jsp" />
+			<portlet:param name="app" value="<%= app %>" />
+			<portlet:param name="moduleGroup" value="<%= moduleGroup %>" />
+			<portlet:param name="symbolicName" value="<%= bundle.getSymbolicName() %>" />
+			<portlet:param name="version" value="<%= bundle.getVersion().toString() %>" />
+			<portlet:param name="pluginType" value="portlets" />
+			<portlet:param name="orderByType" value="<%= orderByType %>" />
+		</portlet:renderURL>
+
+		<aui:nav-item
+			href="<%= viewModulePortletsURL %>"
+			label="portlets"
+			selected='<%= pluginType.equals("portlets") %>'
+		/>
 	</aui:nav>
+
+	<aui:nav-bar-search>
+		<liferay-portlet:renderURL varImpl="searchURL">
+			<portlet:param name="mvcPath" value="/view_search_results.jsp" />
+		</liferay-portlet:renderURL>
+
+		<aui:form action="<%= searchURL.toString() %>" method="get" name="fm1">
+			<liferay-portlet:renderURLParams varImpl="searchURL" />
+
+			<liferay-ui:input-search markupView="lexicon" />
+		</aui:form>
+	</aui:nav-bar-search>
 </aui:nav-bar>
 
 <liferay-frontend:management-bar
-	searchContainerId="appDisplays"
+	searchContainerId="components"
 >
 	<liferay-frontend:management-bar-buttons>
 		<liferay-frontend:management-bar-display-buttons
@@ -136,6 +180,7 @@ MarketplaceAppManagerUtil.addPortletBreadcrumbEntry(appDisplay, moduleGroupDispl
 
 	<liferay-ui:search-container
 		emptyResultsMessage="<%= emptyResultsMessage %>"
+		iteratorURL="<%= portletURL %>"
 	>
 		<liferay-ui:search-container-results>
 
@@ -222,16 +267,6 @@ MarketplaceAppManagerUtil.addPortletBreadcrumbEntry(appDisplay, moduleGroupDispl
 				<h6 class="text-default">
 					<%= description %>
 				</h6>
-
-				<div class="additional-info text-default">
-					<div class="additional-info-item">
-						<strong>
-							<liferay-ui:message key="version" />:
-						</strong>
-
-						<%= version %>
-					</div>
-				</div>
 			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 

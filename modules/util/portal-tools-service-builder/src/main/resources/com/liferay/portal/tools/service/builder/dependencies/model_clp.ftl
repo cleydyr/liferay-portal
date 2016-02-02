@@ -1,19 +1,19 @@
-package ${packagePath}.model;
+package ${apiPackagePath}.model;
 
-import ${packagePath}.service.ClpSerializer;
+import ${apiPackagePath}.service.ClpSerializer;
 
 <#if entity.hasLocalService() && entity.hasColumns()>
-	import ${packagePath}.service.${entity.name}LocalServiceUtil;
+	import ${apiPackagePath}.service.${entity.name}LocalServiceUtil;
 </#if>
 
 <#if entity.hasCompoundPK()>
-	import ${packagePath}.service.persistence.${entity.name}PK;
+	import ${apiPackagePath}.service.persistence.${entity.name}PK;
 </#if>
 
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.LocaleException;
-import com.liferay.portal.NoSuchModelException;
+import com.liferay.portal.exception.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -255,6 +255,22 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			@Override
 			public ${column.type} is${column.methodName}() {
 				return _${column.name};
+			}
+		</#if>
+
+		<#if entity.hasColumn("createDate", "Date") && entity.hasColumn("modifiedDate", "Date") && (column.name == "modifiedDate")>
+			@Override
+			public boolean hasSetModifiedDate() {
+				try {
+					Class<?> clazz = _${entity.varName}RemoteModel.getClass();
+
+					Method method = clazz.getMethod("hasSetModifiedDate");
+
+					return (boolean)method.invoke(null);
+				}
+				catch (Exception e) {
+					throw new UnsupportedOperationException(e);
+				}
 			}
 		</#if>
 
@@ -1056,7 +1072,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 	</#list>
 
 	private BaseModel<?> _${entity.varName}RemoteModel;
-	private Class<?> _clpSerializerClass = ${packagePath}.service.ClpSerializer.class;
+	private Class<?> _clpSerializerClass = ${apiPackagePath}.service.ClpSerializer.class;
 	private boolean _entityCacheEnabled;
 	private boolean _finderCacheEnabled;
 

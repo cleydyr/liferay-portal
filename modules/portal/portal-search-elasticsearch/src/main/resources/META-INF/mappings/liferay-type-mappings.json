@@ -486,17 +486,6 @@
 					"match": "expando__*",
 					"match_mapping_type": "string"
 				}
-			},
-			{
-				"template_": {
-					"mapping": {
-						"index": "analyzed",
-						"store": "true",
-						"type": "string"
-					},
-					"match": "*",
-					"match_mapping_type": "string"
-				}
 			}
 		],
 		"properties": {
@@ -553,6 +542,21 @@
 				"type": "string"
 			},
 			"companyId": {
+				"index": "not_analyzed",
+				"store": "yes",
+				"type": "string"
+			},
+			"configurationModelAttributeName": {
+				"index": "not_analyzed",
+				"store": "yes",
+				"type": "string"
+			},
+			"configurationModelFactoryPid": {
+				"index": "not_analyzed",
+				"store": "yes",
+				"type": "string"
+			},
+			"configurationModelId": {
 				"index": "not_analyzed",
 				"store": "yes",
 				"type": "string"

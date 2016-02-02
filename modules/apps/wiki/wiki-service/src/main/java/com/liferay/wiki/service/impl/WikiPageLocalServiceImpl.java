@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationFactory;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -60,7 +61,6 @@ import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.util.LayoutURLUtil;
@@ -534,18 +534,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
-	/**
-	 * @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
-	 *             double)}
-	 */
-	@Deprecated
-	@Override
-	public void deletePage(long nodeId, String title, double version)
-		throws PortalException {
-
-		discardDraft(nodeId, title, version);
-	}
-
 	@Override
 	@SystemEvent(
 		action = SystemEventConstants.ACTION_SKIP, send = false,
@@ -929,6 +917,15 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return wikiPagePersistence.findByN_H_P_S(
 			nodeId, head, parentTitle, WorkflowConstants.STATUS_APPROVED, start,
 			end);
+	}
+
+	@Override
+	public List<WikiPage> getChildren(
+		long nodeId, boolean head, String parentTitle, int status, int start,
+		int end, OrderByComparator obc) {
+
+		return wikiPagePersistence.findByN_H_P_S(
+			nodeId, head, parentTitle, status, start, end, obc);
 	}
 
 	@Override
@@ -1428,20 +1425,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return getPage(page.getNodeId(), page.getTitle(), previousVersion);
 	}
 
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChanges(long, long,
-	 *             int, int)}
-	 */
-	@Deprecated
-	@Override
-	public List<WikiPage> getRecentChanges(long nodeId, int start, int end)
-		throws PortalException {
-
-		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
-
-		return getRecentChanges(node.getGroupId(), nodeId, start, end);
-	}
-
 	@Override
 	public List<WikiPage> getRecentChanges(
 		long groupId, long nodeId, int start, int end) {
@@ -1452,18 +1435,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		return wikiPageFinder.findByCreateDate(
 			groupId, nodeId, cal.getTime(), false, start, end);
-	}
-
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChangesCount(long,
-	 *             long)}
-	 */
-	@Deprecated
-	@Override
-	public int getRecentChangesCount(long nodeId) throws PortalException {
-		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
-
-		return getRecentChangesCount(node.getGroupId(), nodeId);
 	}
 
 	@Override
@@ -1517,20 +1488,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		throws PortalException {
 
 		moveDependentToTrash(page, trashEntryId, false);
-	}
-
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #renamePage(long, long,
-	 *             String, String, boolean, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public void movePage(
-			long userId, long nodeId, String title, String newTitle,
-			boolean strict, ServiceContext serviceContext)
-		throws PortalException {
-
-		renamePage(userId, nodeId, title, newTitle, strict, serviceContext);
 	}
 
 	/**

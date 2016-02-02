@@ -38,6 +38,8 @@ AUI.add(
 
 		var STR_DEVICES = 'devices';
 
+		var STR_HIDE = 'hide';
+
 		var STR_INPUT = 'input';
 
 		var STR_INPUT_HEIGHT = 'inputHeight';
@@ -238,9 +240,23 @@ AUI.add(
 						if (device) {
 							if (deviceItem.hasClass(CSS_SELECTED) && device.rotation) {
 								deviceItem.toggleClass(STR_ROTATED);
+
+								var icon = deviceItem.one('.icon');
+
+								if (icon) {
+									icon.toggleClass(STR_HIDE);
+								}
+
+								var iconRotate = deviceItem.one('.icon-rotate');
+
+								if (iconRotate) {
+									iconRotate.toggleClass(STR_HIDE);
+								}
 							}
 
-							deviceItem.radioClass(CSS_SELECTED);
+							instance._deviceItems.removeClass(CSS_SELECTED);
+
+							deviceItem.addClass(CSS_SELECTED);
 
 							instance._openDeviceDialog(device, deviceItem.hasClass(STR_ROTATED));
 						}

@@ -53,13 +53,19 @@ rowURL.setParameter("fileEntryId", String.valueOf(fileEntry.getFileEntryId()));
 %>
 
 <h5 class="text-default">
-	<liferay-ui:message arguments="<%= new String[] {latestFileVersion.getUserName(), modifiedDateDescription} %>" key="x-modified-x-ago" />
+	<liferay-ui:message arguments="<%= new String[] {HtmlUtil.escape(latestFileVersion.getUserName()), modifiedDateDescription} %>" key="x-modified-x-ago" />
 </h5>
 
 <h4>
 	<aui:a href="<%= rowURL.toString() %>">
 		<%= latestFileVersion.getTitle() %>
 	</aui:a>
+
+	<c:if test="<%= fileEntry.hasLock() %>">
+		<span>
+			<aui:icon cssClass="icon-monospaced" image="lock" markupView="lexicon" message="locked" />
+		</span>
+	</c:if>
 </h4>
 
 <h5 class="text-default">

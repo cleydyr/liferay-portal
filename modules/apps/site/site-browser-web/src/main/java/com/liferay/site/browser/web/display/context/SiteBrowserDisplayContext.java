@@ -17,6 +17,7 @@ package com.liferay.site.browser.web.display.context;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -25,15 +26,15 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.User;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.sites.util.SitesUtil;
 import com.liferay.portlet.usersadmin.search.GroupSearch;
 import com.liferay.portlet.usersadmin.search.GroupSearchTerms;
+import com.liferay.sites.kernel.util.SitesUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -55,6 +56,15 @@ public class SiteBrowserDisplayContext {
 		_request = request;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
+	}
+
+	public String getDisplayStyle() {
+		if (_displayStyle == null) {
+			_displayStyle = ParamUtil.getString(
+				_request, "displayStyle", "list");
+		}
+
+		return _displayStyle;
 	}
 
 	public String getFilter() {
@@ -194,15 +204,14 @@ public class SiteBrowserDisplayContext {
 		}
 		else if (groupSearchTerms.isAdvancedSearch()) {
 			total = GroupLocalServiceUtil.searchCount(
-				themeDisplay.getCompanyId(), null, groupSearchTerms.getName(),
-				groupSearchTerms.getDescription(), getGroupParams(),
-				groupSearchTerms.isAndOperator());
+				themeDisplay.getCompanyId(), _CLASS_NAME_IDS,
+				groupSearchTerms.getName(), groupSearchTerms.getDescription(),
+				getGroupParams(), groupSearchTerms.isAndOperator());
 		}
 		else {
 			total = GroupLocalServiceUtil.searchCount(
-				themeDisplay.getCompanyId(), null,
-				groupSearchTerms.getKeywords(), getGroupParams(),
-				groupSearchTerms.isAndOperator());
+				themeDisplay.getCompanyId(), _CLASS_NAME_IDS,
+				groupSearchTerms.getKeywords(), getGroupParams());
 		}
 
 		total += additionalSites;
@@ -245,15 +254,15 @@ public class SiteBrowserDisplayContext {
 		}
 		else if (groupSearchTerms.isAdvancedSearch()) {
 			groups = GroupLocalServiceUtil.search(
-				company.getCompanyId(), null, groupSearchTerms.getName(),
-				groupSearchTerms.getDescription(), getGroupParams(),
-				groupSearchTerms.isAndOperator(), start, end,
+				company.getCompanyId(), _CLASS_NAME_IDS,
+				groupSearchTerms.getName(), groupSearchTerms.getDescription(),
+				getGroupParams(), groupSearchTerms.isAndOperator(), start, end,
 				groupSearch.getOrderByComparator());
 		}
 		else {
 			groups = GroupLocalServiceUtil.search(
-				company.getCompanyId(), null, groupSearchTerms.getKeywords(),
-				getGroupParams(), start, end,
+				company.getCompanyId(), _CLASS_NAME_IDS,
+				groupSearchTerms.getKeywords(), getGroupParams(), start, end,
 				groupSearch.getOrderByComparator());
 		}
 
@@ -278,6 +287,8 @@ public class SiteBrowserDisplayContext {
 			ParamUtil.getString(_request, "selectedGroupIds"), 0L);
 		boolean includeCompany = ParamUtil.getBoolean(
 			_request, "includeCompany");
+		boolean includeCurrentGroup = ParamUtil.getBoolean(
+			_request, "includeCurrentGroup", true);
 		boolean includeUserPersonalSite = ParamUtil.getBoolean(
 			_request, "includeUserPersonalSite");
 		String eventName = ParamUtil.getString(
@@ -290,9 +301,12 @@ public class SiteBrowserDisplayContext {
 			"selectedGroupIds", StringUtil.merge(selectedGroupIds));
 		portletURL.setParameter("type", getType());
 		portletURL.setParameter("types", getTypes());
+		portletURL.setParameter("displayStyle", getDisplayStyle());
 		portletURL.setParameter("filter", getFilter());
 		portletURL.setParameter(
 			"includeCompany", String.valueOf(includeCompany));
+		portletURL.setParameter(
+			"includeCurrentGroup", String.valueOf(includeCurrentGroup));
 		portletURL.setParameter(
 			"includeUserPersonalSite", String.valueOf(includeUserPersonalSite));
 		portletURL.setParameter(
@@ -395,6 +409,13 @@ public class SiteBrowserDisplayContext {
 		return filteredGroups;
 	}
 
+	private static final long[] _CLASS_NAME_IDS = new long[] {
+		PortalUtil.getClassNameId(Company.class),
+		PortalUtil.getClassNameId(Group.class),
+		PortalUtil.getClassNameId(Organization.class)
+	};
+
+	private String _displayStyle;
 	private String _filter;
 	private Long _groupId;
 	private LinkedHashMap<String, Object> _groupParams;

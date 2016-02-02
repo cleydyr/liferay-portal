@@ -71,6 +71,21 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 				/>
 			</liferay-ui:search-container-column-text>
 
+			<liferay-ui:search-container-column-text
+				name="title"
+			>
+
+				<%
+				String backgroundTaskName = backgroundTask.getName();
+
+				if (backgroundTaskName.equals(StringPool.BLANK)) {
+					backgroundTaskName = LanguageUtil.get(request, "untitled");
+				}
+				%>
+
+				<liferay-ui:message key="<%= HtmlUtil.escape(backgroundTaskName) %>" />
+			</liferay-ui:search-container-column-text>
+
 			<liferay-ui:search-container-column-jsp
 				cssClass="background-task-status-column"
 				name="status"
@@ -109,8 +124,9 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 					%>
 
 					<liferay-ui:icon
-						iconCssClass="icon-download"
+						iconCssClass="download"
 						label="<%= true %>"
+						markupView="lexicon"
 						message="<%= sb.toString() %>"
 						method="get"
 						url="<%= PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>"
@@ -124,7 +140,7 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 
 			<liferay-ui:search-container-column-text>
 				<c:if test="<%= !backgroundTask.isInProgress() %>">
-					<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
+					<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 						<portlet:actionURL name="editExportConfiguration" var="relaunchURL">
 							<portlet:param name="mvcRenderCommandName" value="editExportConfiguration" />
 							<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RELAUNCH %>" />
@@ -132,7 +148,7 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 							<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
 						</portlet:actionURL>
 
-						<liferay-ui:icon iconCssClass="icon-repeat" message="relaunch" url="<%= relaunchURL %>" />
+						<liferay-ui:icon icon="reload" markupView="lexicon" message="relaunch" url="<%= relaunchURL %>" />
 
 						<portlet:actionURL name="deleteBackgroundTask" var="deleteBackgroundTaskURL">
 							<portlet:param name="redirect" value="<%= portletURL.toString() %>" />

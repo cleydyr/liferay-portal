@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.ldap.LDAPUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.log.LogUtil;
+import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
@@ -29,7 +30,6 @@ import com.liferay.portal.ldap.configuration.SystemLDAPConfiguration;
 import com.liferay.portal.ldap.exportimport.configuration.LDAPExportConfiguration;
 import com.liferay.portal.ldap.exportimport.configuration.LDAPImportConfiguration;
 import com.liferay.portal.model.User;
-import com.liferay.portal.security.ldap.LDAPSettings;
 import com.liferay.portal.service.UserLocalService;
 
 import java.util.Properties;
@@ -113,11 +113,11 @@ public class DefaultLDAPSettings implements LDAPSettings {
 	}
 
 	@Override
-	public String getErrorPasswordHistory(long companyId) {
+	public String[] getErrorPasswordHistoryKeywords(long companyId) {
 		SystemLDAPConfiguration systemLDAPConfiguration =
 			_systemLDAPConfigurationProvider.getConfiguration(companyId);
 
-		return systemLDAPConfiguration.errorPasswordHistory();
+		return systemLDAPConfiguration.errorPasswordHistoryKeywords();
 	}
 
 	@Override
@@ -322,16 +322,16 @@ public class DefaultLDAPSettings implements LDAPSettings {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultLDAPSettings.class);
 
-	private volatile ConfigurationProvider<LDAPAuthConfiguration>
+	private ConfigurationProvider<LDAPAuthConfiguration>
 		_ldapAuthConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPExportConfiguration>
+	private ConfigurationProvider<LDAPExportConfiguration>
 		_ldapExportConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPImportConfiguration>
+	private ConfigurationProvider<LDAPImportConfiguration>
 		_ldapImportConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPServerConfiguration>
+	private ConfigurationProvider<LDAPServerConfiguration>
 		_ldapServerConfigurationProvider;
-	private volatile ConfigurationProvider<SystemLDAPConfiguration>
+	private ConfigurationProvider<SystemLDAPConfiguration>
 		_systemLDAPConfigurationProvider;
-	private volatile UserLocalService _userLocalService;
+	private UserLocalService _userLocalService;
 
 }

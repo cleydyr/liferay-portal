@@ -15,23 +15,25 @@
 package com.liferay.gradle.plugins.maven.plugin.builder;
 
 import com.liferay.gradle.util.GradleUtil;
-import com.liferay.gradle.util.Validator;
 
 import java.io.File;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.Upload;
 
 /**
  * @author Andrea Di Giorgi
@@ -43,21 +45,16 @@ public class MavenPluginBuilderPlugin implements Plugin<Project> {
 
 	@Override
 	public void apply(Project project) {
-		addBuildPluginDescriptorTask(project);
+		GradleUtil.applyPlugin(project, JavaPlugin.class);
 
-		project.afterEvaluate(
-			new Action<Project>() {
+		BuildPluginDescriptorTask buildPluginDescriptorTask =
+			addTaskBuildPluginDescriptor(project);
 
-				@Override
-				public void execute(Project project) {
-					configureBuildPluginDescriptorTask(project);
-				}
-
-			});
+		configureTasksUpload(project, buildPluginDescriptorTask);
 	}
 
-	protected BuildPluginDescriptorTask addBuildPluginDescriptorTask(
-		Project project) {
+	protected BuildPluginDescriptorTask addTaskBuildPluginDescriptor(
+		final Project project) {
 
 		BuildPluginDescriptorTask buildPluginDescriptorTask =
 			GradleUtil.addTask(
@@ -66,161 +63,117 @@ public class MavenPluginBuilderPlugin implements Plugin<Project> {
 
 		buildPluginDescriptorTask.dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME);
 
+		final SourceSet sourceSet = GradleUtil.getSourceSet(
+			project, SourceSet.MAIN_SOURCE_SET_NAME);
+
+		buildPluginDescriptorTask.setClassesDir(
+			new Callable<File>() {
+
+				@Override
+				public File call() throws Exception {
+					SourceSetOutput sourceSetOutput = sourceSet.getOutput();
+
+					return sourceSetOutput.getClassesDir();
+				}
+
+			});
+
 		buildPluginDescriptorTask.setDescription(
 			"Generates the Maven plugin descriptor for the project.");
 		buildPluginDescriptorTask.setGroup(BasePlugin.BUILD_GROUP);
 
+		buildPluginDescriptorTask.setOutputDir(
+			new Callable<File>() {
+
+				@Override
+				public File call() throws Exception {
+					File resourcesDir = getSrcDir(sourceSet.getResources());
+
+					return new File(resourcesDir, "META-INF/maven");
+				}
+
+			});
+
+		buildPluginDescriptorTask.setPomArtifactId(
+			new Callable<String>() {
+
+				@Override
+				public String call() throws Exception {
+					return _osgiHelper.getBundleSymbolicName(project);
+				}
+
+			});
+
+		buildPluginDescriptorTask.setPomGroupId(
+			new Callable<Object>() {
+
+				@Override
+				public Object call() throws Exception {
+					return project.getGroup();
+				}
+
+			});
+
+		buildPluginDescriptorTask.setPomVersion(
+			new Callable<Object>() {
+
+				@Override
+				public Object call() throws Exception {
+					return project.getVersion();
+				}
+
+			});
+
+		buildPluginDescriptorTask.setSourceDir(
+			new Callable<File>() {
+
+				@Override
+				public File call() throws Exception {
+					return getSrcDir(sourceSet.getJava());
+				}
+
+			});
+
+		Task processResourcesTask = GradleUtil.getTask(
+			project, JavaPlugin.PROCESS_RESOURCES_TASK_NAME);
+
+		processResourcesTask.mustRunAfter(buildPluginDescriptorTask);
+
 		return buildPluginDescriptorTask;
 	}
 
-	protected void configureBuildPluginDescriptorTask(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
+	protected void configureTasksUpload(
+		Project project,
+		final BuildPluginDescriptorTask buildPluginDescriptorTask) {
 
-		configureBuildPluginDescriptorTaskClassesDir(buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskConfigurationScopeMappings(
-			buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskOutputDir(buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskPomArtifactId(
-			buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskPomGroupId(buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskPomVersion(buildPluginDescriptorTask);
-		configureBuildPluginDescriptorTaskSourceDir(buildPluginDescriptorTask);
-	}
-
-	protected void configureBuildPluginDescriptorTask(Project project) {
 		TaskContainer taskContainer = project.getTasks();
 
 		taskContainer.withType(
-			BuildPluginDescriptorTask.class,
-			new Action<BuildPluginDescriptorTask>() {
+			Upload.class,
+			new Action<Upload>() {
 
 				@Override
-				public void execute(
-					BuildPluginDescriptorTask
-						buildPluginDescriptorTask) {
-
-					configureBuildPluginDescriptorTask(
-						buildPluginDescriptorTask);
+				public void execute(Upload upload) {
+					configureTaskUpload(upload, buildPluginDescriptorTask);
 				}
 
 			});
 	}
 
-	protected void configureBuildPluginDescriptorTaskClassesDir(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
+	protected void configureTaskUpload(
+		Upload upload, BuildPluginDescriptorTask buildPluginDescriptorTask) {
 
-		if (buildPluginDescriptorTask.getClassesDir() != null) {
-			return;
-		}
-
-		SourceSet sourceSet = GradleUtil.getSourceSet(
-			buildPluginDescriptorTask.getProject(),
-			SourceSet.MAIN_SOURCE_SET_NAME);
-
-		SourceSetOutput sourceSetOutput = sourceSet.getOutput();
-
-		buildPluginDescriptorTask.setClassesDir(
-			sourceSetOutput.getClassesDir());
+		upload.dependsOn(buildPluginDescriptorTask);
 	}
 
-	protected void configureBuildPluginDescriptorTaskOutputDir(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		if (buildPluginDescriptorTask.getOutputDir() != null) {
-			return;
-		}
-
-		SourceSet sourceSet = GradleUtil.getSourceSet(
-			buildPluginDescriptorTask.getProject(),
-			SourceSet.MAIN_SOURCE_SET_NAME);
-
-		SourceDirectorySet sourceDirectorySet = sourceSet.getResources();
-
+	protected File getSrcDir(SourceDirectorySet sourceDirectorySet) {
 		Set<File> srcDirs = sourceDirectorySet.getSrcDirs();
 
 		Iterator<File> iterator = srcDirs.iterator();
 
-		File outputDir = new File(iterator.next(), "META-INF/maven");
-
-		buildPluginDescriptorTask.setOutputDir(outputDir);
+		return iterator.next();
 	}
 
-	protected void configureBuildPluginDescriptorTaskPomArtifactId(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		if (Validator.isNotNull(buildPluginDescriptorTask.getPomArtifactId())) {
-			return;
-		}
-
-		Project project = buildPluginDescriptorTask.getProject();
-
-		buildPluginDescriptorTask.setPomArtifactId(project.getName());
-	}
-
-	protected void configureBuildPluginDescriptorTaskPomGroupId(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		if (Validator.isNotNull(buildPluginDescriptorTask.getPomGroupId())) {
-			return;
-		}
-
-		Project project = buildPluginDescriptorTask.getProject();
-
-		Object group = project.getGroup();
-
-		if (group != null) {
-			buildPluginDescriptorTask.setPomGroupId(group.toString());
-		}
-	}
-
-	protected void configureBuildPluginDescriptorTaskPomVersion(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		if (Validator.isNotNull(buildPluginDescriptorTask.getPomVersion())) {
-			return;
-		}
-
-		Project project = buildPluginDescriptorTask.getProject();
-
-		Object version = project.getVersion();
-
-		if (version != null) {
-			buildPluginDescriptorTask.setPomVersion(version.toString());
-		}
-	}
-
-	protected void configureBuildPluginDescriptorTaskSourceDir(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		if (buildPluginDescriptorTask.getSourceDir() != null) {
-			return;
-		}
-
-		SourceSet sourceSet = GradleUtil.getSourceSet(
-			buildPluginDescriptorTask.getProject(),
-			SourceSet.MAIN_SOURCE_SET_NAME);
-
-		SourceDirectorySet sourceDirectorySet = sourceSet.getJava();
-
-		Set<File> srcDirs = sourceDirectorySet.getSrcDirs();
-
-		Iterator<File> iterator = srcDirs.iterator();
-
-		buildPluginDescriptorTask.setSourceDir(iterator.next());
-	}
-
-	private void configureBuildPluginDescriptorTaskConfigurationScopeMappings(
-		BuildPluginDescriptorTask buildPluginDescriptorTask) {
-
-		Map<String, String> configurationScopeMappings =
-			buildPluginDescriptorTask.getConfigurationScopeMappings();
-
-		if (!configurationScopeMappings.isEmpty()) {
-			return;
-		}
-
-		configurationScopeMappings.put(
-			JavaPlugin.COMPILE_CONFIGURATION_NAME, "compile");
-	}
+	private static final OsgiHelper _osgiHelper = new OsgiHelper();
 
 }

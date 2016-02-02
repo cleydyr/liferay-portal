@@ -15,6 +15,9 @@
 package com.liferay.portal.settings.portlet.action;
 
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseFormMVCActionCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.ModifiableSettings;
@@ -24,10 +27,8 @@ import com.liferay.portal.kernel.settings.SettingsException;
 import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.Portal;
 
 import java.io.IOException;
 
@@ -105,6 +106,11 @@ public abstract class BasePortalSettingsFormMVCActionCommand
 
 		for (String name : settingsDescriptor.getAllKeys()) {
 			String value = getString(actionRequest, name);
+
+			if (value.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
+				continue;
+			}
+
 			String oldValue = settings.getValue(name, null);
 
 			if (!value.equals(oldValue)) {

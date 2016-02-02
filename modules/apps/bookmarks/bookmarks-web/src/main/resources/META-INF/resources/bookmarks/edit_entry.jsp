@@ -43,6 +43,7 @@ else {
 	}
 }
 
+boolean showFolderSelector = ParamUtil.getBoolean(request, "showFolderSelector");
 boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 
 String headerTitle = (entry == null) ? LanguageUtil.get(request, "add-bookmark") : LanguageUtil.format(request, "edit-x", entry.getName(), false);
@@ -69,6 +70,7 @@ if (portletTitleBasedNavigation) {
 		<aui:input name="referringPortletResource" type="hidden" value="<%= referringPortletResource %>" />
 		<aui:input name="entryId" type="hidden" value="<%= entryId %>" />
 		<aui:input name="folderId" type="hidden" value="<%= folderId %>" />
+		<aui:input name="showFolderSelector" type="hidden" value="<%= showFolderSelector %>" />
 
 		<c:if test="<%= !portletTitleBasedNavigation && showHeader %>">
 			<liferay-ui:header
@@ -89,7 +91,7 @@ if (portletTitleBasedNavigation) {
 
 		<aui:fieldset-group markupView="lexicon">
 			<aui:fieldset>
-				<c:if test="<%= (entry != null) || (folderId <= 0) || Validator.isNotNull(referringPortletResource) %>">
+				<c:if test="<%= showFolderSelector %>">
 
 					<%
 					String folderName = StringPool.BLANK;
@@ -115,6 +117,7 @@ if (portletTitleBasedNavigation) {
 										{
 											dialog: {
 												constrain: true,
+												destroyOnHide: true,
 												modal: true,
 												width: 680
 											},
@@ -194,10 +197,6 @@ if (portletTitleBasedNavigation) {
 </div>
 
 <aui:script>
-	function <portlet:namespace />getSuggestionsContent() {
-		return document.<portlet:namespace />fm.<portlet:namespace />name.value + ' ' + document.<portlet:namespace />fm.<portlet:namespace />description.value;
-	}
-
 	function <portlet:namespace />saveEntry() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (entry == null) ? Constants.ADD : Constants.UPDATE %>';
 

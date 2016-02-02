@@ -4,24 +4,19 @@
 	<var name="workflowAssetType" value="Blogs Entry" />
 
 	<set-up>
-		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
-
-		<if>
-			<equals arg1="${testPortalInstance}" arg2="true" />
-			<then>
-				<execute macro="SignIn#signInPortalInstanceSetUp" />
-			</then>
-		</if>
+		<execute macro="TestCase#setUpPortalInstance" />
 
 		<execute macro="User#firstLoginPG" />
 
-		<execute macro="Page#gotoConfigurationCP">
-			<var name="portletName" value="Workflow Configuration" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesConfiguration">
+			<var name="portlet" value="Workflow Configuration" />
 		</execute>
 
 		<execute macro="Workflow#configureWorkflow">
 			<var name="workflowDefinition" value="Single Approver (Version 1)" />
-			<var name="workflowResourceKey" value="RESOURCE_TABLE_BLOGS_ENTRY_SELECT" />
+			<var name="workflowResourceValue" value="Blogs Entry" />
 		</execute>
 	</set-up>
 
@@ -83,8 +78,11 @@
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#addCP">
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#add">
 			<var name="workflowComment" value="${workflowComment}" />
 		</execute>
 
@@ -92,8 +90,11 @@
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#viewCP">
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#view">
 			<var name="workflowComment" value="${workflowComment}" />
 		</execute>
 	</command>
@@ -119,8 +120,13 @@
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#addCP">
+		<execute macro="Workflow#gotoAssignedToMyRoles" />
+
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#add">
 			<var name="workflowComment" value="${workflowComment}" />
 		</execute>
 
@@ -128,8 +134,13 @@
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#viewCP">
+		<execute macro="Workflow#gotoAssignedToMyRoles" />
+
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#view">
 			<var name="workflowComment" value="${workflowComment}" />
 		</execute>
 	</command>
@@ -175,20 +186,28 @@
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#addCP">
+		<execute macro="Workflow#gotoCompletedFilter" />
+
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#add">
 			<var name="workflowComment" value="${workflowComment}" />
-			<var name="workflowTaskCompleted" value="true" />
 		</execute>
 
 		<execute macro="Page#gotoMyAccount">
 			<var name="portletName" value="My Workflow Tasks" />
 		</execute>
 
-		<execute macro="WorkflowComment#viewCP">
+		<execute macro="Workflow#gotoCompletedFilter" />
+
+		<execute macro="Workflow#gotoAssetViaTableTitle">
 			<var name="workflowAssetTitle" value="${entryTitle}" />
+		</execute>
+
+		<execute macro="WorkflowComment#view">
 			<var name="workflowComment" value="${workflowComment}" />
-			<var name="workflowTaskCompleted" value="true" />
 		</execute>
 	</command>
 
@@ -803,7 +822,9 @@
 		</execute>
 	</command>
 
-	<command name="UpdateDueDateTaskByActions" priority="4">
+	<command name="UpdateDueDateTaskByActions" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<var name="entryContent" value="Blogs Entry Content" />
 		<var name="entryTitle" value="Blogs Entry Title" />
 		<var name="workflowDueDate" value="10/02/2016" />

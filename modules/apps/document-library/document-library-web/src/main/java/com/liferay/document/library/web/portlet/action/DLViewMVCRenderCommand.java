@@ -33,7 +33,8 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY_ADMIN,
-		"mvc.command.name=/", "mvc.command.name=/document_library/view"
+		"mvc.command.name=/", "mvc.command.name=/document_library/view",
+		"mvc.command.name=/document_library/view_folder"
 	},
 	service = MVCRenderCommand.class
 )
@@ -63,6 +64,6 @@ public class DLViewMVCRenderCommand extends GetFolderMVCRenderCommand {
 		_dlPortletToolbarContributor = dlPortletToolbarContributor;
 	}
 
-	private volatile DLPortletToolbarContributor _dlPortletToolbarContributor;
+	private DLPortletToolbarContributor _dlPortletToolbarContributor;
 
 }
