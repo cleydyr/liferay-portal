@@ -64,6 +64,8 @@ import com.liferay.login.web.constants.LoginPortletKeys;
 import com.liferay.message.boards.web.constants.MBPortletKeys;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessor;
+import com.liferay.portal.kernel.security.auth.FullNameGenerator;
+import com.liferay.portal.kernel.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -121,8 +123,6 @@ import com.liferay.portal.model.impl.RoleModelImpl;
 import com.liferay.portal.model.impl.SubscriptionModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
-import com.liferay.portal.security.auth.FullNameGenerator;
-import com.liferay.portal.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -186,10 +186,10 @@ import com.liferay.portlet.messageboards.model.impl.MBStatsUserModelImpl;
 import com.liferay.portlet.messageboards.model.impl.MBThreadFlagModelImpl;
 import com.liferay.portlet.messageboards.model.impl.MBThreadModelImpl;
 import com.liferay.portlet.messageboards.social.MBActivityKeys;
-import com.liferay.portlet.social.model.SocialActivity;
-import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.social.model.SocialActivityModel;
 import com.liferay.portlet.social.model.impl.SocialActivityModelImpl;
+import com.liferay.social.kernel.model.SocialActivity;
+import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.social.kernel.model.SocialActivityModel;
 import com.liferay.util.SimpleCounter;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -943,7 +943,7 @@ public class DataFactory {
 	}
 
 	public void initJournalArticleContent(int maxJournalArticleSize) {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(6);
 
 		sb.append("<?xml version=\"1.0\"?><root available-locales=\"en_US\" ");
 		sb.append("default-locale=\"en_US\"><dynamic-element name=\"content");
@@ -1296,10 +1296,6 @@ public class DataFactory {
 		sb.append("\"defaultLanguageId\": \"en_US\", \"fields\": [");
 
 		for (int i = 0; i < _maxDDLCustomFieldCount; i++) {
-			if (i != 0) {
-				sb.append(",");
-			}
-
 			sb.append("{\"dataType\": \"string\", \"indexType\": \"keyword\"");
 			sb.append(", \"label\": {\"en_US\": \"Text");
 			sb.append(i);
@@ -1308,6 +1304,11 @@ public class DataFactory {
 			sb.append("\", \"readOnly\": false, \"repeatable\": false,");
 			sb.append("\"required\": false, \"showLabel\": true, \"type\": ");
 			sb.append("\"text\"}");
+			sb.append(",");
+		}
+
+		if (_maxDDLCustomFieldCount > 0) {
+			sb.setIndex(sb.index() - 1);
 		}
 
 		sb.append("]}");
@@ -1433,10 +1434,6 @@ public class DataFactory {
 		sb.append("\"defaultLanguageId\": \"en_US\", \"fieldValues\": [");
 
 		for (int i = 0; i < _maxDDLCustomFieldCount; i++) {
-			if (i != 0) {
-				sb.append(",");
-			}
-
 			sb.append("{\"instanceId\": \"");
 			sb.append(StringUtil.randomId());
 			sb.append("\", \"name\": \"");
@@ -1444,6 +1441,11 @@ public class DataFactory {
 			sb.append("\", \"value\": {\"en_US\": \"Test Record ");
 			sb.append(currentIndex);
 			sb.append("\"}}");
+			sb.append(",");
+		}
+
+		if (_maxDDLCustomFieldCount > 0) {
+			sb.setIndex(sb.index() - 1);
 		}
 
 		sb.append("]}");
@@ -2066,7 +2068,8 @@ public class DataFactory {
 
 		layoutModels.add(
 			newLayoutModel(
-				groupId, "welcome", LoginPortletKeys.LOGIN + ",", "47,"));
+				groupId, "welcome", LoginPortletKeys.LOGIN + ",",
+				"com_liferay_hello_world_web_portlet_HelloWorldPortlet,"));
 		layoutModels.add(
 			newLayoutModel(groupId, "blogs", "", BlogsPortletKeys.BLOGS + ","));
 		layoutModels.add(

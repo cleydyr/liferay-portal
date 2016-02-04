@@ -20,7 +20,7 @@ feature or API will be dropped in an upcoming version.
 replaces an old API, in spite of the old API being kept in Liferay Portal for
 backwards compatibility.
 
-*This document has been reviewed through commit `489b33c`.*
+*This document has been reviewed through commit `61d6186`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -47,7 +47,7 @@ Here's the template to use for each breaking change (note how it ends with a
 horizontal rule):
 
 ```
-### [Title]
+### Title
 - **Date:**
 - **JIRA Ticket:**
 
@@ -125,7 +125,7 @@ New way:
     <liferay-ui:logo-selector
         currentLogoURL="<%= selUser.getPortraitURL(themeDisplay) %>"
         defaultLogoURL="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), selUser.isMale(), 0) %>"
-        hasUpdateLogoPermission='<%= UsersAdminUtil.hasUpdateFieldPermission(selUser, "portrait") %>'
+        hasUpdateLogoPermission='<%= UsersAdminUtil.hasUpdateFieldPermission(permissionChecker, null, selUser, "portrait") %>'
         imageId="<%= selUser.getPortraitId() %>"
         logoDisplaySelector=".user-logo"
         maxFileSize="<%= PrefsPropsUtil.getLong(PropsKeys.USERS_IMAGE_MAX_SIZE) / 1024 %>"
@@ -2449,9 +2449,7 @@ In Velocity:
 
 In FreeMarker:
 
-    <#assign liferay_portlet = PortalJspTagLibs["/WEB-INF/tld/liferay-portlet-ext.tld"] />
-
-    <@liferay_portlet["runtime"] portletName="145" />
+    <@liferay_portlet_ext["runtime"] portletName="145" />
 
 #### Why was this change made?
 
@@ -2986,6 +2984,33 @@ time to focus on other areas of the product that add more value.
 
 ---------------------------------------
 
+### Removed the liferay-ui:asset-categories-navigation Tag and Replaced with liferay-asset:asset-categories-navigation
+- **Date:** 2015-Nov-25
+- **JIRA Ticket:** LPS-60753
+
+#### What changed?
+
+The `liferay-ui:asset-categories-navigation` tag has been removed and replaced
+with the `liferay-asset:asset-categories-navigation` tag.
+
+#### Who is affected?
+
+Plugins or templates that are using the `liferay-ui:asset-categories-navigation`
+tag need to update their usage of the tag.
+
+#### How should I update my code?
+
+You should import the `liferay-asset` tag library (if necessary) and update the
+tag namespace from `liferay-ui:asset-categories-navigation` to
+`liferay-asset:asset-categories-navigation`.
+
+#### Why was this change made?
+
+This change was made as a part of the ongoing strategy to modularize Liferay
+Portal by means of an OSGi container.
+
+---------------------------------------
+
 ### Removed the liferay-ui:trash-empty Tag and Replaced with liferay-trash:empty
 - **Date:** 2015-Nov-30
 - **JIRA Ticket:** LPS-60779
@@ -3196,3 +3221,339 @@ This change was made as a part of the ongoing strategy to modularize Liferay
 Portal by means of an OSGi container.
 
 ---------------------------------------
+
+### Taglibs Are No Longer Accessible via the theme Variable in FreeMarker
+- **Date:** 2016-Jan-06
+- **JIRA Ticket:** LPS-61683
+
+#### What changed?
+
+The `${theme}` variable previously injected in the FreeMarker context providing
+access to various tags and utilities is no longer available.
+
+#### Who is affected?
+
+This affects FreeMarker templates that are using the `${theme}` variable.
+
+#### How should I update my code?
+
+All the tags and utility methods formerly accessed via the `${theme}` variable
+should now be accessed directly via tags.
+
+**Example 1**
+
+    ${theme.runtime("com.liferay.portal.kernel.servlet.taglib.ui.BreadcrumbEntry", portletProviderAction.VIEW, "", default_preferences)}
+
+can be replaced by:
+
+    <@liferay_portlet["runtime"]
+        defaultPreferences=default_preferences
+        portletProviderAction=portletProviderAction.VIEW
+        portletProviderClassName="com.liferay.portal.kernel.servlet.taglib.ui.BreadcrumbEntry"
+    />
+
+**Example 2**
+
+    ${theme.include(content_include)}
+
+can be replaced by:
+
+    <@liferay_util["include"] page=content_include />
+
+**Example 3**
+
+    ${theme.wrapPortlet("portlet.ftl", content_include)}
+
+can be replaced by:
+
+    <@liferay_theme["wrap-portlet"] page="portlet.ftl">
+        <@liferay_util["include"] page=content_include />
+    </@>
+
+**Example 4**
+
+    ${theme.iconHelp(portlet_description)}
+
+can be replaced by:
+
+    <@liferay_ui["icon-help"] message=portlet_description />
+
+**Example 5**
+
+    ${nav_item.icon()}
+
+can be replaced by:
+
+    <@liferay_theme["layout-icon"] layout=${nav_item.getLayout()} />
+
+#### Why was this change made?
+
+Previously, the `{$theme}` variable was being injected with the
+`VelocityTaglibImpl` class. This created coupling between template engines and
+coupling between specific tags and template engines at the same time.
+
+FreeMarker already offers native support for tags which cover all the
+functionality originally provided by the `{$theme}` variable. Removing this
+coupling helps future development while still keeping all the existing
+functionality.
+
+---------------------------------------
+
+### Portlet Configuration Options May Not Always Be Displayed
+- **Date:** 2016-Jan-07
+- **JIRA Ticket:** LPS-54620 and LPS-61820
+
+#### What changed?
+
+The portlet configuration options (e.g., configuration, export/import, look and
+feel, etc.) were always displayed in every view of the portlet and couldn't be
+customized.
+
+With Lexicon, the configuration options displayed are based on the portlet's
+context, so not all options will always be displayed.
+
+#### Who is affected?
+
+This affects portlets that should always display all configuration options no
+matter which view of the portlet is rendered.
+
+#### How should I update my code?
+
+If you don't apply any change to your source code, you will experience the
+following behaviors based on the portlet type:
+
+- **Struts Portlet:** If you've defined a `view-action` init parameter, the
+configuration options are only displayed for that particular view when invoking
+a URL with a parameter `struts_action` with the value indicated in the
+`view-action` init parameter and also in the default view of the portlet (when
+there is no `struts_action` parameter in the request).
+
+- **Liferay MVC Portlet:** If you've defined a `view-template` init parameter,
+the configuration options are only displayed when that template is rendered by
+invoking a URL with a parameter `mvcPath` with the value indicated in the
+`view-template` init parameter. and also in the default view of the portlet
+(when there is no `mvcPath` parameter in the request).
+
+- If it's a portlet using any other framework, the configuration options are
+always displayed.
+
+In order to keep the old behavior of adding the configuration options in every
+view, you need to add the init parameter
+`always-display-default-configuration-icons` with the value `true`.
+
+#### Why was this change made?
+
+Lexicon patterns require the ability to specify different configuration options
+depending on the view of the portlet by adding or removing options. This can be
+easily achieved by using the `PortletConfigurationIcon` and
+`PortletConfigurationIconFactory` classes.
+
+---------------------------------------
+
+### The getURLView Method of AssetRenderer Returns String Instead of PortletURL
+- **Date:** 2016-Jan-08
+- **JIRA Ticket:** LPS-61853
+
+#### What changed?
+
+The `AssetRenderer` interface's `getURLView` method has changed and now returns
+`String` instead of `PortletURL`.
+
+#### Who is affected?
+
+This affects all custom assets that implement the `AssetRenderer` interface.
+
+#### How should I update my code?
+
+You should update the method signature to reflect that it returns a `String` and
+you should adapt your implementation accordingly.
+
+In general, it should be as easy as returning `portletURL.toString()`.
+
+#### Why was this change made?
+
+The API was forcing implementations to return a `PortletURL`, making it
+difficult to return another type of link. For example, in the case of Bookmarks,
+developers wanted to automatically redirect to other potential URLs.
+
+---------------------------------------
+
+### Removed the icon Method from NavItem
+- **Date:** 2016-Jan-11
+- **JIRA Ticket:** LPS-61900
+
+#### What changed?
+
+The `NavItem` interface has changed and the method `icon` that would render the
+nav item icon has been removed.
+
+#### Who is affected?
+
+This affects all themes using the `nav_item.icon()` method.
+
+#### How should I update my code?
+
+You should update your code to call the method `nav_item.iconURL` to return the
+image's URL and then use it as you prefer.
+
+**Example:**
+
+    <img alt="Page Icon" class="layout-logo" src="<%= nav_item.iconURL()" />
+
+To keep the previous behavior in Velocity:
+
+    $theme.layoutIcon($nav_item.getLayout())
+
+To keep the previous behavior in FreeMarker:
+
+    <@liferay_theme["layout-icon"] layout=nav_item_layout />
+
+#### Why was this change made?
+
+The API was forcing developers to have a dependency on a taglib, which didn't
+allow for much flexibility.
+
+---------------------------------------
+
+### Renamed Packages to Fix the Split Packages Problem
+- **Date:** 2016-Jan-19
+- **JIRA Ticket:** LPS-61952
+
+#### What changed?
+
+Split packages are caused when two or more bundles export the same package name
+and version. When the classloader loads a package, exactly one exporter of that
+package is chosen; so if a package is split across multiple bundles, then an
+importer only sees a subset of the package.
+
+#### Who is affected?
+
+The `portal-service` and `portal-impl` folders have many packages with the same
+name. Therefore, all of these packages are affected by the split package
+problem.
+
+#### How should I update my code?
+
+You should rename duplicated package names if they currently exist somewhere
+else.
+
+**Example**
+
+- `com.liferay.portal.jdbc.pool.metrics` &rarr; `com.liferay.portal.kernel.jdbc.pool.metrics`
+
+- `com.liferay.portal.layoutconfiguration.util` &rarr; `com.liferay.portal.kernel.layoutconfiguration.util`
+
+- `com.liferay.portal.layoutconfiguration.util.xml` &rarr; `com.liferay.portal.kernel.layoutconfiguration.util.xml`
+
+- `com.liferay.portal.portletfilerepository` &rarr; `com.liferay.portal.kernel.portletfilerepository`
+
+- `com.liferay.portal.repository.proxy` &rarr; `com.liferay.portal.kernel.repository.proxy`
+
+- `com.liferay.portal.security.auth` &rarr; `com.liferay.portal.kernel.security.auth`
+
+- `com.liferay.portal.security.exportimport` &rarr; `com.liferay.portal.kernel.security.exportimport`
+
+- `com.liferay.portal.security.ldap` &rarr; `com.liferay.portal.kernel.security.ldap`
+
+- `com.liferay.portal.security.membershippolicy` &rarr; `com.liferay.portal.kernel.security.membershippolicy`
+
+- `com.liferay.portal.security.permission` &rarr; `com.liferay.portal.kernel.security.permission`
+
+- `com.liferay.portal.security.permission.comparator` &rarr; `com.liferay.portal.kernel.security.permission.comparator`
+
+- `com.liferay.portal.security.pwd` &rarr; `com.liferay.portal.kernel.security.pwd`
+
+- `com.liferay.portal.security.xml` &rarr; `com.liferay.portal.kernel.security.xml`
+
+- `com.liferay.portal.verify.model` &rarr; `com.liferay.portal.kernel.verify.model`
+
+- `com.liferay.portal.webserver` &rarr; `com.liferay.portal.kernel.webserver`
+
+- `com.liferay.portlet.announcements` &rarr; `com.liferay.announcements.kernel`
+
+- `com.liferay.portlet.backgroundtask` &rarr; `com.liferay.background.task.kernel`
+
+- `com.liferay.portlet.dynamicdatamapping` &rarr; `com.liferay.dynamic.data.mapping.kernel`
+
+- `com.liferay.portlet.imagegallerydisplay.display.context` &rarr; `com.liferay.image.gallery.display.kernel.display.context`
+
+- `com.liferay.portlet.journal.util` &rarr; `com.liferay.journal.kernel.util`
+
+- `com.liferay.portlet.layoutsadmin.util` &rarr; `com.liferay.layouts.admin.kernel.util`
+
+- `com.liferay.portlet.mobiledevicerules` &rarr; `com.liferay.mobile.device.rules`
+
+- `com.liferay.portlet.portletconfiguration.util` &rarr; `com.liferay.portlet.configuration.kernel.util`
+
+- `com.liferay.portlet.rolesadmin.util` &rarr; `com.liferay.roles.admin.kernel.util`
+
+- `com.liferay.portlet.sites.util` &rarr; `com.liferay.sites.kernel.util`
+
+- `com.liferay.portlet.social` &rarr; `com.liferay.social.kernel`
+
+- `com.liferay.portlet.trash` &rarr; `com.liferay.trash.kernel`
+
+- `com.liferay.portlet.useradmin.util` &rarr; `com.liferay.users.admin.kernel.util`
+
+#### Why was this change made?
+
+This change was necessary to solve the current split package problems and
+prevent future ones.
+
+---------------------------------------
+
+### The title Field of FileEntry Models is Now Mandatory
+- **Date:** 2016-Jan-25
+- **JIRA Ticket:** LPS-62251
+
+#### What changed?
+
+The `title` field of file entries was optional as long as a source file name was
+provided. To avoid confusion, the title is now required by the API and is filled
+automatically by the UI when a source file name is present.
+
+#### Who is affected?
+
+This affects any user of the local or remote API. Users of the Web UI are
+unaffected.
+
+#### How should I update my code?
+
+You should pass a non-null, non-empty string for the `title` parameter of the
+`addFileEntry` and `updateFileEntry` methods.
+
+#### Why was this change made?
+
+The `title` field was marked as mandatory, but it was possible to create a
+document without filling it, as the backend would infer a value from the source
+file name automatically. This was considered confusing from a UX perspective.
+
+---------------------------------------
+
+### DLUtil.getImagePreviewURL and DLUtil.getThumbnailSrc can return blank
+- **Date:** 2016-Jan-28
+- **JIRA Ticket:** LPS-62643
+
+#### What changed?
+
+DLUtil.getImagePreviewURL and DLUtil.getThumbnailSrc will return a blank
+string if there are not previews or thumbnails for the specific image, video or
+document.
+
+Before, if there was no previews or thumbnail it would return a url to a image
+based on the document.
+
+#### Who is affected?
+
+Any developer invoking DLUtil.getImagePreviewURL or DLUtil.getThumbnailSrc.
+
+#### How should I update my code?
+
+You should take into account that the method could return a blank string and act
+accordingly. For example, you could display the `documents-and-media` lexicon
+icon instead.
+
+#### Why was this change made?
+
+In order to display the `documents-and-media` lexicon icon in Documents and
+Media this change was necessary.

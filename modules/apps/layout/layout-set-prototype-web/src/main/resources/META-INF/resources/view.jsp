@@ -40,43 +40,44 @@ PortletURL portletURL = renderResponse.createRenderURL();
 <liferay-ui:error exception="<%= RequiredLayoutSetPrototypeException.class %>" message="you-cannot-delete-site-templates-that-are-used-by-a-site" />
 
 <aui:nav-bar markupView="lexicon">
+	<portlet:renderURL var="mainURL" />
+
 	<aui:nav cssClass="navbar-nav">
-		<aui:nav-item label="templates" selected="<%= true %>" />
+		<aui:nav-item href="<%= mainURL.toString() %>" label="templates" selected="<%= true %>" />
 	</aui:nav>
 </aui:nav-bar>
 
-<c:if test='<%= (layoutSetPrototypesCount > 0) || !navigation.equals("all") %>'>
-	<liferay-frontend:management-bar
-		includeCheckBox="<%= true %>"
-		searchContainerId="layoutSetPrototype"
-	>
-		<liferay-frontend:management-bar-filters>
-			<liferay-frontend:management-bar-navigation
-				navigationKeys='<%= new String[] {"all", "active", "inactive"} %>'
-				portletURL="<%= renderResponse.createRenderURL() %>"
-			/>
+<liferay-frontend:management-bar
+	disabled="<%= layoutSetPrototypesCount <= 0 %>"
+	includeCheckBox="<%= true %>"
+	searchContainerId="layoutSetPrototype"
+>
+	<liferay-frontend:management-bar-filters>
+		<liferay-frontend:management-bar-navigation
+			navigationKeys='<%= new String[] {"all", "active", "inactive"} %>'
+			portletURL="<%= renderResponse.createRenderURL() %>"
+		/>
 
-			<liferay-frontend:management-bar-sort
-				orderByCol="<%= orderByCol %>"
-				orderByType="<%= orderByType %>"
-				orderColumns='<%= new String[] {"create-date"} %>'
-				portletURL="<%= renderResponse.createRenderURL() %>"
-			/>
-		</liferay-frontend:management-bar-filters>
+		<liferay-frontend:management-bar-sort
+			orderByCol="<%= orderByCol %>"
+			orderByType="<%= orderByType %>"
+			orderColumns='<%= new String[] {"create-date"} %>'
+			portletURL="<%= renderResponse.createRenderURL() %>"
+		/>
+	</liferay-frontend:management-bar-filters>
 
-		<liferay-frontend:management-bar-buttons>
-			<liferay-frontend:management-bar-display-buttons
-				displayViews='<%= new String[] {"list"} %>'
-				portletURL="<%= portletURL %>"
-				selectedDisplayStyle="<%= displayStyle %>"
-			/>
-		</liferay-frontend:management-bar-buttons>
+	<liferay-frontend:management-bar-buttons>
+		<liferay-frontend:management-bar-display-buttons
+			displayViews='<%= new String[] {"list"} %>'
+			portletURL="<%= portletURL %>"
+			selectedDisplayStyle="<%= displayStyle %>"
+		/>
+	</liferay-frontend:management-bar-buttons>
 
-		<liferay-frontend:management-bar-action-buttons>
-			<liferay-frontend:management-bar-button href="javascript:;" icon="trash" id="deleteSelectedLayoutSetPrototypes" label="delete" />
-		</liferay-frontend:management-bar-action-buttons>
-	</liferay-frontend:management-bar>
-</c:if>
+	<liferay-frontend:management-bar-action-buttons>
+		<liferay-frontend:management-bar-button href="javascript:;" icon="trash" id="deleteSelectedLayoutSetPrototypes" label="delete" />
+	</liferay-frontend:management-bar-action-buttons>
+</liferay-frontend:management-bar>
 
 <portlet:actionURL name="deleteLayoutSetPrototypes" var="deleteLayoutSetPrototypesURL">
 	<portlet:param name="redirect" value="<%= currentURL %>" />
@@ -131,6 +132,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 			%>
 
 			<liferay-ui:search-container-column-text
+				cssClass="text-strong"
 				name="name"
 			>
 

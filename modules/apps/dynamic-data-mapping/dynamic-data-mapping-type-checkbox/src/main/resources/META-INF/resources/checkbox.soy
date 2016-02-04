@@ -11,6 +11,7 @@
  * @param showAsSwitcher
  * @param showLabel
  * @param status
+ * @param tip
  * @param visible
  */
 {template .checkbox}
@@ -21,17 +22,20 @@
 					<input class="hide toggle-switch" {if $readOnly}disabled{/if} id="{$name}" name="{$name}" type="checkbox" {$status} value="true" />
 
 					<span aria-hidden="true" class="toggle-switch-bar">
-						<span class="toggle-switch-handle">
-							<span class="toggle-switch-text">
-								{$label}
+						<span class="toggle-switch-handle"></span>
+					</span>
+					<span class="toggle-switch-text toggle-switch-text-right">
+						{$label}
 
-								{if $required}
-									<b>*</b>
-								{/if}
-							</span>
-						</span>
+						{if $required}
+							<span class="icon-asterisk text-warning"></span>
+						{/if}
 					</span>
 				</label>
+
+				{if $tip}
+					<p class="liferay-ddm-form-field-tip">{$tip}</p>
+				{/if}
 			</div>
 		{else}
 			<div class="checkbox checkbox-default">
@@ -46,6 +50,10 @@
 							<b>*</b>
 						{/if}
 					</label>
+
+					{if $tip}
+						<p class="liferay-ddm-form-field-tip">{$tip}</p>
+					{/if}
 				{/if}
 			</div>
 		{/if}

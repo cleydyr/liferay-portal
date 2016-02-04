@@ -142,6 +142,8 @@ public interface WebKeys {
 
 	public static final String ENCRYPT = "shuo";
 
+	public static final String ERROR_SECTION = "errorSection";
+
 	public static final String EXPANDO_COLUMN = "EXPANDO_COLUMN";
 
 	public static final String EXTEND_SESSION = "EXTEND_SESSION";
@@ -312,6 +314,8 @@ public interface WebKeys {
 	public static final String MESSAGE_BOARDS_CATEGORY = "MESSAGE_BOARDS_CATEGORY";
 
 	public static final String MESSAGE_BOARDS_MESSAGE = "MESSAGE_BOARDS_MESSAGE";
+
+	public static final String MESSAGE_BOARDS_MESSAGE_DISPLAY = "MESSAGE_BOARDS_MESSAGE_DISPLAY";
 
 	public static final String MESSAGE_BOARDS_TREE_WALKER = "MESSAGE_BOARDS_TREE_WALKER";
 
@@ -583,6 +587,8 @@ public interface WebKeys {
 	public static final String TASK_LIST = "TASK_LIST";
 
 	public static final String TEAM = "TEAM";
+
+	public static final String TEMPLATE = "TEMPLATE";
 
 	public static final String THEME = "THEME";
 

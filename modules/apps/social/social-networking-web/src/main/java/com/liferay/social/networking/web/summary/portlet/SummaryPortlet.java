@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -29,7 +30,6 @@ import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.GroupLocalService;
 import com.liferay.portal.service.OrganizationLocalService;
 import com.liferay.portal.service.RoleLocalService;
@@ -40,9 +40,9 @@ import com.liferay.portal.service.permission.UserPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.service.ExpandoValueLocalService;
-import com.liferay.portlet.social.model.SocialRelationConstants;
-import com.liferay.portlet.social.service.SocialRelationLocalService;
-import com.liferay.portlet.social.service.SocialRequestLocalService;
+import com.liferay.social.kernel.model.SocialRelationConstants;
+import com.liferay.social.kernel.service.SocialRelationLocalService;
+import com.liferay.social.kernel.service.SocialRequestLocalService;
 import com.liferay.social.networking.friends.social.FriendsRequestKeys;
 import com.liferay.social.networking.members.social.MembersRequestKeys;
 import com.liferay.social.networking.service.MeetupsEntryLocalService;
@@ -370,12 +370,12 @@ public class SummaryPortlet extends MVCPortlet {
 		WallEntryLocalService wallEntryLocalService) {
 	}
 
-	private volatile ExpandoValueLocalService _expandoValueLocalService;
-	private volatile GroupLocalService _groupLocalService;
-	private volatile OrganizationLocalService _organizationLocalService;
-	private volatile RoleLocalService _roleLocalService;
-	private volatile SocialRelationLocalService _socialRelationLocalService;
-	private volatile SocialRequestLocalService _socialRequestLocalService;
-	private volatile UserLocalService _userLocalService;
+	private ExpandoValueLocalService _expandoValueLocalService;
+	private GroupLocalService _groupLocalService;
+	private OrganizationLocalService _organizationLocalService;
+	private RoleLocalService _roleLocalService;
+	private SocialRelationLocalService _socialRelationLocalService;
+	private SocialRequestLocalService _socialRequestLocalService;
+	private UserLocalService _userLocalService;
 
 }

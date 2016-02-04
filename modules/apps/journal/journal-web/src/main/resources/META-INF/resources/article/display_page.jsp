@@ -63,7 +63,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 		Group parentGroup = themeDisplay.getSiteGroup();
 		%>
 
-		<liferay-ui:error-marker key="errorSection" value="display-page" />
+		<liferay-ui:error-marker key="<%= WebKeys.ERROR_SECTION %>" value="display-page" />
 
 		<div class="alert alert-info">
 			<liferay-ui:message key="default-display-page-help" />
@@ -83,9 +83,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 			</div>
 		</div>
 
-		<aui:button-row>
-			<aui:button cssClass="btn-lg" name="chooseDisplayPage" value="choose" />
-		</aui:button-row>
+		<aui:button cssClass="btn-lg" name="chooseDisplayPage" value="choose" />
 
 		<c:if test="<%= (article != null) && Validator.isNotNull(layoutUuid) %>">
 

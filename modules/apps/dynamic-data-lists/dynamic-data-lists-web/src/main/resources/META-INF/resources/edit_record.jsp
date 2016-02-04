@@ -47,17 +47,25 @@ if (recordVersion != null) {
 String defaultLanguageId = ParamUtil.getString(request, "defaultLanguageId");
 
 if (Validator.isNull(defaultLanguageId)) {
-	defaultLanguageId = themeDisplay.getLanguageId();
+	defaultLanguageId = LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault());
 }
 
 Locale[] availableLocales = new Locale[] {LocaleUtil.fromLanguageId(defaultLanguageId)};
+
+boolean changeableDefaultLanguage = ddlWebConfiguration.changeableDefaultLanguage();
 
 if (ddmFormValues != null) {
 	Set<Locale> availableLocalesSet = ddmFormValues.getAvailableLocales();
 
 	availableLocales = availableLocalesSet.toArray(new Locale[availableLocalesSet.size()]);
 
-	defaultLanguageId = LocaleUtil.toLanguageId(ddmFormValues.getDefaultLocale());
+	String ddmFormValueDefaultLanguageId = LocaleUtil.toLanguageId(ddmFormValues.getDefaultLocale());
+
+	if (!Validator.equals(defaultLanguageId, ddmFormValueDefaultLanguageId)) {
+		changeableDefaultLanguage = true;
+	}
+
+	defaultLanguageId = ddmFormValueDefaultLanguageId;
 }
 
 String languageId = ParamUtil.getString(request, "languageId", defaultLanguageId);
@@ -96,6 +104,7 @@ else {
 	<aui:input name="recordId" type="hidden" value="<%= recordId %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 	<aui:input name="recordSetId" type="hidden" value="<%= recordSetId %>" />
+	<aui:input name="formDDMTemplateId" type="hidden" value="<%= formDDMTemplateId %>" />
 	<aui:input name="defaultLanguageId" type="hidden" value="<%= defaultLanguageId %>" />
 	<aui:input name="languageId" type="hidden" value="<%= languageId %>" />
 	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
@@ -131,6 +140,7 @@ else {
 		<c:if test="<%= !translating %>">
 			<aui:translation-manager
 				availableLocales="<%= availableLocales %>"
+				changeableDefaultLanguage="<%= changeableDefaultLanguage %>"
 				defaultLanguageId="<%= defaultLanguageId %>"
 				id="translationManager"
 			/>

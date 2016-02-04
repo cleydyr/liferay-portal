@@ -125,13 +125,21 @@ summary.setQueryTerms(queryTerms);
 			<div class="entry-attachment">
 				<aui:a class="lfr-discussion-details" href="<%= url %>">
 					<div class="image">
-						<img alt="<%= HtmlUtil.escapeAttribute(fileEntry.getTitle()) %>" class="attachment" src="<%= DLUtil.getThumbnailSrc(fileEntry, themeDisplay) %>" />
+
+						<%
+						String fileEntryThumbnailSrc = DLUtil.getThumbnailSrc(fileEntry, themeDisplay);
+						%>
+
+						<c:if test="<%= Validator.isNotNull(fileEntryThumbnailSrc) %>">
+							<img alt="<%= HtmlUtil.escapeAttribute(fileEntry.getTitle()) %>" class="attachment" src="<%= fileEntryThumbnailSrc %>" />
+						</c:if>
 					</div>
 
 					<span class="title">
 						<liferay-ui:icon
-							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+							icon="<%= assetRenderer.getIconCssClass() %>"
 							label="<%= true %>"
+							markupView="lexicon"
 							message='<%= LanguageUtil.format(locale, "attachment-added-by-x", HtmlUtil.escape(fileEntry.getUserName()), false) %>'
 						/>
 					</span>

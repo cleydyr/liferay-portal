@@ -14,16 +14,16 @@
 
 package com.liferay.site.teams.web.portlet;
 
-import com.liferay.portal.DuplicateTeamException;
-import com.liferay.portal.NoSuchGroupException;
-import com.liferay.portal.NoSuchTeamException;
-import com.liferay.portal.TeamNameException;
+import com.liferay.portal.exception.DuplicateTeamException;
+import com.liferay.portal.exception.NoSuchGroupException;
+import com.liferay.portal.exception.NoSuchTeamException;
+import com.liferay.portal.exception.TeamNameException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Team;
-import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.service.TeamService;
@@ -233,8 +233,8 @@ public class SiteTeamsPortlet extends MVCPortlet {
 		_userService = userService;
 	}
 
-	private volatile TeamService _teamService;
-	private volatile UserGroupService _userGroupService;
-	private volatile UserService _userService;
+	private TeamService _teamService;
+	private UserGroupService _userGroupService;
+	private UserService _userService;
 
 }

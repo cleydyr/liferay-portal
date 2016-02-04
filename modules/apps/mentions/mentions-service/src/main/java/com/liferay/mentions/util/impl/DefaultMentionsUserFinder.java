@@ -22,8 +22,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.UserLocalService;
 import com.liferay.portal.util.comparator.UserScreenNameComparator;
-import com.liferay.portlet.social.model.SocialRelationConstants;
-import com.liferay.portlet.social.util.SocialInteractionsConfiguration;
+import com.liferay.social.kernel.model.SocialRelationConstants;
+import com.liferay.social.kernel.util.SocialInteractionsConfiguration;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -95,6 +95,6 @@ public class DefaultMentionsUserFinder implements MentionsUserFinder {
 
 	private static final int _MAX_USERS = 100;
 
-	private volatile UserLocalService _userLocalService;
+	private UserLocalService _userLocalService;
 
 }

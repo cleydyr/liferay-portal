@@ -20,7 +20,6 @@
 Group selGroup = (Group)request.getAttribute(WebKeys.GROUP);
 
 Group group = layoutsAdminDisplayContext.getGroup();
-Group liveGroup = layoutsAdminDisplayContext.getLiveGroup();
 
 Layout selLayout = layoutsAdminDisplayContext.getSelLayout();
 
@@ -70,16 +69,6 @@ if (layoutRevision != null) {
 renderResponse.setTitle(selLayout.getName(locale));
 %>
 
-<c:if test="<%= !group.isLayoutPrototype() && (selLayout != null) %>">
-	<aui:nav-bar>
-		<aui:nav cssClass="navbar-nav" id="layoutsNav">
-			<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selLayout, ActionKeys.DELETE) %>">
-				<aui:nav-item cssClass="remove-layout" label="delete" />
-			</c:if>
-		</aui:nav>
-	</aui:nav-bar>
-</c:if>
-
 <c:choose>
 	<c:when test="<%= incomplete %>">
 		<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(selLayout.getName(locale)), HtmlUtil.escape(layoutSetBranchName)} %>" key="the-page-x-is-not-enabled-in-x,-but-is-available-in-other-pages-variations" translateArguments="<%= false %>" />
@@ -107,7 +96,7 @@ renderResponse.setTitle(selLayout.getName(locale));
 			<portlet:actionURL name="deleteLayout" var="deleteLayoutURL">
 				<portlet:param name="mvcPath" value="/view.jsp" />
 				<portlet:param name="redirect" value='<%= HttpUtil.addParameter(redirectURL.toString(), liferayPortletResponse.getNamespace() + "selPlid", selLayout.getParentPlid()) %>' />
-				<portlet:param name="plid" value="<%= String.valueOf(layoutsAdminDisplayContext.getSelPlid()) %>" />
+				<portlet:param name="selPlid" value="<%= String.valueOf(layoutsAdminDisplayContext.getSelPlid()) %>" />
 				<portlet:param name="layoutSetBranchId" value="0" />
 				<portlet:param name="selPlid" value="<%= String.valueOf(selLayout.getParentPlid()) %>" />
 			</portlet:actionURL>
@@ -129,7 +118,7 @@ renderResponse.setTitle(selLayout.getName(locale));
 
 		<aui:form action='<%= HttpUtil.addParameter(editLayoutURL, "refererPlid", plid) %>' cssClass="edit-layout-form" enctype="multipart/form-data" method="post" name="fm">
 			<aui:input name="redirect" type="hidden" value='<%= HttpUtil.addParameter(redirectURL.toString(), liferayPortletResponse.getNamespace() + "selPlid", layoutsAdminDisplayContext.getSelPlid()) %>' />
-			<aui:input name="groupId" type="hidden" value="<%= selGroup.getGroupId() %>" />
+			<aui:input name="groupId" type="hidden" value="<%= layoutsAdminDisplayContext.getGroupId() %>" />
 			<aui:input name="liveGroupId" type="hidden" value="<%= layoutsAdminDisplayContext.getLiveGroupId() %>" />
 			<aui:input name="stagingGroupId" type="hidden" value="<%= layoutsAdminDisplayContext.getStagingGroupId() %>" />
 			<aui:input name="selPlid" type="hidden" value="<%= layoutsAdminDisplayContext.getSelPlid() %>" />
@@ -186,25 +175,3 @@ renderResponse.setTitle(selLayout.getName(locale));
 		</aui:form>
 	</c:otherwise>
 </c:choose>
-
-<%
-redirectURL.setParameter("selPlid", String.valueOf(selLayout.getParentPlid()));
-%>
-
-<portlet:actionURL name="deleteLayout" var="deleteLayoutURL">
-	<portlet:param name="mvcPath" value="/view.jsp" />
-	<portlet:param name="redirect" value="<%= redirectURL.toString() %>" />
-	<portlet:param name="plid" value="<%= String.valueOf(layoutsAdminDisplayContext.getSelPlid()) %>" />
-</portlet:actionURL>
-
-<aui:script use="aui-base">
-	A.one('#<portlet:namespace />layoutsNav').delegate(
-		'click',
-		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-the-selected-page") %>')) {
-				submitForm(document.hrefFm, '<%= deleteLayoutURL %>');
-			}
-		},
-		'.remove-layout'
-	);
-</aui:script>

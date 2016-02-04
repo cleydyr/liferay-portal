@@ -14,19 +14,14 @@
 
 package com.liferay.dynamic.data.lists.form.web.portlet;
 
-import com.liferay.dynamic.data.lists.exception.NoSuchRecordSetException;
 import com.liferay.dynamic.data.lists.form.web.constants.DDLFormPortletKeys;
 import com.liferay.dynamic.data.lists.form.web.constants.DDLFormWebKeys;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordSetSettings;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetService;
 import com.liferay.dynamic.data.mapping.constants.DDMWebKeys;
-import com.liferay.dynamic.data.mapping.exception.NoSuchStructureException;
-import com.liferay.dynamic.data.mapping.exception.NoSuchStructureLayoutException;
-import com.liferay.dynamic.data.mapping.exception.StorageFieldValueException;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
-import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingException;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -35,10 +30,9 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.portal.PortletPreferencesException;
-import com.liferay.portal.kernel.captcha.CaptchaMaxChallengesException;
-import com.liferay.portal.kernel.captcha.CaptchaTextException;
+import com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
@@ -46,7 +40,13 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PrefsParamUtil;
-import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutConstants;
+import com.liferay.portal.service.WorkflowDefinitionLinkLocalService;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
@@ -54,6 +54,8 @@ import java.io.IOException;
 
 import java.util.List;
 
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
@@ -97,6 +99,45 @@ import org.osgi.service.component.annotations.Reference;
 	service = Portlet.class
 )
 public class DDLFormPortlet extends MVCPortlet {
+
+	@Override
+	public void processAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws IOException, PortletException {
+
+		try {
+			super.processAction(actionRequest, actionResponse);
+		}
+		catch (Exception e) {
+			Throwable cause = getRootCause(e);
+
+			hideDefaultErrorMessage(actionRequest);
+
+			if (cause instanceof DDMFormValuesValidationException) {
+				if (cause instanceof
+						DDMFormValuesValidationException.MustSetValidValues ||
+					cause instanceof
+						DDMFormValuesValidationException.RequiredValue) {
+
+					SessionErrors.add(actionRequest, cause.getClass(), cause);
+				}
+				else {
+					SessionErrors.add(
+						actionRequest, DDMFormValuesValidationException.class);
+				}
+			}
+			else {
+				SessionErrors.add(actionRequest, cause.getClass(), cause);
+			}
+
+			if (isSharedLayout(actionRequest)) {
+				actionRequest.setAttribute(
+					WebKeys.REDIRECT, getPublishedFormURL(actionRequest));
+
+				sendRedirect(actionRequest, actionResponse);
+			}
+		}
+	}
 
 	@Override
 	public void render(
@@ -170,33 +211,6 @@ public class DDLFormPortlet extends MVCPortlet {
 		return ddmFormLayoutRow;
 	}
 
-	@Override
-	protected void doDispatch(
-			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws IOException, PortletException {
-
-		if (SessionErrors.contains(
-				renderRequest, DDMFormRenderingException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchRecordSetException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchStructureException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest,
-				NoSuchStructureLayoutException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest,
-				PortletPreferencesException.MustBeStrict.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, PrincipalException.getNestedClasses())) {
-
-			include(templatePath + "error.jsp", renderRequest, renderResponse);
-		}
-		else {
-			super.doDispatch(renderRequest, renderResponse);
-		}
-	}
-
 	protected DDMForm getDDMForm(
 		RenderResponse renderResponse, DDMStructure ddmStructure,
 		boolean requireCaptcha) {
@@ -235,6 +249,13 @@ public class DDLFormPortlet extends MVCPortlet {
 			createDDMFormRenderingContext(
 				renderRequest, renderResponse, ddmForm);
 
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String submitLabel = getSubmitLabel(recordSet, themeDisplay);
+
+		ddmFormRenderingContext.setSubmitLabel(submitLabel);
+
 		return _ddmFormRenderer.render(
 			ddmForm, ddmFormLayout, ddmFormRenderingContext);
 	}
@@ -267,6 +288,54 @@ public class DDLFormPortlet extends MVCPortlet {
 		return ddmFormLayoutPages.get(ddmFormLayoutPages.size() - 1);
 	}
 
+	protected String getPublishedFormURL(ActionRequest actionRequest) {
+		String recordSetId = ParamUtil.getString(actionRequest, "recordSetId");
+
+		StringBundler sb = new StringBundler(4);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Group group = themeDisplay.getSiteGroup();
+
+		sb.append(themeDisplay.getPortalURL());
+		sb.append(group.getPathFriendlyURL(false, themeDisplay));
+		sb.append("/forms/shared/-/form/");
+		sb.append(recordSetId);
+
+		return sb.toString();
+	}
+
+	protected Throwable getRootCause(Throwable throwable) {
+		while (throwable.getCause() != null) {
+			throwable = throwable.getCause();
+		}
+
+		return throwable;
+	}
+
+	protected String getSubmitLabel(
+		DDLRecordSet recordSet, ThemeDisplay themeDisplay) {
+
+		boolean workflowEnabled = hasWorkflowEnabled(recordSet, themeDisplay);
+
+		if (workflowEnabled) {
+			return LanguageUtil.get(
+				themeDisplay.getRequest(), "submit-for-publication");
+		}
+		else {
+			return LanguageUtil.get(themeDisplay.getRequest(), "submit");
+		}
+	}
+
+	protected boolean hasWorkflowEnabled(
+		DDLRecordSet recordSet, ThemeDisplay themeDisplay) {
+
+		return _workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
+			themeDisplay.getCompanyId(), recordSet.getGroupId(),
+			DDLRecordSet.class.getName(), recordSet.getRecordSetId());
+	}
+
 	protected boolean isCaptchaRequired(DDLRecordSet recordSet) {
 		DDLRecordSetSettings recordSetSettings = recordSet.getSettingsModel();
 
@@ -275,20 +344,18 @@ public class DDLFormPortlet extends MVCPortlet {
 
 	@Override
 	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof DDMFormRenderingException ||
-			cause instanceof CaptchaTextException ||
-			cause instanceof CaptchaMaxChallengesException ||
-			cause instanceof NoSuchRecordSetException ||
-			cause instanceof NoSuchStructureException ||
-			cause instanceof NoSuchStructureLayoutException ||
-			cause instanceof PortletPreferencesException ||
-			cause instanceof PrincipalException ||
-			cause instanceof StorageFieldValueException) {
-
-			return true;
-		}
-
 		return false;
+	}
+
+	protected boolean isSharedLayout(ActionRequest actionRequest) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Layout layout = themeDisplay.getLayout();
+
+		String type = layout.getType();
+
+		return type.equals(LayoutConstants.TYPE_SHARED_PORTLET);
 	}
 
 	@Reference(unbind = "-")
@@ -334,12 +401,22 @@ public class DDLFormPortlet extends MVCPortlet {
 			DDMWebKeys.DYNAMIC_DATA_MAPPING_FORM_HTML, ddmFormHTML);
 	}
 
+	@Reference(unbind = "-")
+	protected void setWorkflowDefinitionLinkLocalService(
+		WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService) {
+
+		_workflowDefinitionLinkLocalService =
+			workflowDefinitionLinkLocalService;
+	}
+
 	private static final String _DDM_FORM_FIELD_NAME_CAPTCHA = "_CAPTCHA_";
 
 	private static final Log _log = LogFactoryUtil.getLog(DDLFormPortlet.class);
 
-	private volatile DDLRecordSetService _ddlRecordSetService;
-	private volatile DDMFormRenderer _ddmFormRenderer;
-	private volatile DDMFormValuesFactory _ddmFormValuesFactory;
+	private DDLRecordSetService _ddlRecordSetService;
+	private DDMFormRenderer _ddmFormRenderer;
+	private DDMFormValuesFactory _ddmFormValuesFactory;
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
 
 }

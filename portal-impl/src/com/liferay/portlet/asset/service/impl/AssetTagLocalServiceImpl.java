@@ -26,14 +26,14 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portlet.asset.AssetTagException;
-import com.liferay.portlet.asset.DuplicateTagException;
+import com.liferay.portlet.asset.exception.AssetTagException;
+import com.liferay.portlet.asset.exception.DuplicateTagException;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetTag;
 import com.liferay.portlet.asset.service.base.AssetTagLocalServiceBaseImpl;
 import com.liferay.portlet.asset.util.AssetUtil;
 import com.liferay.portlet.asset.util.comparator.AssetTagNameComparator;
-import com.liferay.portlet.social.util.SocialCounterPeriodUtil;
+import com.liferay.social.kernel.util.SocialCounterPeriodUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;

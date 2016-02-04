@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.ldap;
 
+import com.liferay.portal.kernel.security.ldap.LDAPSettingsUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SyntheticBundleRule;
@@ -40,7 +41,8 @@ public class LDAPSettingsUtilTest {
 	@Test
 	public void testGetAuthSearchFilter() throws Exception {
 		Assert.assertEquals(
-			"(companyId=1)", LDAPSettingsUtil.getAuthSearchFilter(
+			"(companyId=1)",
+			LDAPSettingsUtil.getAuthSearchFilter(
 				1, 1, "test@liferay-test.com", "test-ip", "test"));
 	}
 

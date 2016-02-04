@@ -24,12 +24,12 @@ import com.liferay.portal.service.GroupLocalService;
 import com.liferay.portal.service.OrganizationLocalService;
 import com.liferay.portal.service.UserLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portlet.social.model.BaseSocialRequestInterpreter;
-import com.liferay.portlet.social.model.SocialRequest;
-import com.liferay.portlet.social.model.SocialRequestConstants;
-import com.liferay.portlet.social.model.SocialRequestFeedEntry;
-import com.liferay.portlet.social.model.SocialRequestInterpreter;
-import com.liferay.portlet.social.service.SocialActivityLocalService;
+import com.liferay.social.kernel.model.BaseSocialRequestInterpreter;
+import com.liferay.social.kernel.model.SocialRequest;
+import com.liferay.social.kernel.model.SocialRequestConstants;
+import com.liferay.social.kernel.model.SocialRequestFeedEntry;
+import com.liferay.social.kernel.model.SocialRequestInterpreter;
+import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.social.networking.constants.SocialNetworkingPortletKeys;
 import com.liferay.social.networking.members.social.MembersActivityKeys;
 import com.liferay.social.networking.members.social.MembersRequestKeys;
@@ -180,9 +180,9 @@ public class MembersRequestInterpreter extends BaseSocialRequestInterpreter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		MembersRequestInterpreter.class);
 
-	private volatile GroupLocalService _groupLocalService;
-	private volatile OrganizationLocalService _organizationLocalService;
-	private volatile SocialActivityLocalService _socialActivityLocalService;
-	private volatile UserLocalService _userLocalService;
+	private GroupLocalService _groupLocalService;
+	private OrganizationLocalService _organizationLocalService;
+	private SocialActivityLocalService _socialActivityLocalService;
+	private UserLocalService _userLocalService;
 
 }

@@ -16,6 +16,7 @@ package com.liferay.portal.model;
 
 import aQute.bnd.annotation.ProviderType;
 
+import com.liferay.portal.kernel.annotation.ImplementationClassName;
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -27,6 +28,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.PortletModelImpl
  * @generated
  */
+@ImplementationClassName("com.liferay.portal.model.impl.PortletImpl")
 @ProviderType
 public interface Portlet extends PortletModel, PersistedModel {
 	/*
@@ -554,7 +556,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	*
 	* @return the permission propagator instance of the portlet
 	*/
-	public com.liferay.portal.security.permission.PermissionPropagator getPermissionPropagatorInstance();
+	public com.liferay.portal.kernel.security.permission.PermissionPropagator getPermissionPropagatorInstance();
 
 	/**
 	* Returns the plugin ID of the portlet.
@@ -919,7 +921,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	*
 	* @return the social activity interpreter instances of the portlet
 	*/
-	public java.util.List<com.liferay.portlet.social.model.SocialActivityInterpreter> getSocialActivityInterpreterInstances();
+	public java.util.List<com.liferay.social.kernel.model.SocialActivityInterpreter> getSocialActivityInterpreterInstances();
 
 	/**
 	* Returns the name of the social request interpreter class of the portlet.
@@ -935,7 +937,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	* @return the name of the social request interpreter instance of the
 	portlet
 	*/
-	public com.liferay.portlet.social.model.SocialRequestInterpreter getSocialRequestInterpreterInstance();
+	public com.liferay.social.kernel.model.SocialRequestInterpreter getSocialRequestInterpreterInstance();
 
 	/**
 	* Returns the names of the classes that represent staged model data

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.auth;
 
+import com.liferay.portal.kernel.security.auth.ScreenNameGenerator;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SyntheticBundleRule;
@@ -41,7 +42,8 @@ public class ScreenNameGeneratorFactoryTest {
 			ScreenNameGeneratorFactory.getInstance();
 
 		Assert.assertEquals(
-			"1-1", screenNameGenerator.generate(
+			"1-1",
+			screenNameGenerator.generate(
 				1, 1, "test@screenamegeneratorfactorytest.com"));
 	}
 

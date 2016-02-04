@@ -15,10 +15,12 @@
 package com.liferay.message.boards.web.social;
 
 import com.liferay.message.boards.web.constants.MBPortletKeys;
+import com.liferay.message.boards.web.util.MBResourceBundleLoader;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
@@ -26,10 +28,10 @@ import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBMessageLocalService;
 import com.liferay.portlet.messageboards.service.MBThreadLocalService;
 import com.liferay.portlet.messageboards.service.permission.MBMessagePermission;
-import com.liferay.portlet.social.model.BaseSocialActivityInterpreter;
-import com.liferay.portlet.social.model.SocialActivity;
-import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.social.model.SocialActivityInterpreter;
+import com.liferay.social.kernel.model.BaseSocialActivityInterpreter;
+import com.liferay.social.kernel.model.SocialActivity;
+import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.social.kernel.model.SocialActivityInterpreter;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -92,6 +94,11 @@ public class MBThreadActivityInterpreter extends BaseSocialActivityInterpreter {
 
 		return "/message_boards/find_message?messageId=" +
 			thread.getRootMessageId();
+	}
+
+	@Override
+	protected ResourceBundleLoader getResourceBundleLoader() {
+		return MBResourceBundleLoader.INSTANCE;
 	}
 
 	@Override
@@ -168,7 +175,7 @@ public class MBThreadActivityInterpreter extends BaseSocialActivityInterpreter {
 
 	private static final String[] _CLASS_NAMES = {MBThread.class.getName()};
 
-	private volatile MBMessageLocalService _mbMessageLocalService;
-	private volatile MBThreadLocalService _mbThreadLocalService;
+	private MBMessageLocalService _mbMessageLocalService;
+	private MBThreadLocalService _mbThreadLocalService;
 
 }

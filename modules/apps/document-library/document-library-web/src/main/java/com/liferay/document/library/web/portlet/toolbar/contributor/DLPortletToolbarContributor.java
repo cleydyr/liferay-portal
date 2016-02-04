@@ -21,22 +21,21 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.toolbar.contributor.BasePortletToolbarContributor;
 import com.liferay.portal.kernel.portlet.toolbar.contributor.PortletToolbarContributor;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.BaseModelPermissionChecker;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.PortletURLFactoryUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
+import com.liferay.portlet.documentlibrary.exception.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
@@ -48,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
@@ -61,28 +61,12 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 		"mvc.render.command.name=-",
-		"mvc.render.command.name=/document_library/view"
+		"mvc.render.command.name=/document_library/view",
+		"mvc.render.command.name=/document_library/view_folder"
 	},
 	service = {DLPortletToolbarContributor.class, PortletToolbarContributor.class}
 )
-public class DLPortletToolbarContributor implements PortletToolbarContributor {
-
-	@Override
-	public List<Menu> getPortletTitleMenus(PortletRequest portletRequest) {
-		List<Menu> menus = new ArrayList<>();
-
-		Menu menu = new Menu();
-
-		menu.setDirection("down");
-		menu.setExtended(false);
-		menu.setIcon("../aui/plus-sign-2");
-		menu.setMenuItems(getPortletTitleMenuItems(portletRequest));
-		menu.setShowArrow(false);
-
-		menus.add(menu);
-
-		return menus;
-	}
+public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 	protected void addPortletTitleAddDocumentMenuItems(
 			List<MenuItem> menuItems, Folder folder, ThemeDisplay themeDisplay,
@@ -370,8 +354,9 @@ public class DLPortletToolbarContributor implements PortletToolbarContributor {
 		return fileEntryTypes;
 	}
 
+	@Override
 	protected List<MenuItem> getPortletTitleMenuItems(
-		PortletRequest portletRequest) {
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -552,10 +537,9 @@ public class DLPortletToolbarContributor implements PortletToolbarContributor {
 
 		String label = LanguageUtil.get(
 			PortalUtil.getHttpServletRequest(portletRequest),
-			HtmlUtil.escape(
-				fileEntryType.getUnambiguousName(
-					fileEntryTypes, themeDisplay.getScopeGroupId(),
-					themeDisplay.getLocale())));
+			fileEntryType.getUnambiguousName(
+				fileEntryTypes, themeDisplay.getScopeGroupId(),
+				themeDisplay.getLocale()));
 
 		urlMenuItem.setLabel(label);
 
@@ -587,8 +571,8 @@ public class DLPortletToolbarContributor implements PortletToolbarContributor {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLPortletToolbarContributor.class);
 
-	private volatile BaseModelPermissionChecker _baseModelPermissionChecker;
-	private volatile DLAppLocalService _dlAppLocalService;
-	private volatile DLFileEntryTypeService _dlFileEntryTypeService;
+	private BaseModelPermissionChecker _baseModelPermissionChecker;
+	private DLAppLocalService _dlAppLocalService;
+	private DLFileEntryTypeService _dlFileEntryTypeService;
 
 }

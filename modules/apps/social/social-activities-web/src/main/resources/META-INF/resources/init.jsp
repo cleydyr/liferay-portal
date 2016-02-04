@@ -33,16 +33,16 @@ page import="com.liferay.portal.kernel.util.StringPool" %><%@
 page import="com.liferay.portal.model.Group" %><%@
 page import="com.liferay.portal.service.GroupLocalServiceUtil" %><%@
 page import="com.liferay.portal.util.PortalUtil" %><%@
-page import="com.liferay.portlet.social.model.SocialActivity" %><%@
-page import="com.liferay.portlet.social.service.SocialActivityLocalServiceUtil" %>
+page import="com.liferay.social.kernel.model.SocialActivity" %><%@
+page import="com.liferay.social.kernel.service.SocialActivityLocalServiceUtil" %>
 
 <%@ page import="java.util.List" %>
 
 <%@ page import="javax.portlet.ResourceURL" %>
 
-<portlet:defineObjects />
-
 <liferay-theme:defineObjects />
+
+<portlet:defineObjects />
 
 <%
 int max = GetterUtil.getInteger(portletPreferences.getValue("max", "10"));

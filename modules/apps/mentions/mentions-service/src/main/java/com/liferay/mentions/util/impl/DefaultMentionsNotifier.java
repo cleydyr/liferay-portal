@@ -32,14 +32,12 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.SubscriptionSender;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
-import com.liferay.portlet.social.util.SocialInteractionsConfiguration;
-import com.liferay.portlet.social.util.SocialInteractionsConfigurationUtil;
+import com.liferay.social.kernel.util.SocialInteractionsConfiguration;
+import com.liferay.social.kernel.util.SocialInteractionsConfigurationUtil;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -147,13 +145,9 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 				getSocialInteractionsConfiguration(
 					user.getCompanyId(), MentionsPortletKeys.MENTIONS);
 
-		Matcher matcher = _pattern.matcher(content);
-
 		Set<String> mentionedUsersScreenNames = new HashSet<>();
 
-		while (matcher.find()) {
-			String mentionedUserScreenName = matcher.group(2);
-
+		for (String mentionedUserScreenName : MentionsMatcher.match(content)) {
 			List<User> users = _mentionsUserFinder.getUsers(
 				user.getCompanyId(), userId, mentionedUserScreenName,
 				socialInteractionsConfiguration);
@@ -183,11 +177,7 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		_userLocalService = userLocalService;
 	}
 
-	private static final Pattern _pattern = Pattern.compile(
-		"(?:\\s|^|\\]|>)(@([^(?:@|>|\\[|\\s|,|.|<)]+))",
-		Pattern.CASE_INSENSITIVE);
-
-	private volatile MentionsUserFinder _mentionsUserFinder;
-	private volatile UserLocalService _userLocalService;
+	private MentionsUserFinder _mentionsUserFinder;
+	private UserLocalService _userLocalService;
 
 }

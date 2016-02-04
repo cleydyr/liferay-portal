@@ -21,9 +21,15 @@ long groupId = ParamUtil.getLong(request, "groupId");
 boolean validate = ParamUtil.getBoolean(request, "validate", true);
 
 String[] tempFileNames = LayoutServiceUtil.getTempFileNames(groupId, ExportImportHelper.TEMP_FOLDER_NAME);
-%>
 
-<liferay-util:include page="/import/new_import/navigation.jsp" servletContext="<%= application %>" />
+portletDisplay.setShowBackIcon(true);
+
+PortletURL importProcessesURL = PortalUtil.getControlPanelPortletURL(request, ExportImportPortletKeys.IMPORT, PortletRequest.RENDER_PHASE);
+
+importProcessesURL.setParameter("mvcPath", "/import/view.jsp");
+
+portletDisplay.setURLBack(importProcessesURL.toString());
+%>
 
 <div class="container-fluid-1280" id="<portlet:namespace />exportImportOptions">
 

@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.settings.PortletInstanceSettingsLocator;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -27,13 +28,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.TrashedModel;
-import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portlet.trash.service.TrashEntryService;
-import com.liferay.portlet.trash.util.TrashUtil;
+import com.liferay.trash.kernel.service.TrashEntryService;
+import com.liferay.trash.kernel.util.TrashUtil;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.exception.DuplicateNodeNameException;
 import com.liferay.wiki.exception.NoSuchNodeException;
@@ -184,8 +184,8 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected WikiPortletInstanceOverriddenConfiguration
-		getWikiPortletInstanceOverriddenConfiguration(
-			ActionRequest actionRequest)
+			getWikiPortletInstanceOverriddenConfiguration(
+				ActionRequest actionRequest)
 		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -305,8 +305,8 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		wikiPortletInstanceOverriddenConfiguration.store();
 	}
 
-	private volatile TrashEntryService _trashEntryService;
-	private volatile WikiNodeLocalService _wikiNodeLocalService;
-	private volatile WikiNodeService _wikiNodeService;
+	private TrashEntryService _trashEntryService;
+	private WikiNodeLocalService _wikiNodeLocalService;
+	private WikiNodeService _wikiNodeService;
 
 }

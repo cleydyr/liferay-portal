@@ -22,6 +22,49 @@
 		<hint name="year-nullable">true</hint>
 		<hint name="show-time">false</hint>
 	</hint-collection>
+	<model name="com.liferay.announcements.kernel.model.AnnouncementsDelivery">
+		<field name="deliveryId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="type" type="String" />
+		<field name="email" type="boolean" />
+		<field name="sms" type="boolean" />
+		<field name="website" type="boolean" />
+	</model>
+	<model name="com.liferay.announcements.kernel.model.AnnouncementsEntry">
+		<field name="uuid" type="String" />
+		<field name="entryId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="classNameId" type="long" />
+		<field name="classPK" type="long" />
+		<field name="title" type="String" />
+		<field name="content" type="String">
+			<hint-collection name="CLOB" />
+			<sanitize content-type="text/html" modes="ALL" />
+		</field>
+		<field name="url" type="String">
+			<hint-collection name="URL" />
+		</field>
+		<field name="type" type="String" />
+		<field name="displayDate" type="Date" />
+		<field name="expirationDate" type="Date">
+			<hint name="default-month-delta">1</hint>
+		</field>
+		<field name="priority" type="int" />
+		<field name="alert" type="boolean" />
+	</model>
+	<model name="com.liferay.announcements.kernel.model.AnnouncementsFlag">
+		<field name="flagId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="createDate" type="Date" />
+		<field name="entryId" type="long" />
+		<field name="value" type="int" />
+	</model>
 	<model name="com.liferay.counter.model.Counter">
 		<field name="name" type="String" />
 		<field name="currentId" type="long" />
@@ -926,7 +969,9 @@
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
 		<field name="groupId" type="long" />
-		<field name="name" type="String" />
+		<field name="name" type="String">
+			<validator name="required" />
+		</field>
 		<field name="description" type="String">
 			<hint-collection name="TEXTAREA" />
 		</field>
@@ -1180,49 +1225,6 @@
 		<field name="classPK" type="long" />
 		<field name="workflowInstanceId" type="long" />
 	</model>
-	<model name="com.liferay.portlet.announcements.model.AnnouncementsDelivery">
-		<field name="deliveryId" type="long" />
-		<field name="companyId" type="long" />
-		<field name="userId" type="long" />
-		<field name="type" type="String" />
-		<field name="email" type="boolean" />
-		<field name="sms" type="boolean" />
-		<field name="website" type="boolean" />
-	</model>
-	<model name="com.liferay.portlet.announcements.model.AnnouncementsEntry">
-		<field name="uuid" type="String" />
-		<field name="entryId" type="long" />
-		<field name="companyId" type="long" />
-		<field name="userId" type="long" />
-		<field name="userName" type="String" />
-		<field name="createDate" type="Date" />
-		<field name="modifiedDate" type="Date" />
-		<field name="classNameId" type="long" />
-		<field name="classPK" type="long" />
-		<field name="title" type="String" />
-		<field name="content" type="String">
-			<hint-collection name="CLOB" />
-			<sanitize content-type="text/html" modes="ALL" />
-		</field>
-		<field name="url" type="String">
-			<hint-collection name="URL" />
-		</field>
-		<field name="type" type="String" />
-		<field name="displayDate" type="Date" />
-		<field name="expirationDate" type="Date">
-			<hint name="default-month-delta">1</hint>
-		</field>
-		<field name="priority" type="int" />
-		<field name="alert" type="boolean" />
-	</model>
-	<model name="com.liferay.portlet.announcements.model.AnnouncementsFlag">
-		<field name="flagId" type="long" />
-		<field name="companyId" type="long" />
-		<field name="userId" type="long" />
-		<field name="createDate" type="Date" />
-		<field name="entryId" type="long" />
-		<field name="value" type="int" />
-	</model>
 	<model name="com.liferay.portlet.asset.model.AssetCategory">
 		<field name="uuid" type="String" />
 		<field name="categoryId" type="long" />
@@ -1418,41 +1420,6 @@
 		<field name="ratingsTotalScore" type="double" />
 		<field name="ratingsAverageScore" type="double" />
 	</model>
-	<model name="com.liferay.portlet.calendar.model.CalEvent">
-		<field name="uuid" type="String" />
-		<field name="eventId" type="long" />
-		<field name="groupId" type="long" />
-		<field name="companyId" type="long" />
-		<field name="userId" type="long" />
-		<field name="userName" type="String" />
-		<field name="createDate" type="Date" />
-		<field name="modifiedDate" type="Date" />
-		<field name="title" type="String">
-			<sanitize content-type="text/plain" modes="ALL" />
-		</field>
-		<field name="description" type="String">
-			<hint-collection name="CLOB" />
-			<sanitize content-type="text/html" modes="ALL" />
-		</field>
-		<field name="location" type="String">
-			<hint-collection name="TEXTAREA" />
-		</field>
-		<field name="startDate" type="Date" />
-		<field name="endDate" type="Date" />
-		<field name="durationHour" type="int" />
-		<field name="durationMinute" type="int" />
-		<field name="allDay" type="boolean" />
-		<field name="timeZoneSensitive" type="boolean" />
-		<field name="type" type="String" />
-		<field name="repeating" type="boolean" />
-		<field name="recurrence" type="String">
-			<hint-collection name="CLOB" />
-			<hint name="auto-escape">false</hint>
-		</field>
-		<field name="remindBy" type="int" />
-		<field name="firstReminder" type="int" />
-		<field name="secondReminder" type="int" />
-	</model>
 	<model name="com.liferay.portlet.documentlibrary.model.DLContent">
 		<field name="contentId" type="long" />
 		<field name="groupId" type="long" />
@@ -1590,6 +1557,7 @@
 		<field name="mimeType" type="String" />
 		<field name="title" type="String">
 			<hint name="max-length">255</hint>
+			<validator name="required" />
 		</field>
 		<field name="description" type="String">
 			<hint-collection name="TEXTAREA" />
@@ -1895,7 +1863,7 @@
 		<field name="totalScore" type="double" />
 		<field name="averageScore" type="double" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivity">
+	<model name="com.liferay.social.kernel.model.SocialActivity">
 		<field name="activityId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1914,7 +1882,7 @@
 		</field>
 		<field name="receiverUserId" type="long" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivityAchievement">
+	<model name="com.liferay.social.kernel.model.SocialActivityAchievement">
 		<field name="activityAchievementId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1923,7 +1891,7 @@
 		<field name="name" type="String" />
 		<field name="firstInGroup" type="boolean" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivityCounter">
+	<model name="com.liferay.social.kernel.model.SocialActivityCounter">
 		<field name="activityCounterId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1938,7 +1906,7 @@
 		<field name="endPeriod" type="int" />
 		<field name="active" type="boolean" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivityLimit">
+	<model name="com.liferay.social.kernel.model.SocialActivityLimit">
 		<field name="activityLimitId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1949,7 +1917,7 @@
 		<field name="activityCounterName" type="String" />
 		<field name="value" type="String" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivitySet">
+	<model name="com.liferay.social.kernel.model.SocialActivitySet">
 		<field name="activitySetId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1965,7 +1933,7 @@
 		</field>
 		<field name="activityCount" type="int" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialActivitySetting">
+	<model name="com.liferay.social.kernel.model.SocialActivitySetting">
 		<field name="activitySettingId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1976,7 +1944,7 @@
 			<hint name="max-length">1024</hint>
 		</field>
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialRelation">
+	<model name="com.liferay.social.kernel.model.SocialRelation">
 		<field name="uuid" type="String" />
 		<field name="relationId" type="long" />
 		<field name="companyId" type="long" />
@@ -1985,7 +1953,7 @@
 		<field name="userId2" type="long" />
 		<field name="type" type="int" />
 	</model>
-	<model name="com.liferay.portlet.social.model.SocialRequest">
+	<model name="com.liferay.social.kernel.model.SocialRequest">
 		<field name="uuid" type="String" />
 		<field name="requestId" type="long" />
 		<field name="groupId" type="long" />
@@ -2002,7 +1970,7 @@
 		<field name="receiverUserId" type="long" />
 		<field name="status" type="int" />
 	</model>
-	<model name="com.liferay.portlet.trash.model.TrashEntry">
+	<model name="com.liferay.trash.kernel.model.TrashEntry">
 		<field name="entryId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -2017,7 +1985,7 @@
 		</field>
 		<field name="status" type="int" />
 	</model>
-	<model name="com.liferay.portlet.trash.model.TrashVersion">
+	<model name="com.liferay.trash.kernel.model.TrashVersion">
 		<field name="versionId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="entryId" type="long" />

@@ -15,6 +15,7 @@
 package com.liferay.portal.security.auth;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.auth.AccessControlContext;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -23,7 +24,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SyntheticBundleRule;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,53 +44,33 @@ public class AuthVerifierPipelineTest {
 			new SyntheticBundleRule("bundle.authverifierpipeline"));
 
 	@Test
-	public void testVerifyRequest() {
-		try {
-			AccessControlContext accessControlContext =
-				new AccessControlContext();
+	public void testVerifyRequest() throws PortalException {
+		AccessControlContext accessControlContext = new AccessControlContext();
 
-			MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
-				"/foo/hello");
+		MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
+			"/foo/hello");
 
-			mockHttpServletRequest.setAttribute(
-				WebKeys.COMPANY_ID,
-				Long.valueOf(TestPropsValues.getCompanyId()));
+		mockHttpServletRequest.setAttribute(
+			WebKeys.COMPANY_ID, TestPropsValues.getCompanyId());
 
-			accessControlContext.setRequest(mockHttpServletRequest);
+		accessControlContext.setRequest(mockHttpServletRequest);
 
-			AuthVerifierPipeline.verifyRequest(accessControlContext);
-		}
-		catch (PortalException e) {
-			Assert.fail();
-		}
+		AuthVerifierPipeline.verifyRequest(accessControlContext);
 	}
 
 	protected MockHttpServletRequest createHttpRequest(String pathInfo) {
+		MockServletContext mockServletContext = new MockServletContext();
+
+		mockServletContext.setContextPath(StringPool.BLANK);
+		mockServletContext.setServletContextName(StringPool.BLANK);
+
 		MockHttpServletRequest mockHttpServletRequest =
-			new MockHttpServletRequestTest();
+			new MockHttpServletRequest(mockServletContext);
 
 		mockHttpServletRequest.setMethod(HttpMethods.GET);
 		mockHttpServletRequest.setPathInfo(pathInfo);
 
 		return mockHttpServletRequest;
-	}
-
-	private class MockHttpServletRequestTest extends MockHttpServletRequest {
-
-		public MockHttpServletRequestTest() {
-			_mockServletContext = new MockServletContext() {};
-
-			_mockServletContext.setContextPath(StringPool.BLANK);
-			_mockServletContext.setServletContextName(StringPool.BLANK);
-		}
-
-		@Override
-		public MockServletContext getServletContext() {
-			return _mockServletContext;
-		}
-
-		private final MockServletContext _mockServletContext;
-
 	}
 
 }

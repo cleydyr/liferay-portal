@@ -81,10 +81,18 @@ if (ddmTemplate == null) {
 	}
 }
 
-String defaultLanguageId = LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale());
+String defaultLanguageId = LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault());
+
+boolean changeableDefaultLanguage = journalWebConfiguration.changeableDefaultLanguage();
 
 if (article != null) {
-	defaultLanguageId = LocalizationUtil.getDefaultLanguageId(article.getContent(), LocaleUtil.getSiteDefault());
+	String articleDefaultLanguageId = LocalizationUtil.getDefaultLanguageId(article.getContent(), LocaleUtil.getSiteDefault());
+
+	if (!Validator.equals(defaultLanguageId, articleDefaultLanguageId)) {
+		changeableDefaultLanguage = true;
+	}
+
+	defaultLanguageId = articleDefaultLanguageId;
 }
 
 boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
@@ -104,16 +112,16 @@ request.setAttribute("edit_article.jsp-changeStructure", changeStructure);
 	<%
 	portletDisplay.setShowBackIcon(true);
 
-	if ((classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT) && (article != null)) {
+	if (Validator.isNotNull(redirect)) {
+		portletDisplay.setURLBack(redirect);
+	}
+	else if ((classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT) && (article != null)) {
 		PortletURL backURL = liferayPortletResponse.createRenderURL();
 
 		backURL.setParameter("groupId", String.valueOf(article.getGroupId()));
 		backURL.setParameter("folderId", String.valueOf(article.getFolderId()));
 
 		portletDisplay.setURLBack(backURL.toString());
-	}
-	else {
-		portletDisplay.setURLBack(redirect);
 	}
 
 	String title = StringPool.BLANK;
@@ -203,6 +211,7 @@ request.setAttribute("edit_article.jsp-changeStructure", changeStructure);
 
 	<aui:translation-manager
 		availableLocales="<%= availableLocales %>"
+		changeableDefaultLanguage="<%= changeableDefaultLanguage %>"
 		defaultLanguageId="<%= defaultLanguageId %>"
 		id="translationManager"
 	/>

@@ -408,7 +408,13 @@
 		getLexiconIcon: function(icon) {
 			var instance = this;
 
-			return $(_.sub(TPL_LEXICON_ICON, icon))[0];
+			return $(instance.getLexiconIconTpl(icon))[0];
+		},
+
+		getLexiconIconTpl: function(icon) {
+			var instance = this;
+
+			return _.sub(TPL_LEXICON_ICON, icon);
 		},
 
 		getOpener: function() {
@@ -824,19 +830,23 @@
 				'click',
 				'.selector-button',
 				function(event) {
-					var currentTarget = $(event.currentTarget);
+					var target = $(event.target);
 
-					if (disableButton !== false) {
-						selectorButtons.prop('disabled', false);
+					if (!target.attr('data-prevent-selection')) {
+						var currentTarget = $(event.currentTarget);
 
-						currentTarget.prop('disabled', true);
+						if (disableButton !== false) {
+							selectorButtons.prop('disabled', false);
+
+							currentTarget.prop('disabled', true);
+						}
+
+						var result = Util.getAttributes(currentTarget, 'data-');
+
+						openingLiferay.fire(selectEventName, result);
+
+						Util.getWindow().hide();
 					}
-
-					var result = Util.getAttributes(currentTarget, 'data-');
-
-					openingLiferay.fire(selectEventName, result);
-
-					Util.getWindow().hide();
 				}
 			);
 
@@ -1046,13 +1056,7 @@
 
 			event.preventDefault();
 
-			Liferay.Util.openWindow(
-				{
-					cache: false,
-					title: event.title,
-					uri: event.uri
-				}
-			);
+			Util.defaultPreviewArticleFn(event);
 		},
 
 		_defaultSubmitFormFn: function(event) {
@@ -1601,6 +1605,34 @@
 		{
 			defaultFn: Util._defaultSubmitFormFn
 		}
+	);
+
+	Liferay.provide(
+		Util,
+		'defaultPreviewArticleFn',
+		function(event) {
+			var instance = this;
+
+			var urlPreview = instance._urlPreview;
+
+			if (!urlPreview) {
+				urlPreview = new Liferay.UrlPreview(
+					{
+						title: event.title,
+						url: event.uri
+					}
+				);
+
+				instance._urlPreview = urlPreview;
+			}
+			else {
+				urlPreview.set('title', event.title);
+				urlPreview.set('url', event.uri);
+			}
+
+			urlPreview.open();
+		},
+		['liferay-url-preview']
 	);
 
 	Liferay.publish(

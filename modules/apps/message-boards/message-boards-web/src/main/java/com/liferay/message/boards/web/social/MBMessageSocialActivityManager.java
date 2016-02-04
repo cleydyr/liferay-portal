@@ -27,8 +27,8 @@ import com.liferay.portlet.messageboards.model.MBDiscussion;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.MBDiscussionLocalService;
 import com.liferay.portlet.messageboards.service.MBMessageLocalService;
-import com.liferay.portlet.social.model.SocialActivity;
-import com.liferay.portlet.social.service.SocialActivityLocalService;
+import com.liferay.social.kernel.model.SocialActivity;
+import com.liferay.social.kernel.service.SocialActivityLocalService;
 
 import java.util.List;
 
@@ -118,9 +118,9 @@ public class MBMessageSocialActivityManager
 		_socialActivityLocalService = socialActivityLocalService;
 	}
 
-	private volatile ClassNameLocalService _classNameLocalService;
-	private volatile MBDiscussionLocalService _mbDiscussionLocalService;
-	private volatile MBMessageLocalService _mbMessageLocalService;
-	private volatile SocialActivityLocalService _socialActivityLocalService;
+	private ClassNameLocalService _classNameLocalService;
+	private MBDiscussionLocalService _mbDiscussionLocalService;
+	private MBMessageLocalService _mbMessageLocalService;
+	private SocialActivityLocalService _socialActivityLocalService;
 
 }

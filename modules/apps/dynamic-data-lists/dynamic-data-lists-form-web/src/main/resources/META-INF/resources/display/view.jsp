@@ -44,7 +44,7 @@ DDLRecordSet recordSet = ddlFormDisplayContext.getRecordSet();
 							<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 						</c:if>
 
-						<aui:input name="groupId" type="hidden" value="<%= themeDisplay.getScopeGroupId() %>" />
+						<aui:input name="groupId" type="hidden" value="<%= recordSet.getGroupId() %>" />
 						<aui:input name="recordSetId" type="hidden" value="<%= recordSet.getRecordSetId() %>" />
 						<aui:input name="availableLanguageId" type="hidden" value="<%= themeDisplay.getLanguageId() %>" />
 						<aui:input name="defaultLanguageId" type="hidden" value="<%= themeDisplay.getLanguageId() %>" />
@@ -52,15 +52,47 @@ DDLRecordSet recordSet = ddlFormDisplayContext.getRecordSet();
 
 						<liferay-ui:error exception="<%= CaptchaMaxChallengesException.class %>" message="maximum-number-of-captcha-attempts-exceeded" />
 						<liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
+						<liferay-ui:error exception="<%= DDMFormRenderingException.class %>" message="unable-to-render-the-selected-form" />
+						<liferay-ui:error exception="<%= DDMFormValuesValidationException.class %>" message="field-validation-failed" />
 
-						<liferay-ui:error exception="<%= StorageFieldValueException.RequiredValue.class %>">
+						<liferay-ui:error exception="<%= DDMFormValuesValidationException.MustSetValidValues.class %>">
 
 							<%
-							StorageFieldValueException.RequiredValue rv = (StorageFieldValueException.RequiredValue)errorException;
+							DDMFormValuesValidationException.MustSetValidValues msvv = (DDMFormValuesValidationException.MustSetValidValues)errorException;
+
+							List<DDMFormFieldEvaluationResult> ddmFormFieldEvaluationResults = msvv.getDDMFormFieldEvaluationResults();
+
+							for (DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult : ddmFormFieldEvaluationResults) {
+							%>
+
+								<liferay-ui:message
+									arguments="<%= new Object[] {ddmFormFieldEvaluationResult.getName(), ddmFormFieldEvaluationResult.getErrorMessage()} %>"
+									key="validation-failed-for-field-x"
+									translateArguments="<%= false %>"
+								/>
+
+								<br />
+
+							<%
+							}
+							%>
+
+						</liferay-ui:error>
+
+						<liferay-ui:error exception="<%= DDMFormValuesValidationException.RequiredValue.class %>">
+
+							<%
+							DDMFormValuesValidationException.RequiredValue rv = (DDMFormValuesValidationException.RequiredValue)errorException;
 							%>
 
 							<liferay-ui:message arguments="<%= rv.getFieldName() %>" key="no-value-defined-for-field-x" translateArguments="<%= false %>" />
 						</liferay-ui:error>
+
+						<liferay-ui:error exception="<%= NoSuchRecordSetException.class %>" message="the-selected-form-no-longer-exists" />
+						<liferay-ui:error exception="<%= NoSuchStructureException.class %>" message="unable-to-retrieve-the-definition-of-the-selected-form" />
+						<liferay-ui:error exception="<%= NoSuchStructureLayoutException.class %>" message="unable-to-retrieve-the-layout-of-the-selected-form" />
+
+						<liferay-ui:error-principal />
 
 						<div class="ddl-form-basic-info">
 							<div class="container-fluid-1280">

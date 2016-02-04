@@ -35,7 +35,7 @@ import com.liferay.portal.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.test.LayoutTestUtil;
-import com.liferay.portlet.exportimport.LARTypeException;
+import com.liferay.portlet.exportimport.exception.LARTypeException;
 import com.liferay.portlet.exportimport.lar.ExportImportHelperUtil;
 import com.liferay.portlet.exportimport.lar.PortletDataHandlerKeys;
 
@@ -139,7 +139,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 		finally {
 			importedGroup = originalImportedGroup;
@@ -155,7 +155,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 		finally {
 			importedGroup = originalImportedGroup;
@@ -182,7 +182,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 
 		// Import a layout prototype to a layout set pototype
@@ -197,7 +197,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 		finally {
 			LayoutSetPrototypeLocalServiceUtil.deleteLayoutSetPrototype(
@@ -240,7 +240,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 
 		// Import a layout set to a layout set prototype
@@ -255,7 +255,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			Assert.fail();
 		}
-		catch (LARTypeException lte) {
+		catch (LARTypeException larte) {
 		}
 		finally {
 			LayoutSetPrototypeLocalServiceUtil.deleteLayoutSetPrototype(
@@ -285,7 +285,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 				Assert.fail();
 			}
-			catch (LARTypeException lte) {
+			catch (LARTypeException larte) {
 			}
 
 			// Import a layout set prototype to a layout prototyope
@@ -300,7 +300,7 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 				Assert.fail();
 			}
-			catch (LARTypeException lte) {
+			catch (LARTypeException larte) {
 			}
 		}
 		finally {

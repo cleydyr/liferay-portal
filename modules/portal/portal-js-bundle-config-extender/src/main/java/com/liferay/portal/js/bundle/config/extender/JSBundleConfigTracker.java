@@ -40,7 +40,8 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @Component(immediate = true, service = JSBundleConfigTracker.class)
 public class JSBundleConfigTracker
 	implements
-	ServiceTrackerCustomizer<ServletContext, ServiceReference<ServletContext>> {
+		ServiceTrackerCustomizer
+			<ServletContext, ServiceReference<ServletContext>> {
 
 	@Activate
 	public void activate(
@@ -66,7 +67,7 @@ public class JSBundleConfigTracker
 
 		Dictionary<String, String> headers = bundle.getHeaders();
 
-		String jsConfig = headers.get("JS-Config");
+		String jsConfig = headers.get("Liferay-JS-Config");
 
 		if (jsConfig != null) {
 			URL url = bundle.getEntry(jsConfig);

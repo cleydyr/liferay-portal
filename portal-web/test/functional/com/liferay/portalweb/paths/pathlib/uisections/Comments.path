@@ -25,7 +25,7 @@
 </tr>
 <tr>
 	<td>COMMENT_BODY</td>
-	<td>//div[(@class='lfr-discussion-message-body')]/p[contains(.,'${key_entryComment}')]</td>
+	<td>//div[(@class='lfr-discussion-message-body')] | //div[(@class='lfr-discussion-message-body')]/p[contains(.,'${key_entryComment}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -96,6 +96,11 @@
 <tr>
 	<td>REPLY_BODY</td>
 	<td>//div[@class='lfr-discussion-message']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPLY_TO_COMMENT</td>
+	<td>//div[@class='lfr-discussion-body' and contains(.,'${key_entryComment}')]//span[contains(.,'Reply')]</td>
 	<td></td>
 </tr>
 <tr>

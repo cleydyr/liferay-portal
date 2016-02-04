@@ -45,8 +45,10 @@ Import-Package:\
 	com.liferay.portlet.asset.service,\
 	com.liferay.portlet.expando.model,\
 	com.liferay.portlet.exportimport.lar,\
-	com.liferay.portlet.social.model,\
-	com.liferay.portlet.trash.model,\
+	\
+	com.liferay.social.kernel.model,\
+	\
+	com.liferay.trash.kernel.model,\
 	\
 	org.apache.commons.chain,\
 	org.apache.commons.chain.*,\
@@ -67,10 +69,9 @@ Import-Package:\
 	org.apache.struts.util,\
 	*
 Include-Resource:\
-	classes,\
-	META-INF/resources=src/main/resources/META-INF/resources,\
 	@../../../../util-java/util-java.jar!/com/liferay/util/bean/PortletBeanLocatorUtil.class,\
 	@../../../../util-java/util-java.jar!/com/liferay/util/portlet/PortletProps.class
+Liferay-JS-Config: /META-INF/resources/bookmarks/js/config.js
 Liferay-Releng-Module-Group-Description:
 Liferay-Releng-Module-Group-Title: Bookmarks
 Web-ContextPath: /bookmarks-web

@@ -16,7 +16,7 @@ package com.liferay.wiki.web.social;
 
 import com.liferay.portal.kernel.social.BaseSocialActivityManager;
 import com.liferay.portal.kernel.social.SocialActivityManager;
-import com.liferay.portlet.social.service.SocialActivityLocalService;
+import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.wiki.model.WikiPage;
 
 import org.osgi.service.component.annotations.Component;
@@ -50,6 +50,6 @@ public class WikiPageSocialActivityManager
 		_socialActivityLocalService = socialActivityLocalService;
 	}
 
-	private volatile SocialActivityLocalService _socialActivityLocalService;
+	private SocialActivityLocalService _socialActivityLocalService;
 
 }

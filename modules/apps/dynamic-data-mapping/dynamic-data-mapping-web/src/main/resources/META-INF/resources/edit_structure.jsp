@@ -19,7 +19,6 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 String closeRedirect = ParamUtil.getString(request, "closeRedirect");
-boolean showBackURL = ParamUtil.getBoolean(request, "showBackURL", true);
 
 String portletResourceNamespace = ParamUtil.getString(request, "portletResourceNamespace", renderResponse.getNamespace());
 
@@ -72,6 +71,8 @@ String fieldsJSONArrayString = StringPool.BLANK;
 if (fieldsJSONArray != null) {
 	fieldsJSONArrayString = fieldsJSONArray.toString();
 }
+
+boolean showBackURL = ParamUtil.getBoolean(request, "showBackURL", true);
 %>
 
 <portlet:actionURL name="addStructure" var="addStructureURL">
@@ -257,7 +258,7 @@ if (Validator.isNotNull(requestUpdateStructureURL)) {
 										<aui:select disabled="<%= structure != null %>" name="storageType">
 
 										<%
-										for (StorageType storageType : StorageType.values()) {
+										for (String storageType : StorageType.getTypes()) {
 										%>
 
 											<aui:option label="<%= storageType %>" value="<%= storageType %>" />
@@ -276,7 +277,7 @@ if (Validator.isNotNull(requestUpdateStructureURL)) {
 						</c:choose>
 					</aui:row>
 
-				<c:if test="<%= !ddmServiceConfiguration.autogenerateStructureKey() %>">
+				<c:if test="<%= !ddmWebConfiguration.autogenerateStructureKey() %>">
 					<aui:input disabled="<%= (structure != null) ? true : false %>" label='<%= LanguageUtil.format(request, "x-key", ddmDisplay.getStructureName(locale), false) %>' name="structureKey" />
 				</c:if>
 

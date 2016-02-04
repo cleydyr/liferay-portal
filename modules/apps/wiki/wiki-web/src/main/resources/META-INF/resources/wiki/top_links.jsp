@@ -61,7 +61,7 @@ if (portletTitleBasedNavigation) {
 					cssClass = "active";
 				}
 
-				PortletURL viewPageURL = wikiURLHelper.getViewPageURL(curNode);
+				PortletURL viewPageURL = wikiURLHelper.getViewFrontPagePageURL(curNode);
 			%>
 
 				<aui:nav-item cssClass="<%= cssClass %>" href="<%= viewPageURL.toString() %>" label="<%= HtmlUtil.escape(curNode.getName()) %>" />
@@ -73,7 +73,7 @@ if (portletTitleBasedNavigation) {
 		</aui:nav>
 	</c:if>
 
-	<aui:nav-bar>
+	<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
 		<aui:nav cssClass="navbar-nav">
 
 			<%
@@ -95,7 +95,7 @@ if (portletTitleBasedNavigation) {
 			<aui:nav-item cssClass='<%= selected ? "active" : StringPool.BLANK %>' href="<%= viewRecentChangesURL.toString() %>" label="<%= label %>" selected="<%= selected %>" />
 
 			<%
-			PortletURL viewAllPagesURL = wikiURLHelper.getViewAllPagesURL(node);
+			PortletURL viewAllPagesURL = wikiURLHelper.getViewPagesURL(node);
 
 			label = "all-pages";
 			selected = wikiVisualizationHelper.isViewAllPagesNavItemSelected();
@@ -133,7 +133,7 @@ if (portletTitleBasedNavigation) {
 					<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 					<aui:input name="nodeId" type="hidden" value="<%= node.getNodeId() %>" />
 
-					<liferay-ui:input-search id="keywords1" />
+					<liferay-ui:input-search id="keywords1" markupView="lexicon" />
 				</aui:form>
 			</div>
 		</aui:nav-bar-search>

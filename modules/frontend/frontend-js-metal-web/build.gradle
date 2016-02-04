@@ -57,12 +57,12 @@ cache {
 
 configJSModules {
 	dependsOn buildMetalComponents
+
 	include "**/*.js"
+	include "**/*.js.map"
 }
 
 dependencies {
-	compile group: "org.osgi", name: "org.osgi.core", version: "5.0.0"
-
 	metalComponents group: "org.webjars.bower", name: "metal-components", transitive: false, version: metalComponentsVersion
 }
 

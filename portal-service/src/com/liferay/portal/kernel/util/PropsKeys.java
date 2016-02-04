@@ -99,8 +99,6 @@ public interface PropsKeys {
 
 	public static final String ASSET_RENDERER_ENABLED = "asset.renderer.enabled.";
 
-	public static final String ASSET_TAG_SUGGESTIONS_ENABLED = "asset.tag.suggestions.enabled";
-
 	public static final String ASSET_VOCABULARY_DEFAULT = "asset.vocabulary.default";
 
 	public static final String AUDIT_MESSAGE_COM_LIFERAY_PORTAL_MODEL_LAYOUT_VIEW = "audit.message.com.liferay.portal.model.Layout.VIEW";
@@ -1327,10 +1325,6 @@ public interface PropsKeys {
 
 	public static final String MESSAGE_BOARDS_THREAD_PRIORITIES = "message.boards.thread.priorities";
 
-	public static final String MESSAGE_BOARDS_THREAD_VIEWS = "message.boards.thread.views";
-
-	public static final String MESSAGE_BOARDS_THREAD_VIEWS_DEFAULT = "message.boards.thread.views.default";
-
 	public static final String MESSAGE_BOARDS_USER_RANKS = "message.boards.user.ranks";
 
 	public static final String MICROSOFT_TRANSLATOR_CLIENT_ID = "microsoft.translator.client.id";
@@ -1836,14 +1830,6 @@ public interface PropsKeys {
 	public static final String RSS_PUBLISH_TO_LIVE_BY_DEFAULT = "rss.publish.to.live.by.default";
 
 	public static final String RTL_CSS_EXCLUDED_PATHS_REGEXP = "rtl.css.excluded.paths.regexp";
-
-	public static final String SANDBOX_DEPLOY_DIR = "sandbox.deploy.dir";
-
-	public static final String SANDBOX_DEPLOY_ENABLED = "sandbox.deploy.enabled";
-
-	public static final String SANDBOX_DEPLOY_INTERVAL = "sandbox.deploy.interval";
-
-	public static final String SANDBOX_DEPLOY_LISTENERS = "sandbox.deploy.listeners";
 
 	public static final String SANITIZER_IMPL = "sanitizer.impl";
 

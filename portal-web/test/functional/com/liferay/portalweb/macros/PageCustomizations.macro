@@ -1,15 +1,29 @@
 <definition>
 	<command name="enableSectionCustomizableCP">
 		<var name="key_columnId" value="${columnId}" />
-		<var name="key_sitePageName" value="${sitePageName}" />
 
-		<execute function="Click" locator1="SitePages#PAGE_TREE_PAGE_LINK_2" />
+		<execute macro="ProductMenu#gotoEditPage">
+			<var name="page" value="${sitePageName}" />
+		</execute>
 
-		<execute function="AssertClick" locator1="NavListItem#CUSTOMIZATION_SETTINGS" value1="Customization Settings" />
+		<execute macro="Navigator#gotoTab">
+			<var name="tab" value="Advanced" />
+		</execute>
 
-		<execute function="Check" locator1="SitePagesEditPage#CUSTOMIZATION_SETTINGS_CUSTOMIZABLE_COLUMN" value1="Customizable" />
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Customization Settings" />
+		</execute>
+
+		<execute function="Check" locator1="SitePagesEditPage#CUSTOMIZATION_SETTINGS_CUSTOMIZABLE_COLUMN" />
+
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
-		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+
+		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Customization Settings" />
+		</execute>
+
 		<execute function="AssertChecked" locator1="SitePagesEditPage#CUSTOMIZATION_SETTINGS_CUSTOMIZABLE_COLUMN" value1="Customizable" />
 	</command>
 
@@ -21,8 +35,6 @@
 	</command>
 
 	<command name="gotoCustomizationSettingsPG">
-		<execute function="Click" locator1="ControlMenu#EDIT" />
-
 		<execute macro="Panel#expandPanel">
 			<var name="panelHeading" value="Customization Settings" />
 		</execute>

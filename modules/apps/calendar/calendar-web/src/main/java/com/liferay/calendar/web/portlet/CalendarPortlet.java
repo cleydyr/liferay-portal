@@ -68,6 +68,9 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -91,9 +94,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.GroupLocalService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -643,6 +643,21 @@ public class CalendarPortlet extends MVCPortlet {
 		if ((recurrenceObj.getFrequency() == Frequency.WEEKLY) &&
 			!daysOfWeek.contains(startTimeDayOfWeek)) {
 
+			java.util.Calendar firstDayJCalendar = JCalendarUtil.getJCalendar(
+				calendarBooking.getStartTime(), timeZone);
+
+			firstDayJCalendar.set(
+				java.util.Calendar.DAY_OF_WEEK_IN_MONTH,
+				startTimeJCalendar.get(
+					java.util.Calendar.DAY_OF_WEEK_IN_MONTH));
+
+			firstDayJCalendar.set(java.util.Calendar.DAY_OF_WEEK, 7);
+
+			calendarBooking.setStartTime(firstDayJCalendar.getTimeInMillis());
+			calendarBooking.setEndTime(
+				firstDayJCalendar.getTimeInMillis() +
+					calendarBooking.getDuration());
+
 			calendarBooking.setRecurrence(
 				RecurrenceSerializer.serialize(recurrenceObj));
 
@@ -722,8 +737,13 @@ public class CalendarPortlet extends MVCPortlet {
 			if (!JCalendarUtil.isSameDayOfWeek(
 					startTimeJCalendar, firstInstanceJCalendar)) {
 
+				java.util.Calendar currentInstanceJCalendar =
+					CalendarFactoryUtil.getCalendar(
+						calendarBooking.getStartTime(),
+						calendarBooking.getTimeZone());
+
 				startTimeJCalendar = JCalendarUtil.mergeJCalendar(
-					firstInstanceJCalendar, startTimeJCalendar,
+					currentInstanceJCalendar, startTimeJCalendar,
 					calendarBooking.getTimeZone());
 
 				startTime = startTimeJCalendar.getTimeInMillis();
@@ -1191,7 +1211,7 @@ public class CalendarPortlet extends MVCPortlet {
 			}
 			catch (Exception e) {
 				String message = themeDisplay.translate(
-						"an-unexpected-error-occurred-while-importing-your-" +
+					"an-unexpected-error-occurred-while-importing-your-" +
 						"file");
 
 				jsonObject.put("error", message);
@@ -1439,14 +1459,14 @@ public class CalendarPortlet extends MVCPortlet {
 		return calendarBooking;
 	}
 
-	private volatile CalendarBookingLocalService _calendarBookingLocalService;
-	private volatile CalendarBookingService _calendarBookingService;
-	private volatile CalendarLocalService _calendarLocalService;
-	private volatile CalendarNotificationTemplateService
+	private CalendarBookingLocalService _calendarBookingLocalService;
+	private CalendarBookingService _calendarBookingService;
+	private CalendarLocalService _calendarLocalService;
+	private CalendarNotificationTemplateService
 		_calendarNotificationTemplateService;
-	private volatile CalendarResourceService _calendarResourceService;
-	private volatile CalendarService _calendarService;
-	private volatile GroupLocalService _groupLocalService;
-	private volatile UserLocalService _userLocalService;
+	private CalendarResourceService _calendarResourceService;
+	private CalendarService _calendarService;
+	private GroupLocalService _groupLocalService;
+	private UserLocalService _userLocalService;
 
 }

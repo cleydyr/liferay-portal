@@ -62,10 +62,10 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
-import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.trash.model.TrashEntry;
-import com.liferay.portlet.trash.model.TrashVersion;
-import com.liferay.portlet.trash.util.TrashUtil;
+import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.trash.kernel.model.TrashEntry;
+import com.liferay.trash.kernel.model.TrashVersion;
+import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -218,7 +218,7 @@ public class JournalFolderLocalServiceImpl
 			}
 		}
 
-		for (DDMStructureLink ddmStructureLink : ddmStructureLinks ) {
+		for (DDMStructureLink ddmStructureLink : ddmStructureLinks) {
 			ddmStructureLinkLocalService.deleteStructureLink(
 				ddmStructureLink.getStructureLinkId());
 
@@ -389,15 +389,23 @@ public class JournalFolderLocalServiceImpl
 
 	@Override
 	public List<Object> getFoldersAndArticles(
-		long groupId, long folderId, int start, int end,
+		long groupId, long folderId, int status, int start, int end,
 		OrderByComparator<?> obc) {
 
-		QueryDefinition<?> queryDefinition = new QueryDefinition<Object>(
-			WorkflowConstants.STATUS_ANY, start, end,
-			(OrderByComparator<Object>)obc);
+		QueryDefinition<?> queryDefinition = new QueryDefinition<>(
+			status, start, end, (OrderByComparator<Object>)obc);
 
 		return journalFolderFinder.findF_A_ByG_F(
 			groupId, folderId, queryDefinition);
+	}
+
+	@Override
+	public List<Object> getFoldersAndArticles(
+		long groupId, long folderId, int start, int end,
+		OrderByComparator<?> obc) {
+
+		return getFoldersAndArticles(
+			groupId, folderId, WorkflowConstants.STATUS_ANY, start, end, obc);
 	}
 
 	@Override

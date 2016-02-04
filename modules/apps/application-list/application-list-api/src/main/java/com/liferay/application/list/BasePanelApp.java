@@ -14,9 +14,9 @@
 
 package com.liferay.application.list;
 
-import com.liferay.application.list.util.LatentGroupManagerUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -25,7 +25,6 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserNotificationDeliveryConstants;
-import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.UserNotificationEventLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
@@ -74,6 +73,7 @@ public abstract class BasePanelApp implements PanelApp {
 				UserNotificationDeliveryConstants.TYPE_WEBSITE, false);
 	}
 
+	@Override
 	public Portlet getPortlet() {
 		return _portlet;
 	}
@@ -117,6 +117,10 @@ public abstract class BasePanelApp implements PanelApp {
 		}
 	}
 
+	public void setGroupProvider(GroupProvider groupProvider) {
+		this.groupProvider = groupProvider;
+	}
+
 	@Override
 	public void setPortlet(Portlet portlet) {
 		_portlet = portlet;
@@ -154,11 +158,11 @@ public abstract class BasePanelApp implements PanelApp {
 			return null;
 		}
 
-		HttpServletRequest originalRequest =
-			PortalUtil.getOriginalServletRequest(request);
+		if (groupProvider == null) {
+			return null;
+		}
 
-		return LatentGroupManagerUtil.getLatentGroup(
-			originalRequest.getSession());
+		return groupProvider.getGroup(request);
 	}
 
 	protected void setUserNotificationEventLocalService(
@@ -166,6 +170,8 @@ public abstract class BasePanelApp implements PanelApp {
 
 		_userNotificationEventLocalService = userNotificationEventLocalService;
 	}
+
+	protected GroupProvider groupProvider;
 
 	private Portlet _portlet;
 	private UserNotificationEventLocalService

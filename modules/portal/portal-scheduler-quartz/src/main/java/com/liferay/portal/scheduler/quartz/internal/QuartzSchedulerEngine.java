@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Release;
 import com.liferay.portal.scheduler.JobStateSerializeUtil;
 import com.liferay.portal.scheduler.quartz.QuartzTrigger;
 import com.liferay.portal.scheduler.quartz.internal.job.MessageSenderJob;
@@ -847,6 +848,13 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 	}
 
 	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.portal.scheduler.quartz)(release.schema.version=1.0.0))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
+
+	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
 		policy = ReferencePolicy.DYNAMIC,
 		policyOption = ReferencePolicyOption.GREEDY
@@ -988,14 +996,14 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 	private int _descriptionMaxLength;
 	private int _groupNameMaxLength;
 	private int _jobNameMaxLength;
-	private volatile JSONFactory _jsonFactory;
+	private JSONFactory _jsonFactory;
 	private Scheduler _memoryScheduler;
-	private volatile MessageBus _messageBus;
+	private MessageBus _messageBus;
 	private Scheduler _persistedScheduler;
-	private volatile PortletLocalService _portletLocalService;
+	private PortletLocalService _portletLocalService;
 	private Props _props;
-	private volatile QuartzTriggerFactory _quartzTriggerFactory;
+	private QuartzTriggerFactory _quartzTriggerFactory;
 	private volatile boolean _schedulerEngineEnabled;
-	private volatile SchedulerEngineHelper _schedulerEngineHelper;
+	private SchedulerEngineHelper _schedulerEngineHelper;
 
 }

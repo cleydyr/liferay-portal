@@ -15,11 +15,17 @@
 package com.liferay.portal.kernel.portlet.configuration.icon;
 
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
+
+import java.io.IOException;
 
 import java.util.Map;
 
 import javax.portlet.PortletRequest;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Eudaldo Alonso
@@ -32,6 +38,8 @@ public abstract class BasePortletConfigurationIcon
 
 		themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		portletDisplay = themeDisplay.getPortletDisplay();
 	}
 
 	@Override
@@ -119,6 +127,17 @@ public abstract class BasePortletConfigurationIcon
 		return null;
 	}
 
+	/**
+	 * @throws IOException
+	 */
+	@Override
+	public boolean include(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		return false;
+	}
+
 	@Override
 	public boolean isLabel() {
 		return false;
@@ -139,6 +158,7 @@ public abstract class BasePortletConfigurationIcon
 		return false;
 	}
 
+	protected PortletDisplay portletDisplay;
 	protected PortletRequest portletRequest;
 	protected ThemeDisplay themeDisplay;
 

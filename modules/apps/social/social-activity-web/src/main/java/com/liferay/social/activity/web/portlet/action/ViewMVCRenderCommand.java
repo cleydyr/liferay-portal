@@ -15,18 +15,18 @@
 package com.liferay.social.activity.web.portlet.action;
 
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.comparator.ModelResourceComparator;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.comparator.ModelResourceComparator;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portlet.social.model.SocialActivityDefinition;
-import com.liferay.portlet.social.model.SocialActivitySetting;
-import com.liferay.portlet.social.service.SocialActivitySettingService;
-import com.liferay.portlet.social.util.SocialConfigurationUtil;
 import com.liferay.social.activity.web.constants.SocialActivityPortletKeys;
 import com.liferay.social.activity.web.constants.SocialActivityWebKeys;
+import com.liferay.social.kernel.model.SocialActivityDefinition;
+import com.liferay.social.kernel.model.SocialActivitySetting;
+import com.liferay.social.kernel.service.SocialActivitySettingService;
+import com.liferay.social.kernel.util.SocialConfigurationUtil;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -137,6 +137,6 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		_socialActivitySettingService = socialActivitySettingService;
 	}
 
-	private volatile SocialActivitySettingService _socialActivitySettingService;
+	private SocialActivitySettingService _socialActivitySettingService;
 
 }
