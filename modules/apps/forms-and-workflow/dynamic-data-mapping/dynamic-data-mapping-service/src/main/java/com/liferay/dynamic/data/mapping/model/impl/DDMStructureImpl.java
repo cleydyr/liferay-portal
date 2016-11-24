@@ -116,8 +116,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 	public DDMFormField getDDMFormField(String fieldName)
 		throws PortalException {
 
-		Map<String, DDMFormField> ddmFormFieldsMap =
-			getFullHierarchyDDMFormFieldsMap(true);
+		Map<String, DDMFormField> ddmFormFieldsMap = getDDMFormFieldsMap();
 
 		DDMFormField ddmFormField = ddmFormFieldsMap.get(fieldName);
 
@@ -131,8 +130,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@Override
 	public List<DDMFormField> getDDMFormFields(boolean includeTransientFields) {
-		Map<String, DDMFormField> ddmFormFieldsMap =
-			getFullHierarchyDDMFormFieldsMap(true);
+		Map<String, DDMFormField> ddmFormFieldsMap = getDDMFormFieldsMap();
 
 		List<DDMFormField> ddmFormFields = new ArrayList<>(
 			ddmFormFieldsMap.values());
@@ -142,6 +140,14 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 		}
 
 		return filterTransientDDMFormFields(ddmFormFields);
+	}
+
+	public Map<String, DDMFormField> getDDMFormFieldsMap() {
+		if (_ddmFormFieldsMap == null) {
+			_ddmFormFieldsMap = getFullHierarchyDDMFormFieldsMap(true);
+		}
+
+		return _ddmFormFieldsMap;
 	}
 
 	@Override
@@ -377,8 +383,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@Override
 	public boolean hasField(String fieldName) {
-		Map<String, DDMFormField> ddmFormFieldsMap =
-			getFullHierarchyDDMFormFieldsMap(true);
+		Map<String, DDMFormField> ddmFormFieldsMap = getDDMFormFieldsMap();
 
 		return ddmFormFieldsMap.containsKey(fieldName);
 	}
@@ -421,6 +426,13 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 	@Override
 	public void setDDMForm(DDMForm ddmForm) {
 		_ddmForm = ddmForm;
+	}
+
+	@Override
+	public void setDDMFormFieldsMap(
+		Map<String, DDMFormField> ddmFormFieldsMap) {
+
+		_ddmFormFieldsMap = ddmFormFieldsMap;
 	}
 
 	@Override
@@ -478,5 +490,8 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@CacheField(methodName = "DDMForm", propagateToInterface = true)
 	private DDMForm _ddmForm;
+
+	@CacheField(methodName = "DDMFormFieldsMap", propagateToInterface = true)
+	private Map<String, DDMFormField> _ddmFormFieldsMap;
 
 }
