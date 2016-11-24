@@ -978,6 +978,14 @@ public class DDMStructureModelImpl extends BaseModelImpl<DDMStructure>
 		_lastPublishDate = lastPublishDate;
 	}
 
+	public Map<java.lang.String, com.liferay.dynamic.data.mapping.model.DDMFormField> getDDMFormFieldsMap() {
+		return null;
+	}
+
+	public void setDDMFormFieldsMap(
+		Map<java.lang.String, com.liferay.dynamic.data.mapping.model.DDMFormField> ddmFormFieldsMap) {
+	}
+
 	public com.liferay.dynamic.data.mapping.model.DDMForm getDDMForm() {
 		return null;
 	}
@@ -1213,6 +1221,8 @@ public class DDMStructureModelImpl extends BaseModelImpl<DDMStructure>
 
 		ddmStructureModelImpl._originalDescription = ddmStructureModelImpl._description;
 
+		setDDMFormFieldsMap(null);
+
 		setDDMForm(null);
 
 		ddmStructureModelImpl._columnBitmask = 0;
@@ -1336,6 +1346,8 @@ public class DDMStructureModelImpl extends BaseModelImpl<DDMStructure>
 		else {
 			ddmStructureCacheModel.lastPublishDate = Long.MIN_VALUE;
 		}
+
+		ddmStructureCacheModel._ddmFormFieldsMap = getDDMFormFieldsMap();
 
 		ddmStructureCacheModel._ddmForm = getDDMForm();
 
