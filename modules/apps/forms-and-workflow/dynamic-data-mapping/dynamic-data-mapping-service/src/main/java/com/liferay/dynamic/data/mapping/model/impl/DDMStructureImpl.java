@@ -147,9 +147,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 	@Override
 	public Map<String, DDMFormField> getDDMFormFieldsMap() {
 		if (_ddmFormFieldsMap == null) {
-			DDMForm ddmForm = getDDMForm();
-
-			_ddmFormFieldsMap = ddmForm.getDDMFormFieldsMap(true);
+			initDDMFormFieldsMap();
 		}
 
 		Map<String, DDMFormField> ddmFormFieldsMap = new HashMap<>();
@@ -407,6 +405,12 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 		Map<String, DDMFormField> ddmFormFieldsMap = getDDMFormFieldsMap();
 
 		return ddmFormFieldsMap.containsKey(fieldName);
+	}
+
+	public void initDDMFormFieldsMap() {
+		DDMForm ddmForm = getDDMForm();
+
+		_ddmFormFieldsMap = ddmForm.getDDMFormFieldsMap(true);
 	}
 
 	@Override
