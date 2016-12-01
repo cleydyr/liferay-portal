@@ -32,7 +32,7 @@ public class DDMStructureModelListener extends BaseModelListener<DDMStructure> {
 		throws ModelListenerException {
 
 		try {
-			ddmStructure.setDDMFormFieldsMap(null);
+			ddmStructure.initDDMFormFieldsMap();
 		}
 		catch (Exception e) {
 			throw new ModelListenerException(e);
@@ -44,7 +44,7 @@ public class DDMStructureModelListener extends BaseModelListener<DDMStructure> {
 		throws ModelListenerException {
 
 		try {
-			ddmStructure.setDDMFormFieldsMap(null);
+			ddmStructure.initDDMFormFieldsMap();
 		}
 		catch (Exception e) {
 			throw new ModelListenerException(e);
