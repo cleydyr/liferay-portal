@@ -837,6 +837,11 @@ public class DDMStructureWrapper implements DDMStructure,
 	}
 
 	@Override
+	public void initDDMFormFieldsMap() {
+		_ddmStructure.initDDMFormFieldsMap();
+	}
+
+	@Override
 	public void persist() {
 		_ddmStructure.persist();
 	}
