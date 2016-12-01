@@ -143,6 +143,8 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 
 	public boolean hasField(java.lang.String fieldName);
 
+	public void initDDMFormFieldsMap();
+
 	public boolean isFieldRepeatable(java.lang.String fieldName)
 		throws com.liferay.portal.kernel.exception.PortalException;
 
