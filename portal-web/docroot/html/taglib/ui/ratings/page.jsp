@@ -49,7 +49,7 @@ if (Validator.isNull(url)) {
 double averageScore = 0.0;
 
 if (ratingsStats != null) {
-	averageScore = ratingsStats.getAverageScore();
+	averageScore = MathUtil.format(ratingsStats.getAverageScore(), 1, 1);
 }
 
 int averageIndex = (int)Math.round(averageScore * numberOfStars);
@@ -214,7 +214,7 @@ if (ratingsEntry != null) {
 	<aui:script use="liferay-ratings">
 		Liferay.Ratings.register(
 			{
-				averageScore: <%= MathUtil.format(averageScore, 1, 1) %>,
+				averageScore: <%= averageScore %>,
 				className: '<%= HtmlUtil.escapeJS(className) %>',
 				classPK: '<%= classPK %>',
 				containerId: '<%= randomNamespace %>ratingContainer',
