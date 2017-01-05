@@ -63,6 +63,8 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 
 	public DDMForm getDDMForm();
 
+	public java.util.Map<java.lang.String, DDMFormField> getDDMFormFieldsMap();
+
 	public DDMFormField getDDMFormField(java.lang.String fieldName)
 		throws com.liferay.portal.kernel.exception.PortalException;
 
@@ -148,4 +150,7 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void setDDMForm(DDMForm ddmForm);
+
+	public void setDDMFormFieldsMap(
+		java.util.Map<java.lang.String, DDMFormField> ddmFormFieldsMap);
 }
