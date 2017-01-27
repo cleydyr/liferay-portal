@@ -7,6 +7,7 @@
 		<author>Nathan Cavanaugh</author>
 		<author>Julio Camarero</author>
 	</authors>
+	<description>Provides the AUI component tags, prefixed with <![CDATA[<code>aui:</code>]]>.</description>
 	<component bodyContent="true" name="A" writeJSP="false">
 		<description>Creates an anchor (or link) that offers custom configuration and localization.</description>
 		<attributes>
@@ -91,7 +92,6 @@
 				<name>animated</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<name>closeable</name>
@@ -108,7 +108,6 @@
 				<name>destroyOnHide</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<name>duration</name>
@@ -206,7 +205,6 @@
 				<name>useDialog</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<description>Whether to use the default portlet namespace, to avoid name conflicts. The default value is <![CDATA[<code>true</code>]]>.</description>
@@ -909,7 +907,6 @@
 				<name>wrappedField</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<description>A CSS class for styling the <![CDATA[<code>div</code>]]> that wraps the input component.</description>
@@ -1177,7 +1174,6 @@
 				<name>useDialog</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<description>Whether to wrap the navigation item's dropdown menu in an unordered list with the <![CDATA[<code>drop-down-menu</code>]]> class. The default value is <![CDATA[<code>true</code>]]>.</description>
@@ -1317,7 +1313,6 @@
 				<name>sandbox</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
-				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<description>AlloyUI modules to be used in the script. Names of multiple modules must be separated by commas.</description>

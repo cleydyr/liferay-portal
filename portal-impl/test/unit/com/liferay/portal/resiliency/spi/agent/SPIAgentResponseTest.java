@@ -32,6 +32,8 @@ import com.liferay.portal.model.impl.LayoutImpl;
 import com.liferay.portal.model.impl.PortletImpl;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PropsImpl;
+import com.liferay.registry.BasicRegistryImpl;
+import com.liferay.registry.RegistryUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -68,6 +70,8 @@ public class SPIAgentResponseTest {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		RegistryUtil.setRegistry(new BasicRegistryImpl());
+
 		PortalUtil portalUtil = new PortalUtil();
 
 		portalUtil.setPortal(new PortalImpl());
@@ -188,7 +192,7 @@ public class SPIAgentResponseTest {
 			new MockHttpServletRequest();
 
 		mockHttpServletRequest.setAttribute(
-			WebKeys.PORTAL_RESILIENCY_ACTION, true);
+			WebKeys.PORTAL_RESILIENCY_ACTION, Boolean.TRUE);
 
 		BufferCacheServletResponse bufferCacheServletResponse =
 			new BufferCacheServletResponse(new MockHttpServletResponse());

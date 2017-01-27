@@ -227,6 +227,10 @@ public class LDAPUserExporterImpl implements UserExporter {
 			ldapContext.modifyAttributes(name, modificationItems);
 		}
 		catch (SchemaViolationException sve) {
+			if (binding == null) {
+				throw sve;
+			}
+
 			String fullGroupDN = _portalLDAP.getNameInNamespace(
 				ldapServerId, companyId, binding);
 

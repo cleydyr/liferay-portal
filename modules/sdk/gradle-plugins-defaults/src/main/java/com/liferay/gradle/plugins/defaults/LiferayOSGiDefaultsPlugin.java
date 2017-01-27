@@ -118,12 +118,17 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.DependencySubstitutions.Substitution;
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -146,6 +151,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.JavaPlugin;
@@ -183,9 +189,13 @@ import org.gradle.external.javadoc.CoreJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.model.Classpath;
+import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -362,10 +372,11 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		_configureBasePlugin(project, portalRootDir);
 		_configureBundleDefaultInstructions(project, portalRootDir, publishing);
-		_configureConfigurations(project);
+		_configureConfigurations(project, liferayExtension);
 		_configureDependencyChecker(project);
 		_configureDeployDir(
 			project, liferayExtension, deployToAppServerLibs, deployToTools);
+		_configureEclipse(project);
 		_configureJavaPlugin(project);
 		_configureLocalPortalTool(
 			project, portalRootDir, SourceFormatterPlugin.CONFIGURATION_NAME,
@@ -439,9 +450,7 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 							updateVersionTask);
 					}
 
-					if (GradleUtil.hasPlugin(project, JspCPlugin.class)) {
-						_configureTaskCompileJSP(project, liferayExtension);
-					}
+					_configureTaskCompileJSP(project, liferayExtension);
 
 					// setProjectSnapshotVersion must be called before
 					// configureTaskUploadArchives, because the latter one needs
@@ -1135,6 +1144,10 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 	}
 
 	private void _applyPlugins(Project project) {
+		if (Validator.isNotNull(_getBundleInstruction(project, "Main-Class"))) {
+			GradleUtil.applyPlugin(project, ApplicationPlugin.class);
+		}
+
 		GradleUtil.applyPlugin(project, BaselinePlugin.class);
 		GradleUtil.applyPlugin(project, DependencyCheckerPlugin.class);
 		GradleUtil.applyPlugin(project, EclipsePlugin.class);
@@ -1554,6 +1567,23 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 		DependencySet dependencySet = configuration.getDependencies();
 
 		dependencySet.withType(
+			ExternalDependency.class,
+			new Action<ExternalDependency>() {
+
+				@Override
+				public void execute(ExternalDependency externalDependency) {
+					String version = externalDependency.getVersion();
+
+					if (version.endsWith(GradleUtil.SNAPSHOT_VERSION_SUFFIX)) {
+						throw new GradleException(
+							"Please use a timestamp version for " +
+								externalDependency);
+					}
+				}
+
+			});
+
+		dependencySet.withType(
 			ModuleDependency.class,
 			new Action<ModuleDependency>() {
 
@@ -1571,14 +1601,6 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 						moduleDependency.exclude(
 							Collections.singletonMap(
 								"group", "com.liferay.portal"));
-					}
-
-					String version = moduleDependency.getVersion();
-
-					if (version.endsWith(GradleUtil.SNAPSHOT_VERSION_SUFFIX)) {
-						throw new GradleException(
-							"Please use a timestamp version for " +
-								moduleDependency);
 					}
 				}
 
@@ -1608,6 +1630,113 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 			});
 	}
 
+	private void _configureConfigurationJspC(
+		final Project project, final LiferayExtension liferayExtension) {
+
+		final Configuration configuration = GradleUtil.getConfiguration(
+			project, JspCPlugin.CONFIGURATION_NAME);
+
+		DependencySet dependencySet = configuration.getAllDependencies();
+
+		dependencySet.withType(
+			ExternalModuleDependency.class,
+			new Action<ExternalModuleDependency>() {
+
+				@Override
+				public void execute(
+					ExternalModuleDependency externalModuleDependency) {
+
+					if (_isTaglibDependency(externalModuleDependency)) {
+						Map<String, String> args = new HashMap<>();
+
+						args.put("group", externalModuleDependency.getGroup());
+						args.put("module", externalModuleDependency.getName());
+
+						configuration.exclude(args);
+					}
+				}
+
+			});
+
+		ResolutionStrategy resolutionStrategy =
+			configuration.getResolutionStrategy();
+
+		resolutionStrategy.eachDependency(
+			new Action<DependencyResolveDetails>() {
+
+				@Override
+				public void execute(
+					DependencyResolveDetails dependencyResolveDetails) {
+
+					ModuleVersionSelector moduleVersionSelector =
+						dependencyResolveDetails.getRequested();
+
+					String group = moduleVersionSelector.getGroup();
+					String name = moduleVersionSelector.getName();
+
+					if (group.equals("com.liferay.portal") &&
+						name.equals("com.liferay.util.taglib")) {
+
+						String version = liferayExtension.getDefaultVersion(
+							moduleVersionSelector);
+
+						dependencyResolveDetails.useVersion(version);
+					}
+				}
+
+			});
+
+		ResolvableDependencies resolvableDependencies =
+			configuration.getIncoming();
+
+		Action<ResolvableDependencies> action =
+			new Action<ResolvableDependencies>() {
+
+				@Override
+				public void execute(
+					ResolvableDependencies resolvableDependencies) {
+
+					DependencySet dependencySet =
+						resolvableDependencies.getDependencies();
+
+					for (ExternalModuleDependency externalModuleDependency :
+							dependencySet.withType(
+								ExternalModuleDependency.class)) {
+
+						if (!_isTaglibDependency(externalModuleDependency)) {
+							continue;
+						}
+
+						File file;
+
+						File osgiDir = new File(
+							liferayExtension.getLiferayHome(), "osgi");
+						String fileName =
+							externalModuleDependency.getName() + ".jar";
+
+						try {
+							file = FileUtil.findFile(osgiDir, fileName);
+						}
+						catch (IOException ioe) {
+							throw new UncheckedIOException(ioe);
+						}
+
+						if (file == null) {
+							throw new GradleException(
+								"Unable to find " + fileName + " in " +
+									osgiDir);
+						}
+
+						GradleUtil.addDependency(
+							project, configuration.getName(), file);
+					}
+				}
+
+			};
+
+		resolvableDependencies.beforeResolve(action);
+	}
+
 	private void _configureConfigurationNoCache(Configuration configuration) {
 		ResolutionStrategy resolutionStrategy =
 			configuration.getResolutionStrategy();
@@ -1616,8 +1745,11 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 		resolutionStrategy.cacheDynamicVersionsFor(0, TimeUnit.SECONDS);
 	}
 
-	private void _configureConfigurations(Project project) {
+	private void _configureConfigurations(
+		Project project, LiferayExtension liferayExtension) {
+
 		_configureConfigurationDefault(project);
+		_configureConfigurationJspC(project, liferayExtension);
 
 		String projectPath = project.getPath();
 
@@ -1710,6 +1842,43 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 			});
 	}
 
+	private void _configureEclipse(Project project) {
+		EclipseModel eclipseModel = GradleUtil.getExtension(
+			project, EclipseModel.class);
+
+		EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
+
+		XmlFileContentMerger xmlFileContentMerger = eclipseClasspath.getFile();
+
+		xmlFileContentMerger.whenMerged(
+			new Closure<Void>(project) {
+
+				@SuppressWarnings("unused")
+				public void doCall(Classpath classpath) {
+					for (ClasspathEntry classpathEntry :
+							classpath.getEntries()) {
+
+						if (!(classpathEntry instanceof SourceFolder)) {
+							continue;
+						}
+
+						SourceFolder sourceFolder =
+							(SourceFolder)classpathEntry;
+
+						File archetypeResourcesDir = new File(
+							sourceFolder.getDir(), "archetype-resources");
+
+						if (archetypeResourcesDir.isDirectory()) {
+							List<String> excludes = sourceFolder.getExcludes();
+
+							excludes.add("**/*.java");
+						}
+					}
+				}
+
+			});
+	}
+
 	private void _configureEclipse(
 		Project project, Configuration portalTestConfiguration) {
 
@@ -1760,7 +1929,7 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		if ((portalRootDir == null) ||
 			GradleUtil.getProperty(
-				project, portalToolName + ".ignore.local", false)) {
+				project, portalToolName + ".ignore.local", true)) {
 
 			return;
 		}
@@ -3148,6 +3317,21 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 				return true;
 			}
+		}
+
+		return false;
+	}
+
+	private boolean _isTaglibDependency(
+		ExternalModuleDependency externalModuleDependency) {
+
+		String group = externalModuleDependency.getGroup();
+		String name = externalModuleDependency.getName();
+
+		if (group.equals("com.liferay") && name.startsWith("com.liferay.") &&
+			name.contains(".taglib")) {
+
+			return true;
 		}
 
 		return false;
