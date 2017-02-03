@@ -19,7 +19,6 @@ import com.liferay.gradle.plugins.change.log.builder.BuildChangeLogTask;
 import com.liferay.gradle.plugins.change.log.builder.ChangeLogBuilderPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.FileUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.wsdd.builder.WSDDBuilderPlugin;
 import com.liferay.gradle.util.Validator;
 
 import java.io.File;
@@ -345,23 +344,6 @@ public class PrintArtifactPublishCommandsTask extends DefaultTask {
 					"artifact properties", false, true, false));
 		}
 
-		// WSDD
-
-		Task buildWSDDTask = _getTask(WSDDBuilderPlugin.BUILD_WSDD_TASK_NAME);
-
-		if ((buildWSDDTask != null) && buildWSDDTask.getEnabled()) {
-			Project project = getProject();
-
-			String command =
-				"git add --all " + _getRelativePath(project.getProjectDir()) +
-					File.separator;
-
-			commands.add(command + "*.wsdd");
-			commands.add(command + "**" + File.separator + "*.wsdd");
-
-			commands.add(_getGitCommitCommand("wsdd", false, false, true));
-		}
-
 		// Commit other changed files
 
 		commands.add(_getGitCommitCommand("apply", true, false, true));
@@ -374,8 +356,11 @@ public class PrintArtifactPublishCommandsTask extends DefaultTask {
 
 		Project project = getProject();
 
-		if (all || quiet) {
-			sb.append("(git diff-index --quiet HEAD || ");
+		if (all) {
+			sb.append("(git diff --quiet || ");
+		}
+		else if (quiet) {
+			sb.append("(git diff --cached --quiet || ");
 		}
 
 		sb.append("git commit ");

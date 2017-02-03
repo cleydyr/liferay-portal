@@ -157,7 +157,7 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			});
 	}
 
-	/*@Test
+	@Test
 	public void testIncorrectLineBreaks() throws Exception {
 		test(
 			"IncorrectLineBreaks1.testjava",
@@ -168,6 +168,8 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 					"\"Hello\", \"World\"),'",
 				"There should be a line break after '\"Hello World Hello " +
 					"World Hello World\",'",
+				"There should be a line break after " +
+					"'anotherStringWithAVeryLongName,'",
 				"There should be a line break after '='",
 				"There should be a line break after '+'",
 				"There should be a line break after '='",
@@ -181,16 +183,17 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"There should be a line break before 'new " +
 					"Comparator<String>() {'",
 				"There should be a line break after '},'",
+				"Line starts with '2' tabs, but '3' tabs are expected",
 				"There should be a line break before 'throws'",
 				"There should be a line break before 'throws'",
 				"'new String[] {' should be added to previous line"
 			},
 			new Integer[] {
-				31, 35, 43, 47, 49, 52, 55, 59, 62, 67, 71, 76, 80, 87, 98, 111,
-				116, 122, 132
+				31, 35, 43, 47, 52, 55, 58, 61, 65, 68, 73, 77, 82, 86, 93, 104,
+				117, 121, 122, 128, 138
 			});
 		test("IncorrectLineBreaks2.testjava");
-	}*/
+	}
 
 	@Test
 	public void testIncorrectParameterNames() throws Exception {
@@ -205,18 +208,19 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			new Integer[] {24, 28});
 	}
 
-	/*@Test
+	@Test
 	public void testIncorrectTabs() throws Exception {
 		test(
 			"IncorrectTabs.testjava",
 			new String[] {
 				"There should be a line break after '('",
 				"There should be a line break after '{'",
-				"Line starts with 3 tabs, but should be 4"
+				"Line starts with '3' tabs, but '4' tabs are expected",
+				"Line starts with '2' tabs, but '3' tabs are expected",
+				"Line starts with '3' tabs, but '4' tabs are expected"
 			},
-			new Integer[] {26, 30, 37});
+			new Integer[] {26, 30, 31, 32, 37});
 	}
-	*/
 
 	@Test
 	public void testIncorrectVariableNames() throws Exception {

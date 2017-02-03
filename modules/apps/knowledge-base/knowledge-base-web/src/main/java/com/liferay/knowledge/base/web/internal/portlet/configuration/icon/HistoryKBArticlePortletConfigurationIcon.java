@@ -20,7 +20,7 @@ import com.liferay.knowledge.base.web.internal.constants.KBWebKeys;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.PortletRequest;
@@ -28,6 +28,7 @@ import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Ambrin Chaudhary
@@ -53,7 +54,7 @@ public class HistoryKBArticlePortletConfigurationIcon
 	public String getURL(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
+		PortletURL portletURL = _portal.getControlPanelPortletURL(
 			portletRequest, KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
 			PortletRequest.RENDER_PHASE);
 
@@ -72,7 +73,8 @@ public class HistoryKBArticlePortletConfigurationIcon
 			"resourcePrimKey", String.valueOf(kbArticle.getResourcePrimKey()));
 
 		portletURL.setParameter(
-			"status", String.valueOf(
+			"status",
+			String.valueOf(
 				portletRequest.getAttribute(KBWebKeys.KNOWLEDGE_BASE_STATUS)));
 
 		return portletURL.toString();
@@ -93,5 +95,8 @@ public class HistoryKBArticlePortletConfigurationIcon
 
 		return false;
 	}
+
+	@Reference
+	private Portal _portal;
 
 }
