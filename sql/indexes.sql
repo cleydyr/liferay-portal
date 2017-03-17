@@ -445,11 +445,6 @@ create index IX_AB5906A8 on SocialRequest (userId, status);
 create index IX_8D42897C on SocialRequest (uuid_[$COLUMN_LENGTH:75$], companyId);
 create unique index IX_4F973EFE on SocialRequest (uuid_[$COLUMN_LENGTH:75$], groupId);
 
-create index IX_786D171A on Subscription (companyId, classNameId, classPK);
-create unique index IX_2E1A92D4 on Subscription (companyId, userId, classNameId, classPK);
-create index IX_1290B81 on Subscription (groupId, userId);
-create index IX_E8F34171 on Subscription (userId, classNameId);
-
 create index IX_FFCBB747 on SystemEvent (groupId, classNameId, classPK, type_);
 create index IX_A19C89FF on SystemEvent (groupId, systemEventSetKey);
 
@@ -458,6 +453,7 @@ create index IX_5D47F637 on Team (uuid_[$COLUMN_LENGTH:75$], companyId);
 create unique index IX_39F69E79 on Team (uuid_[$COLUMN_LENGTH:75$], groupId);
 
 create index IX_1E8DFB2E on Ticket (classNameId, classPK, type_);
+create index IX_8BACD0AA on Ticket (companyId, classNameId, classPK, type_);
 create index IX_B2468446 on Ticket (key_[$COLUMN_LENGTH:75$]);
 
 create unique index IX_B35F73D5 on TrashEntry (classNameId, classPK);

@@ -441,22 +441,16 @@ public class LanguageImpl implements Language, Serializable {
 			if (ArrayUtil.isNotEmpty(arguments)) {
 				pattern = _escapePattern(pattern);
 
-				Object[] formattedArguments = new Object[arguments.length];
-
 				for (int i = 0; i < arguments.length; i++) {
 					if (translateArguments) {
-						formattedArguments[i] = get(
-							request, arguments[i].toString());
-					}
-					else {
-						formattedArguments[i] = arguments[i];
+						arguments[i] = get(request, arguments[i].toString());
 					}
 				}
 
 				MessageFormat messageFormat = decorateMessageFormat(
-					request, pattern, formattedArguments);
+					request, pattern, arguments);
 
-				value = messageFormat.format(formattedArguments);
+				value = messageFormat.format(arguments);
 			}
 			else {
 				value = pattern;
@@ -631,22 +625,16 @@ public class LanguageImpl implements Language, Serializable {
 			if (ArrayUtil.isNotEmpty(arguments)) {
 				pattern = _escapePattern(pattern);
 
-				Object[] formattedArguments = new Object[arguments.length];
-
 				for (int i = 0; i < arguments.length; i++) {
 					if (translateArguments) {
-						formattedArguments[i] = get(
-							locale, arguments[i].toString());
-					}
-					else {
-						formattedArguments[i] = arguments[i];
+						arguments[i] = get(locale, arguments[i].toString());
 					}
 				}
 
 				MessageFormat messageFormat = decorateMessageFormat(
-					locale, pattern, formattedArguments);
+					locale, pattern, arguments);
 
-				value = messageFormat.format(formattedArguments);
+				value = messageFormat.format(arguments);
 			}
 			else {
 				value = pattern;
@@ -780,22 +768,17 @@ public class LanguageImpl implements Language, Serializable {
 			if (ArrayUtil.isNotEmpty(arguments)) {
 				pattern = _escapePattern(pattern);
 
-				Object[] formattedArguments = new Object[arguments.length];
-
 				for (int i = 0; i < arguments.length; i++) {
 					if (translateArguments) {
-						formattedArguments[i] = get(
+						arguments[i] = get(
 							resourceBundle, arguments[i].toString());
-					}
-					else {
-						formattedArguments[i] = arguments[i];
 					}
 				}
 
 				MessageFormat messageFormat = decorateMessageFormat(
-					resourceBundle.getLocale(), pattern, formattedArguments);
+					resourceBundle.getLocale(), pattern, arguments);
 
-				value = messageFormat.format(formattedArguments);
+				value = messageFormat.format(arguments);
 			}
 			else {
 				value = pattern;
@@ -1870,6 +1853,8 @@ public class LanguageImpl implements Language, Serializable {
 				}
 			}
 
+			Set<String> duplicateLanguageCodes = new HashSet<>();
+
 			for (String languageId : languageIds) {
 				Locale locale = LocaleUtil.fromLanguageId(languageId, false);
 
@@ -1882,13 +1867,20 @@ public class LanguageImpl implements Language, Serializable {
 				}
 
 				if (_languageCodeLocalesMap.containsKey(languageCode)) {
-					_duplicateLanguageCodes.add(languageCode);
+					duplicateLanguageCodes.add(languageCode);
 				}
 				else {
 					_languageCodeLocalesMap.put(languageCode, locale);
 				}
 
 				_languageIdLocalesMap.put(languageId, locale);
+			}
+
+			if (duplicateLanguageCodes.isEmpty()) {
+				_duplicateLanguageCodes = Collections.emptySet();
+			}
+			else {
+				_duplicateLanguageCodes = duplicateLanguageCodes;
 			}
 
 			for (String languageId : PropsValues.LOCALES_BETA) {
@@ -1909,7 +1901,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 
 		private final Set<Locale> _availableLocales;
-		private final Set<String> _duplicateLanguageCodes = new HashSet<>();
+		private final Set<String> _duplicateLanguageCodes;
 		private final Map<String, Locale> _languageCodeLocalesMap =
 			new HashMap<>();
 		private final Map<String, Locale> _languageIdLocalesMap =

@@ -49,6 +49,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -59,7 +60,6 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
-import com.liferay.portal.kernel.model.Subscription;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -68,7 +68,6 @@ import com.liferay.portal.kernel.service.ResourceBlockLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -85,6 +84,8 @@ import com.liferay.ratings.kernel.service.RatingsEntryLocalService;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.service.SocialActivityLocalService;
+import com.liferay.subscription.model.Subscription;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -438,8 +439,19 @@ public class CalEventImporter {
 			return null;
 		}
 
-		TZSRecurrence tzsRecurrence = (TZSRecurrence)_jsonSerializer.fromJSON(
-			originalRecurrence);
+		TZSRecurrence tzsRecurrence = null;
+
+		try {
+			tzsRecurrence = (TZSRecurrence)JSONFactoryUtil.deserialize(
+				originalRecurrence);
+		}
+		catch (IllegalStateException ise) {
+
+			// LPS-65972
+
+			tzsRecurrence = (TZSRecurrence)_jsonSerializer.fromJSON(
+				originalRecurrence);
+		}
 
 		if (tzsRecurrence == null) {
 			return null;

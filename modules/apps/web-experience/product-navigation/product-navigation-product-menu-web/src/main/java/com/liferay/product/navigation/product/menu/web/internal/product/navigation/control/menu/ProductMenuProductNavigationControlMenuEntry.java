@@ -15,18 +15,46 @@
 package com.liferay.product.navigation.product.menu.web.internal.product.navigation.control.menu;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.SessionClicks;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.product.navigation.control.menu.BaseJSPProductNavigationControlMenuEntry;
+import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
+import com.liferay.product.navigation.product.menu.web.constants.ProductNavigationProductMenuPortletKeys;
+import com.liferay.product.navigation.product.menu.web.constants.ProductNavigationProductMenuWebKeys;
+import com.liferay.taglib.portletext.RuntimeTag;
+import com.liferay.taglib.util.BodyBottomTag;
 
-import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.io.Writer;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.portlet.PortletURL;
+import javax.portlet.RenderRequest;
+import javax.portlet.WindowStateException;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.JspWriter;
+import javax.servlet.jsp.PageContext;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Julio Camarero
@@ -40,16 +68,95 @@ import org.osgi.service.component.annotations.Reference;
 	service = ProductNavigationControlMenuEntry.class
 )
 public class ProductMenuProductNavigationControlMenuEntry
-	extends BaseJSPProductNavigationControlMenuEntry {
+	extends BaseProductNavigationControlMenuEntry {
 
 	@Override
-	public String getBodyJspPath() {
-		return "/portlet/control_menu/product_menu_control_menu_entry_body.jsp";
+	public String getLabel(Locale locale) {
+		return null;
 	}
 
 	@Override
-	public String getIconJspPath() {
-		return "/portlet/control_menu/product_menu_control_menu_entry_icon.jsp";
+	public String getURL(HttpServletRequest request) {
+		return null;
+	}
+
+	@Override
+	public boolean includeBody(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		BodyBottomTag bodyBottomTag = new BodyBottomTag();
+
+		bodyBottomTag.setOutputKey("productMenu");
+
+		try {
+			bodyBottomTag.doBodyTag(
+				request, response, this::_processBodyBottomContent);
+		}
+		catch (JspException je) {
+			throw new IOException(je);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean includeIcon(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		Map<String, String> values = new HashMap<>();
+
+		String portletNamespace = PortalUtil.getPortletNamespace(
+			ProductNavigationProductMenuPortletKeys.
+				PRODUCT_NAVIGATION_PRODUCT_MENU);
+
+		values.put("portletNamespace", portletNamespace);
+
+		values.put("title", HtmlUtil.escape(LanguageUtil.get(request, "menu")));
+
+		String productMenuState = SessionClicks.get(
+			request,
+			ProductNavigationProductMenuWebKeys.
+				PRODUCT_NAVIGATION_PRODUCT_MENU_STATE,
+			"closed");
+
+		if (Objects.equals(productMenuState, "open")) {
+			values.put("cssClass", "active");
+			values.put("dataURL", StringPool.BLANK);
+		}
+		else {
+			values.put("cssClass", StringPool.BLANK);
+
+			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+			PortletURL portletURL = PortletURLFactoryUtil.create(
+				request,
+				ProductNavigationProductMenuPortletKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU,
+				RenderRequest.RENDER_PHASE);
+
+			portletURL.setParameter("mvcPath", "/portlet/product_menu.jsp");
+			portletURL.setParameter("selPpid", portletDisplay.getId());
+
+			try {
+				portletURL.setWindowState(LiferayWindowState.EXCLUSIVE);
+			}
+			catch (WindowStateException wse) {
+				ReflectionUtil.throwException(wse);
+			}
+
+			values.put("dataURL", "data-url='" + portletURL.toString() + "'");
+		}
+
+		Writer writer = response.getWriter();
+
+		writer.write(StringUtil.replace(_TMPL_CONTENT, "${", "}", values));
+
+		return true;
 	}
 
 	@Override
@@ -70,13 +177,53 @@ public class ProductMenuProductNavigationControlMenuEntry
 		return false;
 	}
 
-	@Override
-	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.product.navigation.product.menu.web)",
-		unbind = "-"
-	)
-	public void setServletContext(ServletContext servletContext) {
-		super.setServletContext(servletContext);
+	private void _processBodyBottomContent(PageContext pageContext) {
+		try {
+			JspWriter jspWriter = pageContext.getOut();
+
+			jspWriter.write("<div class=\"");
+
+			HttpServletRequest request =
+				(HttpServletRequest)pageContext.getRequest();
+
+			String productMenuState = SessionClicks.get(
+				request,
+				ProductNavigationProductMenuWebKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU_STATE,
+				"closed");
+
+			jspWriter.write(productMenuState);
+
+			jspWriter.write(
+				" hidden-print lfr-product-menu-panel sidenav-fixed " +
+					"sidenav-menu-slider\" id=\"");
+
+			String portletNamespace = PortalUtil.getPortletNamespace(
+				ProductNavigationProductMenuPortletKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU);
+
+			jspWriter.write(portletNamespace);
+
+			jspWriter.write("sidenavSliderId\">");
+			jspWriter.write(
+				"<div class=\"product-menu sidebar sidenav-menu\">");
+
+			RuntimeTag runtimeTag = new RuntimeTag();
+
+			runtimeTag.setPortletName(
+				ProductNavigationProductMenuPortletKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU);
+
+			runtimeTag.doTag(pageContext);
+
+			jspWriter.write("</div></div>");
+		}
+		catch (Exception e) {
+			ReflectionUtil.throwException(e);
+		}
 	}
+
+	private static final String _TMPL_CONTENT = StringUtil.read(
+		ProductMenuProductNavigationControlMenuEntry.class, "icon.tmpl");
 
 }

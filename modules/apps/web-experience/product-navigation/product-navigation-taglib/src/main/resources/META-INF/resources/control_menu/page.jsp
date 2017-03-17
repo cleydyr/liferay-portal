@@ -17,8 +17,10 @@
 <%@ include file="/control_menu/init.jsp" %>
 
 <%
-List<ProductNavigationControlMenuCategory> productNavigationControlMenuCategories = (List<ProductNavigationControlMenuCategory>)request.getAttribute("liferay-product-navigation:control-menu:control-menu-categories");
-ProductNavigationControlMenuEntryRegistry productNavigationControlMenuEntryRegistry = (ProductNavigationControlMenuEntryRegistry)request.getAttribute("liferay-product-navigation:control-menu:control-menu-entry-registry");
+ProductNavigationControlMenuCategoryRegistry productNavigationControlMenuCategoryRegistry = ServletContextUtil.getProductNavigationControlMenuCategoryRegistry();
+
+List<ProductNavigationControlMenuCategory> productNavigationControlMenuCategories = productNavigationControlMenuCategoryRegistry.getProductNavigationControlMenuCategories(ProductNavigationControlMenuCategoryKeys.ROOT);
+ProductNavigationControlMenuEntryRegistry productNavigationControlMenuEntryRegistry = ServletContextUtil.getProductNavigationControlMenuEntryRegistry();
 %>
 
 <c:if test="<%= !productNavigationControlMenuCategories.isEmpty() %>">
@@ -27,6 +29,8 @@ ProductNavigationControlMenuEntryRegistry productNavigationControlMenuEntryRegis
 			<ul class="control-menu-level-1-nav control-menu-nav" data-namespace="<portlet:namespace />" data-qa-id="header" id="<portlet:namespace />controlMenu">
 
 				<%
+				Map<ProductNavigationControlMenuCategory, List<ProductNavigationControlMenuEntry>> productNavigationControlMenuEntriesMap = new LinkedHashMap<>();
+
 				for (ProductNavigationControlMenuCategory productNavigationControlMenuCategory : productNavigationControlMenuCategories) {
 				%>
 
@@ -35,6 +39,8 @@ ProductNavigationControlMenuEntryRegistry productNavigationControlMenuEntryRegis
 
 							<%
 							List<ProductNavigationControlMenuEntry> productNavigationControlMenuEntries = productNavigationControlMenuEntryRegistry.getProductNavigationControlMenuEntries(productNavigationControlMenuCategory, request);
+
+							productNavigationControlMenuEntriesMap.put(productNavigationControlMenuCategory, productNavigationControlMenuEntries);
 
 							for (ProductNavigationControlMenuEntry productNavigationControlMenuEntry : productNavigationControlMenuEntries) {
 								if (productNavigationControlMenuEntry.includeIcon(request, new PipingServletResponse(pageContext))) {
@@ -73,7 +79,7 @@ ProductNavigationControlMenuEntryRegistry productNavigationControlMenuEntryRegis
 
 			<%
 			for (ProductNavigationControlMenuCategory productNavigationControlMenuCategory : productNavigationControlMenuCategories) {
-				List<ProductNavigationControlMenuEntry> productNavigationControlMenuEntries = productNavigationControlMenuEntryRegistry.getProductNavigationControlMenuEntries(productNavigationControlMenuCategory, request);
+				List<ProductNavigationControlMenuEntry> productNavigationControlMenuEntries = productNavigationControlMenuEntriesMap.get(productNavigationControlMenuCategory);
 
 				for (ProductNavigationControlMenuEntry productNavigationControlMenuEntry : productNavigationControlMenuEntries) {
 					productNavigationControlMenuEntry.includeBody(request, new PipingServletResponse(pageContext));

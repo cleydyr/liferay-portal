@@ -92,6 +92,8 @@ public interface LiferaySelenium {
 
 	public void assertPartialConfirmation(String pattern) throws Exception;
 
+	public void assertPartialLocation(String pattern) throws Exception;
+
 	public void assertPartialText(String locator, String pattern)
 		throws Exception;
 
@@ -213,6 +215,10 @@ public interface LiferaySelenium {
 	public boolean isChecked(String locator);
 
 	public boolean isConfirmation(String pattern);
+
+	public boolean isConsoleTextNotPresent(String text) throws Exception;
+
+	public boolean isConsoleTextPresent(String text) throws Exception;
 
 	public boolean isEditable(String locator);
 
@@ -433,6 +439,10 @@ public interface LiferaySelenium {
 	public void uploadTempFile(String locator, String value);
 
 	public void waitForConfirmation(String pattern) throws Exception;
+
+	public void waitForConsoleTextNotPresent(String text) throws Exception;
+
+	public void waitForConsoleTextPresent(String text) throws Exception;
 
 	public void waitForElementNotPresent(String locator) throws Exception;
 

@@ -17,6 +17,7 @@ package com.liferay.portal.service;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.OrganizationParentException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ListTypeConstants;
@@ -316,7 +317,7 @@ public class OrganizationLocalServiceTest {
 		List<Organization> organizations =
 			OrganizationLocalServiceUtil.getNoAssetOrganizations();
 
-		Assert.assertEquals(1, organizations.size());
+		Assert.assertEquals(organizations.toString(), 1, organizations.size());
 		Assert.assertEquals(organizationB, organizations.get(0));
 	}
 
@@ -339,7 +340,7 @@ public class OrganizationLocalServiceTest {
 
 		List<Object> results = getOrganizationsAndUsers(organization);
 
-		Assert.assertEquals(2, results.size());
+		Assert.assertEquals(results.toString(), 2, results.size());
 		Assert.assertTrue(results.contains(suborganization));
 		Assert.assertTrue(results.contains(TestPropsValues.getUser()));
 
@@ -362,7 +363,7 @@ public class OrganizationLocalServiceTest {
 
 		List<Object> results = getOrganizationsAndUsers(organization);
 
-		Assert.assertEquals(1, results.size());
+		Assert.assertEquals(results.toString(), 1, results.size());
 		Assert.assertTrue(results.contains(TestPropsValues.getUser()));
 
 		UserLocalServiceUtil.deleteOrganizationUser(
@@ -385,7 +386,7 @@ public class OrganizationLocalServiceTest {
 
 		List<Object> results = getOrganizationsAndUsers(organization);
 
-		Assert.assertEquals(1, results.size());
+		Assert.assertEquals(results.toString(), 1, results.size());
 		Assert.assertTrue(results.contains(suborganization));
 	}
 
@@ -608,6 +609,88 @@ public class OrganizationLocalServiceTest {
 
 		Assert.assertEquals(
 			organizationB.getGroupId(), groupAA.getParentGroupId());
+	}
+
+	@Test(expected = OrganizationParentException.class)
+	public void testNoCircularParentOrganization() throws Exception {
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationAA = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization AA", false);
+
+		Organization organizationAAA = OrganizationTestUtil.addOrganization(
+			organizationAA.getOrganizationId(), "Organization AAA", false);
+
+		Organization organizationAAAA = OrganizationTestUtil.addOrganization(
+			organizationAAA.getOrganizationId(), "Organization AAAA", false);
+
+		_organizations.add(organizationAAAA);
+
+		_organizations.add(organizationAAA);
+		_organizations.add(organizationAA);
+		_organizations.add(organizationA);
+
+		organizationA.setParentOrganizationId(
+			organizationAAAA.getOrganizationId());
+
+		OrganizationTestUtil.updateOrganization(organizationA);
+	}
+
+	@Test
+	public void testParentOrganizationUpdatesAllTreePaths() throws Exception {
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization B", false);
+
+		Organization organizationBB = OrganizationTestUtil.addOrganization(
+			organizationB.getOrganizationId(), "Organization BB", false);
+
+		Organization organizationBBB = OrganizationTestUtil.addOrganization(
+			organizationBB.getOrganizationId(), "Organization BBB", false);
+
+		_organizations.add(organizationBBB);
+
+		_organizations.add(organizationBB);
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		String shallowTreePath = OrganizationTestUtil.getTreePath(
+			new Organization[] {
+				organizationB, organizationBB, organizationBBB
+			});
+
+		Assert.assertEquals(shallowTreePath, organizationBBB.getTreePath());
+
+		organizationB.setParentOrganizationId(
+			organizationA.getOrganizationId());
+
+		OrganizationTestUtil.updateOrganization(organizationB);
+
+		organizationBBB = OrganizationLocalServiceUtil.fetchOrganization(
+			organizationBBB.getOrganizationId());
+
+		String deepTreePath = OrganizationTestUtil.getTreePath(
+			new Organization[] {
+				organizationA, organizationB, organizationBB, organizationBBB
+			});
+
+		Assert.assertEquals(deepTreePath, organizationBBB.getTreePath());
+
+		organizationB.setParentOrganizationId(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID);
+
+		OrganizationTestUtil.updateOrganization(organizationB);
+
+		organizationBBB = OrganizationLocalServiceUtil.fetchOrganization(
+			organizationBBB.getOrganizationId());
+
+		Assert.assertEquals(shallowTreePath, organizationBBB.getTreePath());
 	}
 
 	@Test

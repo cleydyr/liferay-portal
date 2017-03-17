@@ -58,11 +58,6 @@ import org.dom4j.Element;
  */
 public class JSPSourceProcessor extends BaseSourceProcessor {
 
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
 	protected void addImportCounts(String content) {
 		Matcher matcher = _importsPattern.matcher(content);
 
@@ -348,6 +343,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		newContent = fixCompatClassImports(absolutePath, newContent);
 
+		newContent = fixEmptyLinesInMultiLineTags(newContent);
+
 		newContent = fixEmptyLinesInNestedTags(newContent);
 
 		newContent = fixEmptyLinesBetweenTags(newContent);
@@ -567,6 +564,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 
 		return fileNames;
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
 	}
 
 	protected String fixEmptyJavaSourceTag(String content) {
@@ -2124,11 +2126,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			"PortletResponse", "resourceResponse",
 			"(PortletResponse)request.getAttribute(JavaConstants." +
 				"JAVAX_PORTLET_RESPONSE)"
-		},
-		new String[] {
-			"SearchContainerReference", "searchContainerReference",
-			"(SearchContainerReference)request.getAttribute(WebKeys." +
-				"SEARCH_CONTAINER_REFERENCE)"
 		}
 	};
 

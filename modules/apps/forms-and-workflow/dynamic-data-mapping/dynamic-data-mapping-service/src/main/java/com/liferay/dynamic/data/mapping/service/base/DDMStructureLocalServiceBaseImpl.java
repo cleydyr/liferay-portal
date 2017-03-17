@@ -23,6 +23,7 @@ import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInsta
 import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstancePersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureFinder;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureLayoutPersistence;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureLinkFinder;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureLinkPersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructurePersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureVersionPersistence;
@@ -63,11 +64,13 @@ import com.liferay.portal.kernel.service.persistence.SystemEventPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -323,6 +326,16 @@ public abstract class DDMStructureLocalServiceBaseImpl
 		exportActionableDynamicQuery.setAddCriteriaMethod(new ActionableDynamicQuery.AddCriteriaMethod() {
 				@Override
 				public void addCriteria(DynamicQuery dynamicQuery) {
+					Set<Serializable> primaryKeys = portletDataContext.getRegisteredExportingClassedModelPrimaryKeys(
+							"DDMStructure");
+
+					if (SetUtil.isNotEmpty(primaryKeys)) {
+						Property primaryKeyProperty = PropertyFactoryUtil.forName(
+								"structureId");
+
+						dynamicQuery.add(primaryKeyProperty.in(primaryKeys));
+					}
+
 					portletDataContext.addDateRangeCriteria(dynamicQuery,
 						"modifiedDate");
 
@@ -877,6 +890,25 @@ public abstract class DDMStructureLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the ddm structure link finder.
+	 *
+	 * @return the ddm structure link finder
+	 */
+	public DDMStructureLinkFinder getDDMStructureLinkFinder() {
+		return ddmStructureLinkFinder;
+	}
+
+	/**
+	 * Sets the ddm structure link finder.
+	 *
+	 * @param ddmStructureLinkFinder the ddm structure link finder
+	 */
+	public void setDDMStructureLinkFinder(
+		DDMStructureLinkFinder ddmStructureLinkFinder) {
+		this.ddmStructureLinkFinder = ddmStructureLinkFinder;
+	}
+
+	/**
 	 * Returns the ddm structure version local service.
 	 *
 	 * @return the ddm structure version local service
@@ -1066,6 +1098,8 @@ public abstract class DDMStructureLocalServiceBaseImpl
 	protected com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalService ddmStructureLinkLocalService;
 	@BeanReference(type = DDMStructureLinkPersistence.class)
 	protected DDMStructureLinkPersistence ddmStructureLinkPersistence;
+	@BeanReference(type = DDMStructureLinkFinder.class)
+	protected DDMStructureLinkFinder ddmStructureLinkFinder;
 	@BeanReference(type = com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService.class)
 	protected com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService ddmStructureVersionLocalService;
 	@BeanReference(type = DDMStructureVersionPersistence.class)

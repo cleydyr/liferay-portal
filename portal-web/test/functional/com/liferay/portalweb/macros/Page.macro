@@ -1,7 +1,7 @@
 <definition>
 	<command name="_addPageTypeEmbedded">
 		<execute function="Type" locator1="SitePagesEditPage#PAGE_TYPE_EMBEDDED_URL_FIELD" value1="${pageTypeURL}" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_EMBEDDED_DESCRIPTION_FIELD" value1="Show content from another website." />
+		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_DESCRIPTION" value1="Show content from another website." />
 	</command>
 
 	<command name="_addPageTypeFullPageApplication">
@@ -9,8 +9,8 @@
 	</command>
 
 	<command name="_addPageTypeLinkToURL">
-		<execute function="Type" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_URL_URL_FIELD" value1="${pageTypeURL}" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_URL_DESCRIPTION_FIELD" value1="Link to another website." />
+		<execute function="Type" locator1="TextInput#URL" value1="${pageTypeURL}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_DESCRIPTION" value1="Link to another website." />
 	</command>
 
 	<command name="_addPageTypePanel">
@@ -176,7 +176,9 @@
 
 		<execute function="Click" locator1="SitePages#ADD_CHILD_PAGE" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${siteChildPageName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${siteChildPageName}" />
+		</execute>
 
 		<execute function="AssertClick" locator1="Button#ADD_PAGE_BTN" value1="Add Page" />
 
@@ -236,7 +238,9 @@
 	</command>
 
 	<command name="addPageTitle">
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageName}" />
+		</execute>
 	</command>
 
 	<command name="addPageToSiteTemplates">
@@ -264,7 +268,9 @@
 
 		<execute function="Click" locator1="SitePages#DETAILS_LANGUAGE_TRANSLATIONS" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageTranslationName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageTranslationName}" />
+		</execute>
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -308,6 +314,28 @@
 		<execute function="AssertTextEquals#assertPartialText" locator1="Home#NODE_NAME" value1="${nodePort}" />
 	</command>
 
+	<command name="changeCurrentTheme">
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="${page}" />
+		</execute>
+
+		<execute function="Click" locator1="SitePagesEditPage#CHANGE_CURRENT_THEME_BUTTON" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<var name="key_cardText" value="${themeName}" />
+
+		<execute function="AssertTextPresent" locator1="Card#SPECIFIC_LARGE_TEXT" value1="${key_cardText}" />
+
+		<execute function="Click" locator1="Card#SPECIFIC_LARGE_TEXT" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute macro="Button#clickSave" />
+
+		<execute macro="Alert#viewSuccessMessage" />
+	</command>
+
 	<command name="changeLogoViaPageCP">
 		<execute macro="SitePageNavigator#gotoEditPage">
 			<var name="page" value="${page}" />
@@ -341,16 +369,20 @@
 
 		<execute function="AssertClick" locator1="MenuItem#COPY_APPLICATIONS" value1="Copy Applications" />
 
-		<execute function="AssertTextEquals" locator1="SitePagesEditPage#COPY_APPLICATIONS_MESSAGE_INFO" value1="The applications in page ${pageName} will be replaced with the ones in the page you select below." />
+		<execute function="SelectFrameTop" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<execute function="AssertTextEquals" locator1="Message#INFO" value1="The applications in page ${pageName} will be replaced with the ones in the page you select below." />
 		<execute function="AssertTextEquals" locator1="SitePagesEditPage#COPY_APPLICATIONS_COPY_FROM_PAGE_LABEL" value1="Copy from Page" />
 
 		<execute function="Click" locator1="SitePagesEditPage#COPY_APPLICATIONS_COPY_FROM_PAGE_SELECT" value1="${pageNameCopy}" />
 
-		<execute function="AssertClick" locator1="SitePagesEditPage#COPY_APPLICATIONS_COPY_BUTTON" value1="Copy" />
+		<execute function="SelectFrameTop" />
 
-		<var name="key_portletName" value="Blogs" />
+		<execute macro="Button#clickDone" />
 
-		<execute function="AssertTextNotPresent" locator1="Portlet#TITLE" value1="Blogs" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="deleteFriendlyURLPG">
@@ -408,7 +440,9 @@
 	</command>
 
 	<command name="editName">
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageNameEdit}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageNameEdit}" />
+		</execute>
 
 		<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#SAVE" value1="Save" />
 
@@ -445,9 +479,7 @@
 		<if>
 			<equals arg1="${pageType}" arg2="Link to a Page of This Site" />
 			<then>
-				<var name="key_indexNumber" value="${indexNumber}" />
-
-				<execute function="Select" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_PAGE_PAGE_SELECT" value1="index=${indexNumber}" />
+				<execute function="Select" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_PAGE_PAGE_SELECT" value1="regexp:.*${pageLinkName}.*" />
 			</then>
 			<elseif>
 				<equals arg1="${pageType}" arg2="Embedded" />
@@ -456,6 +488,8 @@
 				</then>
 			</elseif>
 		</if>
+
+		<execute function="Pause" locator1="3000" />
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -571,8 +605,13 @@
 	</command>
 
 	<command name="tearDownPG" summary="Delete all pages except the Welcome Page">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoSite">
-			<var name="site" value="Liferay" />
+			<var name="site" value="${siteName}" />
 		</execute>
 
 		<while>
@@ -634,6 +673,14 @@
 		<var name="key_childPageName" value="${childPageName}" />
 
 		<execute function="AssertTextEquals" locator1="Home#PAGE_CHILD_PAGE" value1="${childPageName}" />
+	</command>
+
+	<command name="viewCurrentTheme">
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="${page}" />
+		</execute>
+
+		<execute function="AssertTextPresent" locator1="SitePagesEditPage#VIEW_THEME" value1="${themeName}" />
 	</command>
 
 	<command name="viewCustomLogoPG">
@@ -755,7 +802,15 @@
 
 		<execute function="Click" locator1="SitePages#EDIT_SPECIFIC_PAGE" />
 
-		<execute function="AssertTextEquals" locator1="Message#ERROR_3" value1="This page cannot be deleted and cannot have child pages because it is associated to a site template." />
+		<if>
+			<and>
+				<condition function="IsElementPresent" locator1="Message#ERROR_3" />
+				<condition function="IsVisible" locator1="Message#ERROR_3" />
+			</and>
+			<then>
+				<execute function="AssertTextEquals" locator1="Message#ERROR_3" value1="This page cannot be deleted and cannot have child pages because it is associated to a site template." />
+			</then>
+		</if>
 	</command>
 
 	<command name="viewNoPG">
@@ -971,6 +1026,14 @@
 
 			<execute function="AssertTextEquals" locator1="Panel#MENU_ITEM" value1="${portletName}" />
 		</for>
+	</command>
+
+	<command name="viewSiteNameTranslationsPG">
+		<execute function="Click" locator1="Language#SELECT_LANGUAGE">
+			<var name="key_language" value="${language}" />
+		</execute>
+
+		<execute function="AssertTextEquals" locator1="Home#SITE_NAME" value1="${siteName}" />
 	</command>
 
 	<command name="viewSiteTemplatePages">

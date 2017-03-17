@@ -16,30 +16,30 @@ package com.liferay.project.templates;
 
 import aQute.bnd.main.bnd;
 
+import com.liferay.maven.executor.MavenExecutor;
 import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
 import com.liferay.project.templates.util.FileTestUtil;
 import com.liferay.project.templates.util.StringTestUtil;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
-
-import java.lang.ProcessBuilder.Redirect;
 
 import java.net.URI;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.diibadaaba.zipdiff.DifferenceCalculator;
 import net.diibadaaba.zipdiff.Differences;
@@ -69,9 +70,13 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Lawrence Lee
+ * @author Gregory Amerson
  * @author Andrea Di Giorgi
  */
 public class ProjectTemplatesTest {
+
+	@ClassRule
+	public static final MavenExecutor mavenExecutor = new MavenExecutor();
 
 	@ClassRule
 	public static final TemporaryFolder testCaseTemporaryFolder =
@@ -90,18 +95,8 @@ public class ProjectTemplatesTest {
 
 		_gradleDistribution = URI.create(gradleDistribution);
 
-		_httpProxyHost = System.getProperty("http.proxyHost");
-		_httpProxyPort = System.getProperty("http.proxyPort");
-
-		_mavenDistributionDir = new File(
-			System.getProperty("maven.distribution.dir"));
-
 		_projectTemplateVersions = FileTestUtil.readProperties(
 			Paths.get("build", "project-template-versions.properties"));
-
-		_repositoryUrl = System.getProperty("repository.url");
-
-		_createMavenSettingsXmlFile();
 	}
 
 	@Test
@@ -179,6 +174,26 @@ public class ProjectTemplatesTest {
 		_buildProjects(
 			gradleProjectDir, mavenProjectDir, "build/libs/foo-1.0.0.jar",
 			"target/foo-1.0.0.jar");
+	}
+
+	@Test
+	public void testBuildTemplateApiContainsCorrectAuthor() throws Exception {
+		String author = "Test Author";
+
+		File gradleProjectDir = _buildTemplateWithGradle(
+			"api", "author-test", "--author", author);
+
+		_testContains(
+			gradleProjectDir, "src/main/java/author/test/api/AuthorTest.java",
+			"@author " + author);
+
+		File mavenProjectDir = _buildTemplateWithMaven(
+			"api", "author-test", "-Dauthor=" + author,
+			"-DclassName=AuthorTest", "-Dpackage=author.test");
+
+		_testContains(
+			mavenProjectDir, "src/main/java/author/test/api/AuthorTest.java",
+			"@author " + author);
 	}
 
 	@Test
@@ -272,6 +287,46 @@ public class ProjectTemplatesTest {
 	}
 
 	@Test
+	public void testBuildTemplateFormField() throws Exception {
+		File gradleProjectDir = _buildTemplateWithGradle(
+			"form-field", "foobar");
+
+		_testExists(gradleProjectDir, "bnd.bnd");
+
+		_testContains(
+			gradleProjectDir, "build.gradle",
+			"apply plugin: \"com.liferay.plugin\"");
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/foobar/form/field/FoobarDDMFormFieldRenderer.java",
+			"public class FoobarDDMFormFieldRenderer extends " +
+				"BaseDDMFormFieldRenderer {");
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/foobar/form/field/FoobarDDMFormFieldType.java",
+			"class FoobarDDMFormFieldType extends BaseDDMFormFieldType");
+		_testContains(
+			gradleProjectDir, "src/main/resources/META-INF/resources/config.js",
+			"'foobar-form-field': {");
+		_testContains(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/foobar.soy",
+			"{template .Foobar autoescape");
+		_testContains(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/foobar_field.js",
+			"var FoobarField");
+
+		String[] gradleTaskPaths = new String[] {
+			_GRADLE_TASK_PATH_CHECK_SOURCE_FORMATTING, _GRADLE_TASK_PATH_BUILD
+		};
+
+		_executeGradle(gradleProjectDir, gradleTaskPaths);
+
+		_testExists(gradleProjectDir, "build/libs/foobar-1.0.0.jar");
+	}
+
+	@Test
 	public void testBuildTemplateFragment() throws Exception {
 		File gradleProjectDir = _buildTemplateWithGradle(
 			"fragment", "loginhook", "--host-bundle-symbolic-name",
@@ -298,17 +353,22 @@ public class ProjectTemplatesTest {
 	public void testBuildTemplateMVCPortlet() throws Exception {
 		File gradleProjectDir = _buildTemplateWithGradle("mvc-portlet", "foo");
 
-		_testExists(gradleProjectDir, "bnd.bnd");
 		_testExists(
 			gradleProjectDir, "src/main/resources/META-INF/resources/init.jsp");
 		_testExists(
 			gradleProjectDir, "src/main/resources/META-INF/resources/view.jsp");
 
 		_testContains(
+			gradleProjectDir, "bnd.bnd", "Export-Package: foo.constants");
+		_testContains(
 			gradleProjectDir, "build.gradle",
 			"apply plugin: \"com.liferay.plugin\"");
 		_testContains(
+			gradleProjectDir, "src/main/java/foo/constants/FooPortletKeys.java",
+			"public class FooPortletKeys");
+		_testContains(
 			gradleProjectDir, "src/main/java/foo/portlet/FooPortlet.java",
+			"javax.portlet.name=\" + FooPortletKeys.Foo",
 			"public class FooPortlet extends MVCPortlet {");
 
 		File mavenProjectDir = _buildTemplateWithMaven(
@@ -419,13 +479,24 @@ public class ProjectTemplatesTest {
 		File gradleProjectDir = _buildTemplateWithGradle(
 			"panel-app", "gradle.test", "--class-name", "Foo");
 
-		_testExists(gradleProjectDir, "bnd.bnd");
 		_testExists(gradleProjectDir, "build.gradle");
 
+		_testContains(
+			gradleProjectDir, "bnd.bnd",
+			"Export-Package: gradle.test.constants");
 		_testContains(
 			gradleProjectDir,
 			"src/main/java/gradle/test/application/list/FooPanelApp.java",
 			"public class FooPanelApp extends BasePanelApp");
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/gradle/test/constants/FooPortletKeys.java",
+			"public class FooPortletKeys");
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/gradle/test/portlet/FooPortlet.java",
+			"javax.portlet.name=\" + FooPortletKeys.Foo",
+			"public class FooPortlet extends MVCPortlet");
 
 		File mavenProjectDir = _buildTemplateWithMaven(
 			"panel-app", "gradle.test", "-DclassName=Foo",
@@ -441,14 +512,19 @@ public class ProjectTemplatesTest {
 		File gradleProjectDir = _buildTemplateWithGradle(
 			"portlet", "foo.test", "--class-name", "Foo");
 
-		_testExists(gradleProjectDir, "bnd.bnd");
-
+		_testContains(
+			gradleProjectDir, "bnd.bnd", "Export-Package: foo.test.constants");
 		_testContains(
 			gradleProjectDir, "build.gradle",
 			"apply plugin: \"com.liferay.plugin\"");
 		_testContains(
+			gradleProjectDir,
+			"src/main/java/foo/test/constants/FooPortletKeys.java",
+			"public class FooPortletKeys");
+		_testContains(
 			gradleProjectDir, "src/main/java/foo/test/portlet/FooPortlet.java",
 			"package foo.test.portlet;", "javax.portlet.display-name=foo.test",
+			"javax.portlet.name=\" + FooPortletKeys.Foo",
 			"public class FooPortlet extends GenericPortlet {",
 			"printWriter.print(\"foo.test Portlet");
 
@@ -578,15 +654,16 @@ public class ProjectTemplatesTest {
 			gradleProjectDir,
 			"src/main/resources/configuration" +
 				"/com.liferay.portal.remote.cxf.common.configuration." +
-					"CXFEndpointPublisherConfiguration-cxf",
-					"contextPath=/my-rest");
+					"CXFEndpointPublisherConfiguration-cxf.properties",
+			"contextPath=/my-rest");
 		_testContains(
 			gradleProjectDir,
 			"src/main/resources/configuration/com.liferay.portal.remote.rest." +
-				"extender.configuration.RestExtenderConfiguration-rest",
+				"extender.configuration.RestExtenderConfiguration-rest." +
+					"properties",
 			"contextPaths=/my-rest",
-				"jaxRsServiceFilterStrings=(component.name=" +
-					"my.rest.application.MyRestApplication)");
+			"jaxRsServiceFilterStrings=(component.name=" +
+				"my.rest.application.MyRestApplication)");
 
 		File mavenProjectDir = _buildTemplateWithMaven(
 			"rest", "my-rest", "-DclassName=MyRest", "-Dpackage=my.rest");
@@ -599,8 +676,8 @@ public class ProjectTemplatesTest {
 			mavenProjectDir,
 			"src/main/resources/configuration" +
 				"/com.liferay.portal.remote.cxf.common.configuration." +
-					"CXFEndpointPublisherConfiguration-cxf",
-					"contextPath=/my-rest");
+					"CXFEndpointPublisherConfiguration-cxf.properties",
+			"contextPath=/my-rest");
 
 		_buildProjects(
 			gradleProjectDir, mavenProjectDir, "build/libs/my.rest-1.0.0.jar",
@@ -843,6 +920,18 @@ public class ProjectTemplatesTest {
 	}
 
 	@Test
+	public void testBuildTemplateWithGradle() throws Exception {
+		_buildTemplateWithGradle(
+			temporaryFolder.newFolder(), null, "foo-portlet", false, false);
+		_buildTemplateWithGradle(
+			temporaryFolder.newFolder(), null, "foo-portlet", false, true);
+		_buildTemplateWithGradle(
+			temporaryFolder.newFolder(), null, "foo-portlet", true, false);
+		_buildTemplateWithGradle(
+			temporaryFolder.newFolder(), null, "foo-portlet", true, true);
+	}
+
+	@Test
 	public void testBuildTemplateWithPackageName() throws Exception {
 		File gradleProjectDir = _buildTemplateWithGradle(
 			"", "barfoo", "--package-name", "foo.bar");
@@ -881,8 +970,14 @@ public class ProjectTemplatesTest {
 		_testNotExists(workspaceProjectDir, "themes/pom.xml");
 		_testNotExists(workspaceProjectDir, "wars/pom.xml");
 
+		String gradlePluginsWorkspaceVersion = System.getProperty(
+			"com.liferay.gradle.plugins.workspace.version");
+
+		Assert.assertNotNull(gradlePluginsWorkspaceVersion);
+
 		_testContains(
-			workspaceProjectDir, "settings.gradle", "version: \"1.2.0\"");
+			workspaceProjectDir, "settings.gradle",
+			"version: \"" + gradlePluginsWorkspaceVersion + "\"");
 
 		File moduleProjectDir = _buildTemplateWithGradle(
 			new File(workspaceProjectDir, "modules"), "", "foo-portlet");
@@ -977,71 +1072,53 @@ public class ProjectTemplatesTest {
 	@Rule
 	public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	private static void _createMavenSettingsXmlFile() throws IOException {
-		boolean mirrors = false;
-		boolean proxies = false;
-
-		if (Validator.isNotNull(_repositoryUrl)) {
-			mirrors = true;
-		}
-
-		if (Validator.isNotNull(_httpProxyHost) &&
-			Validator.isNotNull(_httpProxyPort)) {
-
-			proxies = true;
-		}
-
-		if (!mirrors && !proxies) {
-			_mavenSettingsXmlFile = null;
-
-			return;
-		}
-
-		String mavenSettingsXml = FileTestUtil.read(
-			"com/liferay/project/templates/dependencies" +
-				"/maven_settings_xml.tmpl");
-
-		if (mirrors) {
-			mavenSettingsXml = mavenSettingsXml.replace(
-				"[$REPOSITORY_URL$]", _repositoryUrl);
-		}
-		else {
-			mavenSettingsXml = mavenSettingsXml.replaceFirst(
-				"<mirrors>[\\s\\S]+<\\/mirrors>", "");
-		}
-
-		if (proxies) {
-			mavenSettingsXml = mavenSettingsXml.replace(
-				"[$HTTP_PROXY_HOST$]", _httpProxyHost);
-			mavenSettingsXml = mavenSettingsXml.replace(
-				"[$HTTP_PROXY_PORT$]", _httpProxyPort);
-		}
-		else {
-			mavenSettingsXml = mavenSettingsXml.replaceFirst(
-				"<proxies>[\\s\\S]+<\\/proxies>", "");
-		}
-
-		_mavenSettingsXmlFile = testCaseTemporaryFolder.newFile("settings.xml");
-
-		Files.write(
-			_mavenSettingsXmlFile.toPath(),
-			mavenSettingsXml.getBytes(StandardCharsets.UTF_8));
-	}
-
-	private void _buildProjects(
+	private static void _buildProjects(
 			File gradleProjectDir, File mavenProjectDir,
 			String gradleBundleFileName, String mavenBundleFileName)
 		throws Exception {
 
+		final AtomicBoolean hasJavaFiles = new AtomicBoolean();
+
+		Files.walkFileTree(
+			gradleProjectDir.toPath(),
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult visitFile(
+					Path path, BasicFileAttributes basicFileAttributes) {
+
+					if (path.endsWith(".java")) {
+						hasJavaFiles.set(true);
+
+						return FileVisitResult.TERMINATE;
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
+
+		String[] gradleTaskPaths;
+
+		if (hasJavaFiles.get()) {
+			gradleTaskPaths = new String[] {
+				_GRADLE_TASK_PATH_CHECK_SOURCE_FORMATTING,
+				_GRADLE_TASK_PATH_BUILD
+			};
+		}
+		else {
+			gradleTaskPaths = new String[] {_GRADLE_TASK_PATH_BUILD};
+		}
+
 		_buildProjects(
 			gradleProjectDir, mavenProjectDir, gradleBundleFileName,
-			mavenBundleFileName, _GRADLE_TASK_PATH_BUILD);
+			mavenBundleFileName, gradleTaskPaths);
 	}
 
-	private void _buildProjects(
+	private static void _buildProjects(
 			File gradleProjectDir, File mavenProjectDir,
 			String gradleBundleFileName, String mavenBundleFileName,
-			String gradleTaskPath)
+			String... gradleTaskPath)
 		throws Exception {
 
 		_executeGradle(gradleProjectDir, gradleTaskPath);
@@ -1062,14 +1139,24 @@ public class ProjectTemplatesTest {
 		}
 	}
 
-	private File _buildTemplateWithGradle(
-			File destinationDir, String template, String name, String... args)
+	private static File _buildTemplateWithGradle(
+			File destinationDir, String template, String name, boolean gradle,
+			boolean maven, String... args)
 		throws Exception {
 
 		List<String> completeArgs = new ArrayList<>(args.length + 6);
 
 		completeArgs.add("--destination");
 		completeArgs.add(destinationDir.getPath());
+
+		if (!gradle) {
+			completeArgs.add("--gradle");
+			completeArgs.add(String.valueOf(gradle));
+		}
+
+		if (maven) {
+			completeArgs.add("--maven");
+		}
 
 		if (Validator.isNotNull(name)) {
 			completeArgs.add("--name");
@@ -1091,34 +1178,63 @@ public class ProjectTemplatesTest {
 		File projectDir = new File(destinationDir, name);
 
 		_testExists(projectDir, ".gitignore");
-		_testExists(projectDir, "build.gradle");
 
-		if (WorkspaceUtil.isWorkspace(destinationDir)) {
-			for (String fileName : _STANDALONE_ONLY_FILE_NAMES) {
+		if (gradle) {
+			_testExists(projectDir, "build.gradle");
+		}
+		else {
+			_testNotExists(projectDir, "build.gradle");
+		}
+
+		if (maven) {
+			_testExists(projectDir, "pom.xml");
+		}
+		else {
+			_testNotExists(projectDir, "pom.xml");
+		}
+
+		boolean workspace = WorkspaceUtil.isWorkspace(destinationDir);
+
+		if (gradle && !workspace) {
+			for (String fileName : _GRADLE_WRAPPER_FILE_NAMES) {
+				_testExists(projectDir, fileName);
+			}
+
+			_testExecutable(projectDir, "gradlew");
+		}
+		else {
+			for (String fileName : _GRADLE_WRAPPER_FILE_NAMES) {
+				_testNotExists(projectDir, fileName);
+			}
+
+			_testNotExists(projectDir, "settings.gradle");
+		}
+
+		if (maven && !workspace) {
+			for (String fileName : _MAVEN_WRAPPER_FILE_NAMES) {
+				_testExists(projectDir, fileName);
+			}
+
+			_testExecutable(projectDir, "mvnw");
+		}
+		else {
+			for (String fileName : _MAVEN_WRAPPER_FILE_NAMES) {
 				_testNotExists(projectDir, fileName);
 			}
 		}
-		else {
-			for (String fileName : _STANDALONE_ONLY_FILE_NAMES) {
-				_testExists(projectDir, fileName);
-			}
-		}
-
-		_testNotExists(projectDir, "pom.xml");
 
 		return projectDir;
 	}
 
-	private File _buildTemplateWithGradle(
-			String template, String name, String... args)
+	private static File _buildTemplateWithGradle(
+			File destinationDir, String template, String name, String... args)
 		throws Exception {
 
-		File destinationDir = temporaryFolder.newFolder("gradle");
-
-		return _buildTemplateWithGradle(destinationDir, template, name, args);
+		return _buildTemplateWithGradle(
+			destinationDir, template, name, true, false, args);
 	}
 
-	private File _buildTemplateWithMaven(
+	private static File _buildTemplateWithMaven(
 			File destinationDir, String template, String name, String... args)
 		throws Exception {
 
@@ -1142,6 +1258,7 @@ public class ProjectTemplatesTest {
 
 		completeArgs.add("-DarchetypeGroupId=com.liferay");
 		completeArgs.add("-DarchetypeVersion=" + projectTemplateVersion);
+		completeArgs.add("-Dauthor=" + System.getProperty("user.name"));
 		completeArgs.add("-DgroupId=com.test");
 		completeArgs.add("-DartifactId=" + name);
 		completeArgs.add("-Dversion=1.0.0");
@@ -1164,19 +1281,12 @@ public class ProjectTemplatesTest {
 		return projectDir;
 	}
 
-	private File _buildTemplateWithMaven(
-			String template, String name, String... args)
-		throws Exception {
-
-		File destinationDir = temporaryFolder.newFolder("maven");
-
-		return _buildTemplateWithMaven(destinationDir, template, name, args);
-	}
-
-	private void _executeGradle(File projectDir, String... taskPaths)
+	private static void _executeGradle(File projectDir, String... taskPaths)
 		throws IOException {
 
-		if (Validator.isNotNull(_repositoryUrl)) {
+		String repositoryUrl = mavenExecutor.getRepositoryUrl();
+
+		if (Validator.isNotNull(repositoryUrl)) {
 			File buildGradleFile = new File(projectDir, "build.gradle");
 
 			Path buildGradlePath = buildGradleFile.toPath();
@@ -1184,8 +1294,7 @@ public class ProjectTemplatesTest {
 			String buildGradle = FileUtil.read(buildGradlePath);
 
 			buildGradle = buildGradle.replace(
-				"\"" + _REPOSITORY_CDN_URL + "\"",
-				"\"" + _repositoryUrl + "\"");
+				"\"" + _REPOSITORY_CDN_URL + "\"", "\"" + repositoryUrl + "\"");
 
 			Files.write(
 				buildGradlePath, buildGradle.getBytes(StandardCharsets.UTF_8));
@@ -1193,13 +1302,14 @@ public class ProjectTemplatesTest {
 
 		GradleRunner gradleRunner = GradleRunner.create();
 
-		if (Validator.isNotNull(_httpProxyHost) &&
-			Validator.isNotNull(_httpProxyPort)) {
+		String httpProxyHost = mavenExecutor.getHttpProxyHost();
+		int httpProxyPort = mavenExecutor.getHttpProxyPort();
 
+		if (Validator.isNotNull(httpProxyHost) && (httpProxyPort > 0)) {
 			String[] arguments = new String[taskPaths.length + 2];
 
-			arguments[0] = "-Dhttp.proxyHost=" + _httpProxyHost;
-			arguments[1] = "-Dhttp.proxyPort=" + _httpProxyPort;
+			arguments[0] = "-Dhttp.proxyHost=" + httpProxyHost;
+			arguments[1] = "-Dhttp.proxyPort=" + httpProxyPort;
 
 			System.arraycopy(taskPaths, 0, arguments, 2, taskPaths.length);
 
@@ -1226,71 +1336,231 @@ public class ProjectTemplatesTest {
 		}
 	}
 
-	private void _executeMaven(File projectDir, String... args)
+	private static void _executeMaven(File projectDir, String... args)
 		throws Exception {
 
-		List<String> commands = new ArrayList<>();
+		String[] completeArgs = new String[args.length + 1];
 
-		String mavenExecutableFileName = "mvn";
+		completeArgs[0] = "--update-snapshots";
 
-		if (File.pathSeparatorChar == ';') {
-			mavenExecutableFileName += ".cmd";
+		System.arraycopy(args, 0, completeArgs, 1, args.length);
+
+		MavenExecutor.Result result = mavenExecutor.execute(projectDir, args);
+
+		Assert.assertEquals(result.output, 0, result.exitCode);
+	}
+
+	private static void _testBundlesDiff(File bundleFile1, File bundleFile2)
+		throws Exception {
+
+		PrintStream originalErrorStream = System.err;
+		PrintStream originalOutputStream = System.out;
+
+		originalErrorStream.flush();
+		originalOutputStream.flush();
+
+		ByteArrayOutputStream newErrorStream = new ByteArrayOutputStream();
+		ByteArrayOutputStream newOutputStream = new ByteArrayOutputStream();
+
+		System.setErr(new PrintStream(newErrorStream, true));
+		System.setOut(new PrintStream(newOutputStream, true));
+
+		try (bnd bnd = new bnd()) {
+			String[] args = {
+				"diff", "--ignore", _BUNDLES_DIFF_IGNORES,
+				bundleFile1.getAbsolutePath(), bundleFile2.getAbsolutePath()
+			};
+
+			bnd.start(args);
+		}
+		finally {
+			System.setErr(originalErrorStream);
+			System.setOut(originalOutputStream);
 		}
 
-		File mavenExecutableFile = new File(
-			_mavenDistributionDir, "bin/" + mavenExecutableFileName);
+		String output = newErrorStream.toString();
 
-		Assert.assertTrue(
-			"Missing " + mavenExecutableFile, mavenExecutableFile.exists());
-
-		commands.add(mavenExecutableFile.getAbsolutePath());
-
-		commands.add("--errors");
-
-		if (_mavenSettingsXmlFile != null) {
-			commands.add(
-				"--settings=" + _mavenSettingsXmlFile.getAbsolutePath());
+		if (Validator.isNull(output)) {
+			output = newOutputStream.toString();
 		}
 
-		commands.add("--update-snapshots");
+		Assert.assertEquals(
+			"Bundle " + bundleFile1 + " and " + bundleFile2 + " do not match",
+			"", output);
+	}
 
-		for (String arg : args) {
-			commands.add(arg);
+	private static File _testContains(
+			File dir, String fileName, String... strings)
+		throws IOException {
+
+		File file = _testExists(dir, fileName);
+
+		String content = FileUtil.read(file.toPath());
+
+		for (String s : strings) {
+			Assert.assertTrue(
+				"Not found in " + fileName + ": " + s, content.contains(s));
 		}
 
-		ProcessBuilder processBuilder = new ProcessBuilder(commands);
+		return file;
+	}
 
-		processBuilder.directory(projectDir);
+	private static File _testExecutable(File dir, String fileName) {
+		File file = _testExists(dir, fileName);
 
-		Map<String, String> environment = processBuilder.environment();
+		Assert.assertTrue(fileName + " is not executable", file.canExecute());
 
-		environment.put("M2_HOME", _mavenDistributionDir.getAbsolutePath());
-		environment.put("MAVEN_OPTS", "-Dfile.encoding=UTF-8");
+		return file;
+	}
 
-		processBuilder.redirectOutput(Redirect.INHERIT);
+	private static File _testExists(File dir, String fileName) {
+		File file = new File(dir, fileName);
 
-		Process process = processBuilder.start();
+		Assert.assertTrue("Missing " + fileName, file.exists());
 
-		StringBuilder sb = new StringBuilder();
+		return file;
+	}
 
-		try (BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(
-					process.getErrorStream(), StandardCharsets.UTF_8))) {
+	private static File _testNotContains(
+			File dir, String fileName, String... strings)
+		throws IOException {
 
-			String line = null;
+		File file = _testExists(dir, fileName);
 
-			while ((line = bufferedReader.readLine()) != null) {
-				if (sb.length() > 0) {
-					sb.append(System.lineSeparator());
+		String content = FileUtil.read(file.toPath());
+
+		for (String s : strings) {
+			Assert.assertFalse(
+				"Found in " + fileName + ": " + s, content.contains(s));
+		}
+
+		return file;
+	}
+
+	private static File _testNotExists(File dir, String fileName) {
+		File file = new File(dir, fileName);
+
+		Assert.assertFalse("Unexpected " + fileName, file.exists());
+
+		return file;
+	}
+
+	private static void _testWarsDiff(File warFile1, File warFile2)
+		throws IOException {
+
+		DifferenceCalculator differenceCalculator = new DifferenceCalculator(
+			warFile1, warFile2);
+
+		differenceCalculator.setFilenameRegexToIgnore(
+			Collections.singleton(".*META-INF.*"));
+		differenceCalculator.setIgnoreTimestamps(true);
+
+		Differences differences = differenceCalculator.getDifferences();
+
+		if (!differences.hasDifferences()) {
+			return;
+		}
+
+		boolean realChange;
+
+		Map<String, ZipArchiveEntry> added = differences.getAdded();
+		Map<String, ZipArchiveEntry[]> changed = differences.getChanged();
+		Map<String, ZipArchiveEntry> removed = differences.getRemoved();
+
+		if (added.isEmpty() && !changed.isEmpty() && removed.isEmpty()) {
+			realChange = false;
+
+			for (String change : changed.keySet()) {
+				ZipArchiveEntry[] zipArchiveEntries = changed.get(change);
+
+				ZipArchiveEntry zipArchiveEntry1 = zipArchiveEntries[0];
+				ZipArchiveEntry zipArchiveEntry2 = zipArchiveEntries[0];
+
+				if (zipArchiveEntry1.isDirectory() &&
+					zipArchiveEntry2.isDirectory() &&
+					(zipArchiveEntry1.getSize() ==
+						zipArchiveEntry2.getSize()) &&
+					(zipArchiveEntry1.getCompressedSize() <= 2) &&
+					(zipArchiveEntry2.getCompressedSize() <= 2)) {
+
+					// Skip zipdiff bug
+
+					continue;
 				}
 
-				sb.append(line);
+				realChange = true;
+
+				break;
 			}
 		}
+		else {
+			realChange = true;
+		}
 
-		int exitCode = process.waitFor();
+		Assert.assertFalse(
+			"WAR " + warFile1 + " and " + warFile2 + " do not match:\n" +
+				differences,
+			realChange);
+	}
 
-		Assert.assertEquals(sb.toString(), 0, exitCode);
+	private static void _writeServiceClass(File projectDir) throws IOException {
+		String importLine =
+			"import com.liferay.portal.kernel.events.LifecycleAction;";
+		String classLine =
+			"public class FooAction implements LifecycleAction {";
+
+		File actionJavaFile = _testContains(
+			projectDir, "src/main/java/servicepreaction/FooAction.java",
+			"package servicepreaction;", importLine,
+			"service = LifecycleAction.class", classLine);
+
+		Path actionJavaPath = actionJavaFile.toPath();
+
+		List<String> lines = Files.readAllLines(
+			actionJavaPath, StandardCharsets.UTF_8);
+
+		try (BufferedWriter bufferedWriter = Files.newBufferedWriter(
+				actionJavaPath, StandardCharsets.UTF_8)) {
+
+			for (String line : lines) {
+				FileTestUtil.write(bufferedWriter, line);
+
+				if (line.equals(classLine)) {
+					FileTestUtil.write(
+						bufferedWriter, "@Override",
+						"public void processLifecycleEvent(",
+						"LifecycleEvent lifecycleEvent)",
+						"throws ActionException {", "System.out.println(",
+						"\"login.event.pre=\" + lifecycleEvent);", "}");
+				}
+				else if (line.equals(importLine)) {
+					FileTestUtil.write(
+						bufferedWriter,
+						"import com.liferay.portal.kernel.events." +
+							"LifecycleEvent;",
+						"import com.liferay.portal.kernel.events." +
+							"ActionException;");
+				}
+			}
+		}
+	}
+
+	private File _buildTemplateWithGradle(
+			String template, String name, String... args)
+		throws Exception {
+
+		File destinationDir = temporaryFolder.newFolder("gradle");
+
+		return _buildTemplateWithGradle(destinationDir, template, name, args);
+	}
+
+	private File _buildTemplateWithMaven(
+			String template, String name, String... args)
+		throws Exception {
+
+		File destinationDir = temporaryFolder.newFolder("maven");
+
+		return _buildTemplateWithMaven(destinationDir, template, name, args);
 	}
 
 	private void _testBuildTemplateServiceBuilder(
@@ -1376,191 +1646,6 @@ public class ProjectTemplatesTest {
 		_testBundlesDiff(gradleServiceBundleFile, mavenServiceBundleFile);
 	}
 
-	private void _testBundlesDiff(File bundleFile1, File bundleFile2)
-		throws Exception {
-
-		PrintStream originalErrorStream = System.err;
-		PrintStream originalOutputStream = System.out;
-
-		originalErrorStream.flush();
-		originalOutputStream.flush();
-
-		ByteArrayOutputStream newErrorStream = new ByteArrayOutputStream();
-		ByteArrayOutputStream newOutputStream = new ByteArrayOutputStream();
-
-		System.setErr(new PrintStream(newErrorStream, true));
-		System.setOut(new PrintStream(newOutputStream, true));
-
-		try (bnd bnd = new bnd()) {
-			String[] args = {
-				"diff", "--ignore", _BUNDLES_DIFF_IGNORES,
-				bundleFile1.getAbsolutePath(), bundleFile2.getAbsolutePath()
-			};
-
-			bnd.start(args);
-		}
-		finally {
-			System.setErr(originalErrorStream);
-			System.setOut(originalOutputStream);
-		}
-
-		String output = newErrorStream.toString();
-
-		if (Validator.isNull(output)) {
-			output = newOutputStream.toString();
-		}
-
-		Assert.assertEquals(
-			"Bundle " + bundleFile1 + " and " + bundleFile2 + " do not match",
-			"", output);
-	}
-
-	private File _testContains(File dir, String fileName, String... strings)
-		throws IOException {
-
-		File file = _testExists(dir, fileName);
-
-		String content = FileUtil.read(file.toPath());
-
-		for (String s : strings) {
-			Assert.assertTrue(
-				"Not found in " + fileName + ": " + s, content.contains(s));
-		}
-
-		return file;
-	}
-
-	private File _testExists(File dir, String fileName) {
-		File file = new File(dir, fileName);
-
-		Assert.assertTrue("Missing " + fileName, file.exists());
-
-		return file;
-	}
-
-	private File _testNotContains(File dir, String fileName, String... strings)
-		throws IOException {
-
-		File file = _testExists(dir, fileName);
-
-		String content = FileUtil.read(file.toPath());
-
-		for (String s : strings) {
-			Assert.assertFalse(
-				"Found in " + fileName + ": " + s, content.contains(s));
-		}
-
-		return file;
-	}
-
-	private File _testNotExists(File dir, String fileName) {
-		File file = new File(dir, fileName);
-
-		Assert.assertFalse("Unexpected " + fileName, file.exists());
-
-		return file;
-	}
-
-	private void _testWarsDiff(File warFile1, File warFile2)
-		throws IOException {
-
-		DifferenceCalculator differenceCalculator = new DifferenceCalculator(
-			warFile1, warFile2);
-
-		differenceCalculator.setFilenameRegexToIgnore(
-			Collections.singleton(".*META-INF.*"));
-		differenceCalculator.setIgnoreTimestamps(true);
-
-		Differences differences = differenceCalculator.getDifferences();
-
-		if (!differences.hasDifferences()) {
-			return;
-		}
-
-		boolean realChange;
-
-		Map<String, ZipArchiveEntry> added = differences.getAdded();
-		Map<String, ZipArchiveEntry[]> changed = differences.getChanged();
-		Map<String, ZipArchiveEntry> removed = differences.getRemoved();
-
-		if (added.isEmpty() && !changed.isEmpty() && removed.isEmpty()) {
-			realChange = false;
-
-			for (String change : changed.keySet()) {
-				ZipArchiveEntry[] zipArchiveEntries = changed.get(change);
-
-				ZipArchiveEntry zipArchiveEntry1 = zipArchiveEntries[0];
-				ZipArchiveEntry zipArchiveEntry2 = zipArchiveEntries[0];
-
-				if (zipArchiveEntry1.isDirectory() &&
-					zipArchiveEntry2.isDirectory() &&
-					(zipArchiveEntry1.getSize() ==
-						zipArchiveEntry2.getSize()) &&
-					(zipArchiveEntry1.getCompressedSize() <= 2) &&
-					(zipArchiveEntry2.getCompressedSize() <= 2)) {
-
-					// Skip zipdiff bug
-
-					continue;
-				}
-
-				realChange = true;
-
-				break;
-			}
-		}
-		else {
-			realChange = true;
-		}
-
-		Assert.assertFalse(
-			"WAR " + warFile1 + " and " + warFile2 + " do not match:\n" +
-				differences,
-			realChange);
-	}
-
-	private void _writeServiceClass(File projectDir) throws IOException {
-		String importLine =
-			"import com.liferay.portal.kernel.events.LifecycleAction;";
-		String classLine =
-			"public class FooAction implements LifecycleAction {";
-
-		File actionJavaFile = _testContains(
-			projectDir, "src/main/java/servicepreaction/FooAction.java",
-			"package servicepreaction;", importLine,
-			"service = LifecycleAction.class", classLine);
-
-		Path actionJavaPath = actionJavaFile.toPath();
-
-		List<String> lines = Files.readAllLines(
-			actionJavaPath, StandardCharsets.UTF_8);
-
-		try (BufferedWriter bufferedWriter = Files.newBufferedWriter(
-				actionJavaPath, StandardCharsets.UTF_8)) {
-
-			for (String line : lines) {
-				FileTestUtil.write(bufferedWriter, line);
-
-				if (line.equals(classLine)) {
-					FileTestUtil.write(
-						bufferedWriter, "@Override",
-						"public void processLifecycleEvent(",
-						"LifecycleEvent lifecycleEvent)",
-						"throws ActionException {", "System.out.println(",
-						"\"login.event.pre=\" + lifecycleEvent);", "}");
-				}
-				else if (line.equals(importLine)) {
-					FileTestUtil.write(
-						bufferedWriter,
-						"import com.liferay.portal.kernel.events." +
-							"LifecycleEvent;",
-						"import com.liferay.portal.kernel.events." +
-							"ActionException;");
-				}
-			}
-		}
-	}
-
 	private static final String _BUNDLES_DIFF_IGNORES = StringTestUtil.merge(
 		"*pom.properties", "*pom.xml", "Archiver-Version", "Build-Jdk",
 		"Built-By", "Javac-Debug", "Javac-Deprecation", "Javac-Encoding");
@@ -1570,26 +1655,29 @@ public class ProjectTemplatesTest {
 	private static final String _GRADLE_TASK_PATH_BUILD_SERVICE =
 		":buildService";
 
+	private static final String _GRADLE_TASK_PATH_CHECK_SOURCE_FORMATTING =
+		":checkSourceFormatting";
+
+	private static final String[] _GRADLE_WRAPPER_FILE_NAMES = {
+		"gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar",
+		"gradle/wrapper/gradle-wrapper.properties"
+	};
+
 	private static final String _MAVEN_GOAL_BUILD_SERVICE =
 		"liferay:build-service";
 
 	private static final String _MAVEN_GOAL_PACKAGE = "package";
 
+	private static final String[] _MAVEN_WRAPPER_FILE_NAMES = {
+		"mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.jar",
+		".mvn/wrapper/maven-wrapper.properties"
+	};
+
 	private static final String _REPOSITORY_CDN_URL =
 		"https://cdn.lfrs.sl/repository.liferay.com/nexus/content/groups" +
 			"/public";
 
-	private static final String[] _STANDALONE_ONLY_FILE_NAMES = {
-		"gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar",
-		"gradle/wrapper/gradle-wrapper.properties"
-	};
-
 	private static URI _gradleDistribution;
-	private static String _httpProxyHost;
-	private static String _httpProxyPort;
-	private static File _mavenDistributionDir;
-	private static File _mavenSettingsXmlFile;
 	private static Properties _projectTemplateVersions;
-	private static String _repositoryUrl;
 
 }

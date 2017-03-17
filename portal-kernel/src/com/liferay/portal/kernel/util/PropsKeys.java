@@ -159,6 +159,8 @@ public interface PropsKeys {
 
 	public static final String AUTH_TOKEN_SHARED_SECRET = "auth.token.shared.secret";
 
+	public static final String AUTH_USER_UUID_STORE_ENABLED = "auth.user.uuid.store.enabled";
+
 	public static final String AUTH_VERIFIER = "auth.verifier.";
 
 	public static final String AUTH_VERIFIER_PIPELINE = "auth.verifier.pipeline";
@@ -991,8 +993,16 @@ public interface PropsKeys {
 
 	public static final String JNDI_ENVIRONMENT = "jndi.environment.";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String JOURNAL_IMAGE_EXTENSIONS = "journal.image.extensions";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String JOURNAL_IMAGE_SMALL_MAX_SIZE = "journal.image.small.max.size";
 
 	public static final String JSON_SERVICE_AUTH_TOKEN_ENABLED = "json.service.auth.token.enabled";
@@ -1014,6 +1024,8 @@ public interface PropsKeys {
 	public static final String JSONWS_WEB_SERVICE_PATHS_INCLUDES = "jsonws.web.service.paths.includes";
 
 	public static final String JSONWS_WEB_SERVICE_STRICT_HTTP_METHOD = "jsonws.web.service.strict.http.method";
+
+	public static final String JSP_PAGE_CONTEXT_FORCE_GET_ATTRIBUTE = "jsp.page.context.force.get.attribute";
 
 	public static final String JSP_WRITER_BUFFER_SIZE = "jsp.writer.buffer.size";
 
@@ -1386,6 +1398,8 @@ public interface PropsKeys {
 	public static final String MODULE_FRAMEWORK_SERVICES_IGNORED_INTERFACES = "module.framework.services.ignored.interfaces";
 
 	public static final String MODULE_FRAMEWORK_STATE_DIR = "module.framework.state.dir";
+
+	public static final String MODULE_FRAMEWORK_STATIC_JARS = "module.framework.static.jars";
 
 	public static final String MODULE_FRAMEWORK_STOP_WAIT_TIMEOUT = "module.framework.stop.wait.timeout";
 
@@ -1917,6 +1931,8 @@ public interface PropsKeys {
 
 	public static final String SESSION_TIMEOUT_AUTO_EXTEND = "session.timeout.auto.extend";
 
+	public static final String SESSION_TIMEOUT_AUTO_EXTEND_OFFSET = "session.timeout.auto.extend.offset";
+
 	public static final String SESSION_TIMEOUT_REDIRECT_ON_EXPIRE = "session.timeout.redirect.on.expire";
 
 	public static final String SESSION_TIMEOUT_WARNING = "session.timeout.warning";
@@ -2298,12 +2314,28 @@ public interface PropsKeys {
 
 	public static final String USERS_FULL_NAME_VALIDATOR = "users.full.name.validator";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_CHECK_TOKEN = "users.image.check.token";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_HEIGHT = "users.image.max.height";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_SIZE = "users.image.max.size";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_WIDTH = "users.image.max.width";
 
 	public static final String USERS_LIST_VIEWS = "users.list.views";

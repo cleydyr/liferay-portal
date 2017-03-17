@@ -78,8 +78,8 @@ import com.liferay.dynamic.data.mapping.model.impl.DDMStructureVersionModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateLinkModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateModelImpl;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
-import com.liferay.friendly.url.model.FriendlyURLModel;
-import com.liferay.friendly.url.model.impl.FriendlyURLModelImpl;
+import com.liferay.friendly.url.model.FriendlyURLEntryModel;
+import com.liferay.friendly.url.model.impl.FriendlyURLEntryModelImpl;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
@@ -108,9 +108,12 @@ import com.liferay.message.boards.kernel.model.MBThreadFlagModel;
 import com.liferay.message.boards.kernel.model.MBThreadModel;
 import com.liferay.message.boards.web.constants.MBPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.io.OutputStreamWriter;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
+import com.liferay.portal.kernel.io.unsync.UnsyncBufferedWriter;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessor;
 import com.liferay.portal.kernel.model.AccountModel;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ClassNameModel;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyModel;
@@ -135,8 +138,6 @@ import com.liferay.portal.kernel.model.ResourcePermissionModel;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.RoleModel;
-import com.liferay.portal.kernel.model.SubscriptionConstants;
-import com.liferay.portal.kernel.model.SubscriptionModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserModel;
 import com.liferay.portal.kernel.model.VirtualHostModel;
@@ -154,9 +155,11 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PortletKeys;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -173,7 +176,6 @@ import com.liferay.portal.model.impl.PortletPreferencesModelImpl;
 import com.liferay.portal.model.impl.ReleaseModelImpl;
 import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
 import com.liferay.portal.model.impl.RoleModelImpl;
-import com.liferay.portal.model.impl.SubscriptionModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.util.PropsValues;
@@ -202,6 +204,9 @@ import com.liferay.portlet.social.model.impl.SocialActivityModelImpl;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.social.kernel.model.SocialActivityModel;
+import com.liferay.subscription.model.SubscriptionConstants;
+import com.liferay.subscription.model.SubscriptionModel;
+import com.liferay.subscription.model.impl.SubscriptionModelImpl;
 import com.liferay.util.SimpleCounter;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -215,10 +220,19 @@ import com.liferay.wiki.model.impl.WikiPageModelImpl;
 import com.liferay.wiki.model.impl.WikiPageResourceModelImpl;
 import com.liferay.wiki.social.WikiActivityKeys;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Writer;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import java.sql.Types;
 
 import java.text.Format;
 
@@ -330,6 +344,12 @@ public class DataFactory {
 		initUserModels();
 		initVirtualHostModel(
 			properties.getProperty("sample.sql.virtual.hostname"));
+	}
+
+	public void closeCSVWriters() throws IOException {
+		for (Writer writer : _csvWriters.values()) {
+			writer.close();
+		}
 	}
 
 	public AccountModel getAccountModel() {
@@ -472,6 +492,17 @@ public class DataFactory {
 
 	public long getCounterNext() {
 		return _counter.get();
+	}
+
+	public Writer getCSVWriter(String csvFileName) {
+		Writer writer = _csvWriters.get(csvFileName);
+
+		if (writer == null) {
+			throw new IllegalArgumentException(
+				"Unknown CSV file name: " + csvFileName);
+		}
+
+		return writer;
 	}
 
 	public String getDateLong(Date date) {
@@ -792,7 +823,9 @@ public class DataFactory {
 		_accountModel.setLegalName("Liferay, Inc.");
 	}
 
-	public void initContext(Properties properties) {
+	public void initContext(Properties properties)
+		throws FileNotFoundException {
+
 		String timeZoneId = properties.getProperty("sample.sql.db.time.zone");
 
 		if (Validator.isNotNull(timeZoneId)) {
@@ -873,6 +906,32 @@ public class DataFactory {
 			properties.getProperty("sample.sql.max.wiki.page.comment.count"));
 		_maxWikiPageCount = GetterUtil.getInteger(
 			properties.getProperty("sample.sql.max.wiki.page.count"));
+
+		File outputDir = new File(
+			properties.getProperty("sample.sql.output.dir"));
+
+		outputDir.mkdirs();
+
+		for (String csvFileName : StringUtil.split(
+				properties.getProperty("sample.sql.output.csv.file.names"))) {
+
+			_csvWriters.put(
+				csvFileName,
+				new UnsyncBufferedWriter(
+					new OutputStreamWriter(
+						new FileOutputStream(
+							new File(outputDir, csvFileName.concat(".csv")))),
+					_WRITER_BUFFER_SIZE) {
+
+					@Override
+					public void flush() {
+
+						// Disable FreeMarker from flushing
+
+					}
+
+				});
+		}
 	}
 
 	public void initDLFileEntryTypeModel() {
@@ -1683,23 +1742,24 @@ public class DataFactory {
 		return dlFolderModels;
 	}
 
-	public FriendlyURLModel newFriendlyURLModel(
+	public FriendlyURLEntryModel newFriendlyURLEntryModel(
 		BlogsEntryModel blogsEntryModel) {
 
-		FriendlyURLModel friendlyURLModel = new FriendlyURLModelImpl();
+		FriendlyURLEntryModel friendlyURLEntryModel =
+			new FriendlyURLEntryModelImpl();
 
-		friendlyURLModel.setUuid(SequentialUUID.generate());
-		friendlyURLModel.setFriendlyURLId(_counter.get());
-		friendlyURLModel.setGroupId(blogsEntryModel.getGroupId());
-		friendlyURLModel.setCompanyId(_companyId);
-		friendlyURLModel.setCreateDate(new Date());
-		friendlyURLModel.setModifiedDate(new Date());
-		friendlyURLModel.setClassNameId(getClassNameId(BlogsEntry.class));
-		friendlyURLModel.setClassPK(blogsEntryModel.getEntryId());
-		friendlyURLModel.setUrlTitle(blogsEntryModel.getUrlTitle());
-		friendlyURLModel.setMain(true);
+		friendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		friendlyURLEntryModel.setFriendlyURLEntryId(_counter.get());
+		friendlyURLEntryModel.setGroupId(blogsEntryModel.getGroupId());
+		friendlyURLEntryModel.setCompanyId(_companyId);
+		friendlyURLEntryModel.setCreateDate(new Date());
+		friendlyURLEntryModel.setModifiedDate(new Date());
+		friendlyURLEntryModel.setClassNameId(getClassNameId(BlogsEntry.class));
+		friendlyURLEntryModel.setClassPK(blogsEntryModel.getEntryId());
+		friendlyURLEntryModel.setUrlTitle(blogsEntryModel.getUrlTitle());
+		friendlyURLEntryModel.setMain(true);
 
-		return friendlyURLModel;
+		return friendlyURLEntryModel;
 	}
 
 	public GroupModel newGroupModel(UserModel userModel) throws Exception {
@@ -1839,23 +1899,24 @@ public class DataFactory {
 	public LayoutFriendlyURLModel newLayoutFriendlyURLModel(
 		LayoutModel layoutModel) {
 
-		LayoutFriendlyURLModel layoutFriendlyURLModel =
+		LayoutFriendlyURLModel layoutFriendlyURLEntryModel =
 			new LayoutFriendlyURLModelImpl();
 
-		layoutFriendlyURLModel.setUuid(SequentialUUID.generate());
-		layoutFriendlyURLModel.setLayoutFriendlyURLId(_counter.get());
-		layoutFriendlyURLModel.setGroupId(layoutModel.getGroupId());
-		layoutFriendlyURLModel.setCompanyId(_companyId);
-		layoutFriendlyURLModel.setUserId(_sampleUserId);
-		layoutFriendlyURLModel.setUserName(_SAMPLE_USER_NAME);
-		layoutFriendlyURLModel.setCreateDate(new Date());
-		layoutFriendlyURLModel.setModifiedDate(new Date());
-		layoutFriendlyURLModel.setPlid(layoutModel.getPlid());
-		layoutFriendlyURLModel.setFriendlyURL(layoutModel.getFriendlyURL());
-		layoutFriendlyURLModel.setLanguageId("en_US");
-		layoutFriendlyURLModel.setLastPublishDate(new Date());
+		layoutFriendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		layoutFriendlyURLEntryModel.setLayoutFriendlyURLId(_counter.get());
+		layoutFriendlyURLEntryModel.setGroupId(layoutModel.getGroupId());
+		layoutFriendlyURLEntryModel.setCompanyId(_companyId);
+		layoutFriendlyURLEntryModel.setUserId(_sampleUserId);
+		layoutFriendlyURLEntryModel.setUserName(_SAMPLE_USER_NAME);
+		layoutFriendlyURLEntryModel.setCreateDate(new Date());
+		layoutFriendlyURLEntryModel.setModifiedDate(new Date());
+		layoutFriendlyURLEntryModel.setPlid(layoutModel.getPlid());
+		layoutFriendlyURLEntryModel.setFriendlyURL(
+			layoutModel.getFriendlyURL());
+		layoutFriendlyURLEntryModel.setLanguageId("en_US");
+		layoutFriendlyURLEntryModel.setLastPublishDate(new Date());
 
-		return layoutFriendlyURLModel;
+		return layoutFriendlyURLEntryModel;
 	}
 
 	public LayoutModel newLayoutModel(
@@ -2628,6 +2689,40 @@ public class DataFactory {
 		return userName;
 	}
 
+	public String toInsertSQL(BaseModel<?> baseModel) {
+		try {
+			StringBundler sb = new StringBundler();
+
+			toInsertSQL(sb, baseModel);
+
+			Class<?> clazz = baseModel.getClass();
+
+			for (Class<?> modelClass : clazz.getInterfaces()) {
+				try {
+					Method method = DataFactory.class.getMethod(
+						"newResourcePermissionModels", modelClass);
+
+					for (ResourcePermissionModel resourcePermissionModel :
+							(List<ResourcePermissionModel>)method.invoke(
+								this, baseModel)) {
+
+						sb.append("\n");
+
+						toInsertSQL(sb, resourcePermissionModel);
+					}
+				}
+				catch (NoSuchMethodException nsme) {
+					continue;
+				}
+			}
+
+			return sb.toString();
+		}
+		catch (ReflectiveOperationException roe) {
+			return ReflectionUtil.throwException(roe);
+		}
+	}
+
 	protected String[] getAssetPublisherAssetCategoriesQueryValues(
 		List<AssetCategoryModel> assetCategoryModels, int index) {
 
@@ -3361,6 +3456,76 @@ public class DataFactory {
 			_FUTURE_TIME + (_futureDateCounter.get() * Time.SECOND));
 	}
 
+	protected void toInsertSQL(StringBundler sb, BaseModel<?> baseModel) {
+		try {
+			sb.append("insert into ");
+
+			Class<?> clazz = baseModel.getClass();
+
+			Field tableNameField = clazz.getField("TABLE_NAME");
+
+			sb.append(tableNameField.get(null));
+
+			sb.append(" values (");
+
+			Field tableColumnsField = clazz.getField("TABLE_COLUMNS");
+
+			for (Object[] tableColumn :
+					(Object[][])tableColumnsField.get(null)) {
+
+				String name = TextFormatter.format(
+					(String)tableColumn[0], TextFormatter.G);
+
+				if (name.endsWith(StringPool.UNDERLINE)) {
+					name = name.substring(0, name.length() - 1);
+				}
+
+				int type = (int)tableColumn[1];
+
+				if (type == Types.TIMESTAMP) {
+					Method method = clazz.getMethod("get".concat(name));
+
+					Date date = (Date)method.invoke(baseModel);
+
+					if (date == null) {
+						sb.append("null");
+					}
+					else {
+						sb.append("'");
+						sb.append(getDateString(date));
+						sb.append("'");
+					}
+				}
+				else if ((type == Types.VARCHAR) || (type == Types.CLOB)) {
+					Method method = clazz.getMethod("get".concat(name));
+
+					sb.append("'");
+					sb.append(method.invoke(baseModel));
+					sb.append("'");
+				}
+				else if (type == Types.BOOLEAN) {
+					Method method = clazz.getMethod("is".concat(name));
+
+					sb.append(method.invoke(baseModel));
+				}
+				else {
+					Method method = clazz.getMethod("get".concat(name));
+
+					sb.append(method.invoke(baseModel));
+				}
+
+				sb.append(", ");
+			}
+
+			sb.setIndex(sb.index() - 1);
+
+			sb.append(");");
+		}
+		catch (ReflectiveOperationException roe) {
+			ReflectionUtil.throwException(roe);
+		}
+	}
+
 	private String _getResourcePermissionModelName(String... classNames) {
 		if (ArrayUtil.isEmpty(classNames)) {
 			return StringPool.BLANK;
@@ -3390,6 +3555,8 @@ public class DataFactory {
 
 	private static final String _SAMPLE_USER_NAME = "Sample";
 
+	private static final int _WRITER_BUFFER_SIZE = 16 * 1024;
+
 	private static final PortletPreferencesFactory _portletPreferencesFactory =
 		new PortletPreferencesFactoryImpl();
 
@@ -3411,6 +3578,7 @@ public class DataFactory {
 	private final long _companyId;
 	private CompanyModel _companyModel;
 	private final SimpleCounter _counter;
+	private final Map<String, Writer> _csvWriters = new HashMap<>();
 	private final PortletPreferencesImpl
 		_defaultAssetPublisherPortletPreference;
 	private AssetVocabularyModel _defaultAssetVocabularyModel;

@@ -76,6 +76,7 @@ if (portletTitleBasedNavigation) {
 							<aui:col cssClass="entry-navigation-item" md="4" sm="6">
 								<portlet:renderURL var="previousEntryURL">
 									<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
+									<portlet:param name="redirect" value="<%= redirect %>" />
 									<portlet:param name="urlTitle" value="<%= previousEntry.getUrlTitle() %>" />
 								</portlet:renderURL>
 
@@ -118,6 +119,7 @@ if (portletTitleBasedNavigation) {
 							<aui:col cssClass="entry-navigation-item" md="4" sm="6">
 								<portlet:renderURL var="nextEntryURL">
 									<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
+									<portlet:param name="redirect" value="<%= redirect %>" />
 									<portlet:param name="urlTitle" value="<%= nextEntry.getUrlTitle() %>" />
 								</portlet:renderURL>
 
@@ -176,7 +178,7 @@ if (portletTitleBasedNavigation) {
 					<aui:input inlineLabel="left" name="trackbackURL" type="resource" value='<%= PortalUtil.getLayoutFullURL(themeDisplay) + Portal.FRIENDLY_URL_SEPARATOR + "blogs/trackback/" + entry.getUrlTitle() %>' />
 				</c:if>
 
-				<liferay-ui:discussion
+				<liferay-comment:discussion
 					className="<%= BlogsEntry.class.getName() %>"
 					classPK="<%= entry.getEntryId() %>"
 					formName="fm2"

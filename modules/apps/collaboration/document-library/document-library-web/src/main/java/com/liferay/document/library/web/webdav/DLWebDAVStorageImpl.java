@@ -951,7 +951,8 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
 				ServiceContext serviceContext = new ServiceContext();
 
-				serviceContext.setAttribute(DL.WEBDAV_CHECK_IN_MODE, true);
+				serviceContext.setAttribute(
+					DL.WEBDAV_CHECK_IN_MODE, Boolean.TRUE);
 
 				_dlAppService.checkInFileEntry(
 					fileEntry.getFileEntryId(), token, serviceContext);
@@ -1173,6 +1174,8 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
 	protected void populateServiceContext(
 		ServiceContext serviceContext, FileEntry fileEntry) {
+
+		serviceContext.setScopeGroupId(fileEntry.getGroupId());
 
 		String className = DLFileEntryConstants.getClassName();
 

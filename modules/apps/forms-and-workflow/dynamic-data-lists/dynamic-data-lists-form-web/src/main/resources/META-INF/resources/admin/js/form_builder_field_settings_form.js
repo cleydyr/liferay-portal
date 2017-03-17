@@ -7,7 +7,7 @@ AUI.add(
 
 		var RendererUtil = Liferay.DDM.Renderer.Util;
 
-		var SoyTemplateUtil = Liferay.DDL.SoyTemplateUtil;
+		var SoyTemplateUtil = Liferay.DDM.SoyTemplateUtil;
 
 		var FormBuilderSettingsForm = A.Component.create(
 			{
@@ -159,6 +159,8 @@ AUI.add(
 
 						var ddmDataProviderInstanceIdContainer = instance.getField('ddmDataProviderInstanceId').get('container');
 
+						var ddmDataProviderInstanceOutputContainer = instance.getField('ddmDataProviderInstanceOutput').get('container');
+
 						var optionsContainer = instance.getField('options').get('container');
 
 						var tabView = instance.getTabView();
@@ -169,6 +171,7 @@ AUI.add(
 
 						sidebarBody.one('.autocomplete-body').append(dataSourceTypeContainer);
 						sidebarBody.one('.autocomplete-body').append(ddmDataProviderInstanceIdContainer);
+						sidebarBody.one('.autocomplete-body').append(ddmDataProviderInstanceOutputContainer);
 						sidebarBody.one('.autocomplete-body').append(optionsContainer);
 
 						sidebarBody.one('.autocomplete-header-back').on('click', A.bind('_onClickAutocompleteHeaderBack', instance));
@@ -350,6 +353,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['liferay-ddl-soy-template-util', 'liferay-ddm-form-renderer', 'liferay-ddm-form-renderer-util', 'liferay-form']
+		requires: ['liferay-ddm-form-renderer', 'liferay-ddm-form-renderer-util', 'liferay-ddm-soy-template-util', 'liferay-form']
 	}
 );

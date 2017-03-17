@@ -54,6 +54,9 @@ AUI.add(
 						value: null
 					},
 
+					eventsPerPage: {
+					},
+
 					filterCalendarBookings: {
 						validator: isFunction
 					},
@@ -62,6 +65,9 @@ AUI.add(
 						valueFn: function() {
 							return A.Node.create(TPL_ICON_ADD_EVENT_NODE);
 						}
+					},
+
+					maxDaysDisplayed: {
 					},
 
 					portletNamespace: {
@@ -527,7 +533,34 @@ AUI.add(
 
 		Liferay.Scheduler = Scheduler;
 
-		Liferay.SchedulerDayView = A.SchedulerDayView;
+		var SchedulerDayView = A.Component.create(
+			{
+				EXTENDS: A.SchedulerDayView,
+
+				NAME: 'scheduler-day-view',
+
+				ATTRS: {
+					navigationDateFormatter: {
+						value: function(date) {
+							var instance = this;
+
+							var scheduler = instance.get('scheduler');
+
+							return A.DataType.Date.format(
+								date,
+								{
+									format: Liferay.Language.get('a-b-d-y'),
+									locale: scheduler.get('locale')
+								}
+							);
+						},
+						validator: isFunction
+					}
+				}
+			}
+		);
+
+		Liferay.SchedulerDayView = SchedulerDayView;
 
 		Liferay.SchedulerWeekView = A.SchedulerWeekView;
 

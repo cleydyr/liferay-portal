@@ -52,7 +52,11 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Adolfo Pérez
+ * @deprecated As of 7.0.0, replaced by {@link
+ *             com.liferay.comment.taglib.internal.action.
+ *             EditDiscussionStrutsAction}
  */
+@Deprecated
 @OSGiBeanProperties(
 	property = "path=/portal/comment/edit_discussion",
 	service = StrutsAction.class
@@ -250,12 +254,12 @@ public class EditDiscussionStrutsAction extends BaseStrutsAction {
 
 	protected void writeJSON(
 			HttpServletRequest request, HttpServletResponse response,
-			Object json)
+			Object jsonObj)
 		throws IOException {
 
 		response.setContentType(ContentTypes.APPLICATION_JSON);
 
-		ServletResponseUtil.write(response, json.toString());
+		ServletResponseUtil.write(response, jsonObj.toString());
 
 		response.flushBuffer();
 	}

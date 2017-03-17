@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -121,7 +123,11 @@ public class ServiceContext implements Cloneable, Serializable {
 			getPathFriendlyURLPrivateUser());
 		serviceContext.setPathFriendlyURLPublic(getPathFriendlyURLPublic());
 		serviceContext.setPathMain(getPathMain());
-		serviceContext.setPlid(getPlid());
+
+		if (_plid != null) {
+			serviceContext.setPlid(_plid);
+		}
+
 		serviceContext.setPortalURL(getPortalURL());
 		serviceContext.setPortletPreferencesIds(getPortletPreferencesIds());
 		serviceContext.setRemoteAddr(getRemoteAddr());
@@ -543,6 +549,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @return the portal layout ID of the current page
 	 */
 	public long getPlid() {
+		if (_plid == null) {
+			_plid = LayoutLocalServiceUtil.getDefaultPlid(_scopeGroupId, false);
+		}
+
 		return _plid;
 	}
 
@@ -571,6 +581,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @see    PortletPreferencesIds
 	 */
 	public String getPortletId() {
+		if (_portletId != null) {
+			return _portletId;
+		}
+
 		if (_portletPreferencesIds == null) {
 			return null;
 		}
@@ -591,6 +605,21 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @see    PortletPreferencesIds
 	 */
 	public PortletPreferencesIds getPortletPreferencesIds() {
+		if (_portletPreferencesIds == null) {
+			if (_portletId == null) {
+				return null;
+			}
+
+			try {
+				_portletPreferencesIds =
+					PortletPreferencesFactoryUtil.getPortletPreferencesIds(
+						_request, _portletId);
+			}
+			catch (PortalException pe) {
+				ReflectionUtil.throwException(pe);
+			}
+		}
+
 		return _portletPreferencesIds;
 	}
 
@@ -1372,6 +1401,10 @@ public class ServiceContext implements Cloneable, Serializable {
 		_portalURL = portalURL;
 	}
 
+	public void setPortletId(String portletId) {
+		_portletId = portletId;
+	}
+
 	/**
 	 * Sets the portlet preferences IDs of the current portlet if this service
 	 * context is being passed as a parameter to a portlet.
@@ -1540,8 +1573,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	private String _pathFriendlyURLPrivateUser;
 	private String _pathFriendlyURLPublic;
 	private String _pathMain;
-	private long _plid;
+	private Long _plid;
 	private String _portalURL;
+	private String _portletId;
 	private PortletPreferencesIds _portletPreferencesIds;
 	private String _remoteAddr;
 	private String _remoteHost;

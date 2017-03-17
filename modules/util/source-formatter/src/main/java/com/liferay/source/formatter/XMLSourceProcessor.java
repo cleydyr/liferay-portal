@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.tools.ImportPackage;
 import com.liferay.source.formatter.util.FileUtil;
 import com.liferay.util.ContentUtil;
 import com.liferay.util.xml.Dom4jUtil;
@@ -233,11 +234,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
 	protected void checkAntXMLProjectName(String fileName, Document document) {
 		Matcher matcher = _projectNamePattern.matcher(fileName);
 
@@ -410,7 +406,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			newContent = formatAntXML(fileName, absolutePath, newContent);
 		}
 		else if (fileName.contains("/custom-sql/")) {
-			formatCustomSQLXML(fileName, newContent);
+			newContent = formatCustomSQLXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("structures.xml")) {
 			newContent = formatDDLStructuresXML(newContent);
@@ -420,19 +416,19 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, absolutePath, newContent);
 		}
 		else if (fileName.endsWith("-hbm.xml")) {
-			formatHBMXML(fileName, newContent);
+			newContent = formatHBMXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-log4j.xml")) {
-			formatLog4jXML(fileName, newContent);
+			newContent = formatLog4jXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-look-and-feel.xml")) {
-			formatLookAndFeelXML(fileName, newContent);
+			newContent = formatLookAndFeelXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-model-hints.xml")) {
-			formatModelHintsXML(fileName, newContent);
+			newContent = formatModelHintsXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("portlet-preferences.xml")) {
-			formatPortletPreferencesXML(fileName, newContent);
+			newContent = formatPortletPreferencesXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("/liferay-portlet.xml") ||
 				 ((portalSource || subrepository) &&
@@ -450,29 +446,37 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			newContent = formatPoshiXML(fileName, newContent);
 		}
 		else if (fileName.contains("/resource-actions/")) {
-			formatResourceActionXML(fileName, newContent, "model");
-			formatResourceActionXML(fileName, newContent, "portlet");
+			newContent = formatResourceActionXML(fileName, newContent, "model");
+			newContent = formatResourceActionXML(
+				fileName, newContent, "portlet");
 		}
 		else if (fileName.endsWith("/service.xml")) {
-			formatServiceXML(fileName, absolutePath, newContent);
+			newContent = formatServiceXML(fileName, absolutePath, newContent);
 		}
 		else if (fileName.endsWith("/schema.xml") &&
 				 absolutePath.contains("solr")) {
 
-			formatSolrSchema(fileName, newContent);
+			newContent = formatSolrSchemaXML(fileName, newContent);
+		}
+		else if (fileName.endsWith("-spring.xml")) {
+			newContent = formatSpringXML(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/struts-config.xml")) {
-			formatStrutsConfigXML(fileName, newContent);
+
+			newContent = formatStrutsConfigXML(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/test-ignorable-error-lines.xml")) {
 
-			formatTestIgnorableErrorLinesXml(fileName, newContent);
+			newContent = formatTestIgnorableErrorLinesXml(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/tiles-defs.xml")) {
 			formatTilesDefsXML(fileName, newContent);
+		}
+		else if (fileName.endsWith(".toggle")) {
+			newContent = formatToggleXML(fileName, newContent);
 		}
 		else if (((portalSource || subrepository) &&
 				  fileName.endsWith("portal-web/docroot/WEB-INF/web.xml")) ||
@@ -483,6 +487,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 
 		newContent = sortAttributes(fileName, newContent);
+
+		newContent = fixEmptyLinesInMultiLineTags(newContent);
 
 		newContent = fixEmptyLinesInNestedTags(newContent);
 
@@ -501,6 +507,28 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		};
 
 		return getFileNames(excludes, getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	protected String fixEmptyLinesBetweenTags(
+		String content, boolean allowEmptyLinesBetweenTags) {
+
+		if (allowEmptyLinesBetweenTags) {
+			return fixEmptyLinesBetweenTags(content);
+		}
+
+		Matcher matcher = _emptyLineBetweenTagsPattern.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n\n", "\n", matcher.end(1));
+		}
+
+		return content;
 	}
 
 	protected String fixPoshiXMLElementWithNoChild(String content) {
@@ -698,7 +726,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		return newContent;
 	}
 
-	protected void formatCustomSQLXML(String fileName, String content)
+	protected String formatCustomSQLXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -709,20 +737,20 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		Matcher matcher = _whereNotInSQLPattern.matcher(content);
 
-		if (!matcher.find()) {
-			return;
+		if (matcher.find()) {
+			int x = content.lastIndexOf("<sql id=", matcher.start());
+
+			int y = content.indexOf(CharPool.QUOTE, x);
+
+			int z = content.indexOf(CharPool.QUOTE, y + 1);
+
+			processMessage(
+				fileName,
+				"Avoid using WHERE ... NOT IN: " + content.substring(y + 1, z) +
+					", see LPS-51315");
 		}
 
-		int x = content.lastIndexOf("<sql id=", matcher.start());
-
-		int y = content.indexOf(CharPool.QUOTE, x);
-
-		int z = content.indexOf(CharPool.QUOTE, y + 1);
-
-		processMessage(
-			fileName,
-			"Avoid using WHERE ... NOT IN: " + content.substring(y + 1, z) +
-				", see LPS-51315");
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatDDLStructuresXML(String content) throws Exception {
@@ -781,7 +809,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		int pos = content.indexOf("<routes>\n");
 
 		if (pos == -1) {
-			return content;
+			return fixEmptyLinesBetweenTags(content, false);
 		}
 
 		StringBundler sb = new StringBundler(9);
@@ -803,10 +831,10 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		sb.append(".dtd\">\n\n");
 		sb.append(content.substring(pos));
 
-		return sb.toString();
+		return fixEmptyLinesBetweenTags(sb.toString(), false);
 	}
 
-	protected void formatHBMXML(String fileName, String content)
+	protected String formatHBMXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -814,9 +842,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "import", null,
 			new ElementComparator("class"));
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatLog4jXML(String fileName, String content)
+	protected String formatLog4jXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -824,9 +854,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "category", null,
 			new ElementComparator(true));
+
+		return fixEmptyLinesBetweenTags(content, true);
 	}
 
-	protected void formatLookAndFeelXML(String fileName, String content)
+	protected String formatLookAndFeelXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -846,9 +878,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, settingsElement, "setting", null,
 				new ElementComparator("key"));
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatModelHintsXML(String fileName, String content)
+	protected String formatModelHintsXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -860,9 +894,12 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			new ElementComparator());
 		checkOrder(
 			fileName, rootElement, "model", null, new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatPortletPreferencesXML(String fileName, String content)
+	protected String formatPortletPreferencesXML(
+			String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -880,6 +917,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 			processMessage(fileName, "Rename file to " + correctFileName);
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatPortletXML(
@@ -964,7 +1003,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		return fixPoshiXMLNumberOfTabs(content);
 	}
 
-	protected void formatResourceActionXML(
+	protected String formatResourceActionXML(
 			String fileName, String content, String type)
 		throws Exception {
 
@@ -1003,9 +1042,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement, type + "-resource", null,
 			new ResourceActionResourceElementComparator(type + "-name"));
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatServiceXML(
+	protected String formatServiceXML(
 			String fileName, String absolutePath, String content)
 		throws Exception {
 
@@ -1013,16 +1054,36 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		Element rootElement = document.getRootElement();
 
-		List<Element> entityElements = rootElement.elements("entity");
-
 		ServiceReferenceElementComparator serviceReferenceElementComparator =
 			new ServiceReferenceElementComparator("entity");
 
-		for (Element entityElement : entityElements) {
+		for (Element entityElement :
+				(List<Element>)rootElement.elements("entity")) {
+
 			String entityName = entityElement.attributeValue("name");
 
 			List<String> columnNames = getColumnNames(
 				fileName, absolutePath, entityName);
+
+			ServiceFinderColumnElementComparator
+				serviceFinderColumnElementComparator =
+					new ServiceFinderColumnElementComparator(columnNames);
+
+			if (!isExcludedPath(
+					_SERVICE_FINDER_COLUMN_SORT_EXCLUDES, absolutePath,
+					entityName)) {
+
+				for (Element finderElement :
+						(List<Element>)entityElement.elements("finder")) {
+
+					String finderName = finderElement.attributeValue("name");
+
+					checkOrder(
+						fileName, finderElement, "finder-column",
+						entityName + "#" + finderName,
+						serviceFinderColumnElementComparator);
+				}
+			}
 
 			checkOrder(
 				fileName, entityElement, "finder", entityName,
@@ -1037,34 +1098,40 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("exceptions"), "exception", null,
 			new ServiceExceptionElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatSolrSchema(String fileName, String content)
+	protected String formatSolrSchemaXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
 
 		Element rootElement = document.getRootElement();
 
-		SolrElementComparator solrElementComparator =
-			new SolrElementComparator();
-
-		Element typesElement = rootElement.element("types");
-
-		_solrElementsContent = typesElement.asXML();
-
 		checkOrder(
-			fileName, typesElement, "fieldType", null, solrElementComparator);
-
-		Element fieldsElement = rootElement.element("fields");
-
-		_solrElementsContent = fieldsElement.asXML();
-
+			fileName, rootElement.element("fields"), "field", null,
+			new ElementComparator());
 		checkOrder(
-			fileName, fieldsElement, "field", null, solrElementComparator);
+			fileName, rootElement.element("types"), "fieldType", null,
+			new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatStrutsConfigXML(String fileName, String content)
+	protected String formatSpringXML(String fileName, String content)
+		throws Exception {
+
+		Document document = readXML(content);
+
+		checkOrder(
+			fileName, document.getRootElement(), "bean", null,
+			new SpringBeanElementComparator("id"));
+
+		return fixEmptyLinesBetweenTags(content, false);
+	}
+
+	protected String formatStrutsConfigXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1074,9 +1141,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("action-mappings"), "action", null,
 			new StrutsActionElementComparator("path"));
+
+		return fixEmptyLinesBetweenTags(content, true);
 	}
 
-	protected void formatTestIgnorableErrorLinesXml(
+	protected String formatTestIgnorableErrorLinesXml(
 			String fileName, String content)
 		throws Exception {
 
@@ -1099,9 +1168,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, logElement, "ignore-error", null,
 				new ElementComparator("description"));
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatTilesDefsXML(String fileName, String content)
+	protected String formatTilesDefsXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1109,6 +1180,20 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "definition", null,
 			new TilesDefinitionElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, true);
+	}
+
+	protected String formatToggleXML(String fileName, String content)
+		throws Exception {
+
+		Document document = readXML(content);
+
+		checkOrder(
+			fileName, document.getRootElement(), "toggle", null,
+			new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatWebXML(String fileName, String content)
@@ -1122,7 +1207,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				processMessage(fileName, StringPool.BLANK);
 			}
 
-			return content;
+			return fixEmptyLinesBetweenTags(content, false);
 		}
 
 		Properties properties = new Properties();
@@ -1196,8 +1281,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			sb.append("/c/portal/protected</url-pattern>\n");
 		}
 
-		return newContent.substring(0, x) + sb.toString() +
-			newContent.substring(y);
+		newContent =
+			newContent.substring(0, x) + sb.toString() +
+				newContent.substring(y);
+
+		return fixEmptyLinesBetweenTags(newContent, false); 
 	}
 
 	protected List<String> getColumnNames(
@@ -1550,12 +1638,15 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	}
 
 	private static final String[] _INCLUDES = new String[] {
-		"**/*.action", "**/*.function", "**/*.macro", "**/*.testcase",
-		"**/*.xml"
+		"**/*.action", "**/*.function", "**/*.jrxml", "**/*.macro",
+		"**/*.testcase", "**/*.toggle", "**/*.xml"
 	};
 
 	private static final String _NUMERICAL_PORTLET_NAME_ELEMENT_EXCLUDES =
 		"numerical.portlet.name.element.excludes";
+
+	private static final String _SERVICE_FINDER_COLUMN_SORT_EXCLUDES =
+		"service.finder.column.sort.excludes";
 
 	private static final String _XML_EXCLUDES = "xml.excludes";
 
@@ -1564,6 +1655,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	private static final Pattern _commentPattern2 = Pattern.compile(
 		"[\t ]-->\n[\t<]");
 
+	private final Pattern _emptyLineBetweenTagsPattern = Pattern.compile(
+		"\n(\t*)<[\\w/].*>(\n\n)(\t*)<(\\w)");
 	private final Pattern _importFilePattern = Pattern.compile(
 		"<import file=\"(.*)\"");
 	private final Pattern _incorrectDefaultPreferencesFileName =
@@ -1603,136 +1696,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		"<[^\\>^/]*\\/>");
 	private final Pattern _projectNamePattern = Pattern.compile(
 		"/(\\w*-(ext|hooks|layouttpl|portlet|theme|web))/build\\.xml$");
-	private String _solrElementsContent;
 	private String _tablesContent;
 	private final Map<String, String> _tablesContentMap =
 		new ConcurrentHashMap<>();
 	private final Pattern _whereNotInSQLPattern = Pattern.compile(
 		"WHERE[ \t\n]+\\(*[a-zA-z0-9.]+ NOT IN");
-
-	private static class PortletPreferenceElementComparator
-		extends ElementComparator {
-
-		@Override
-		protected String getElementName(Element preferenceElement) {
-			Element nameElement = preferenceElement.element(getNameAttribute());
-
-			return nameElement.getStringValue();
-		}
-
-	}
-
-	private static class ResourceActionActionKeyElementComparator
-		extends ElementComparator {
-
-		@Override
-		protected String getElementName(Element actionKeyElement) {
-			return actionKeyElement.getStringValue();
-		}
-
-	}
-
-	private static class ResourceActionResourceElementComparator
-		extends ElementComparator {
-
-		public ResourceActionResourceElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		protected String getElementName(Element portletResourceElement) {
-			Element portletNameElement = portletResourceElement.element(
-				getNameAttribute());
-
-			if (portletNameElement == null) {
-				return null;
-			}
-
-			return portletNameElement.getText();
-		}
-
-	}
-
-	private static class ServiceExceptionElementComparator
-		extends ElementComparator {
-
-		@Override
-		protected String getElementName(Element exceptionElement) {
-			return exceptionElement.getStringValue();
-		}
-
-	}
-
-	private static class ServiceReferenceElementComparator
-		extends ElementComparator {
-
-		public ServiceReferenceElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(
-			Element referenceElement1, Element referenceElement2) {
-
-			String packagePath1 = referenceElement1.attributeValue(
-				"package-path");
-			String packagePath2 = referenceElement2.attributeValue(
-				"package-path");
-
-			if (!packagePath1.equals(packagePath2)) {
-				return packagePath1.compareToIgnoreCase(packagePath2);
-			}
-
-			String entityName1 = referenceElement1.attributeValue("entity");
-			String entityName2 = referenceElement2.attributeValue("entity");
-
-			return entityName1.compareToIgnoreCase(entityName2);
-		}
-
-	}
-
-	private static class StrutsActionElementComparator
-		extends ElementComparator {
-
-		public StrutsActionElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(Element actionElement1, Element actionElement2) {
-			String path1 = actionElement1.attributeValue("path");
-			String path2 = actionElement2.attributeValue("path");
-
-			if (!path1.startsWith("/portal/") && path2.startsWith("/portal/")) {
-				return 1;
-			}
-
-			if (path1.startsWith("/portal/") && !path2.startsWith("/portal/")) {
-				return -1;
-			}
-
-			return path1.compareTo(path2);
-		}
-
-	}
-
-	private static class TilesDefinitionElementComparator
-		extends ElementComparator {
-
-		@Override
-		public int compare(
-			Element definitionElement1, Element definitionElement2) {
-
-			String definitionName1 = getElementName(definitionElement1);
-
-			if (definitionName1.equals("portlet")) {
-				return -1;
-			}
-
-			return super.compare(definitionElement1, definitionElement2);
-		}
-
-	}
 
 	private class CustomSQLElementComparator extends ElementComparator {
 
@@ -1816,6 +1784,83 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
+	private class PortletPreferenceElementComparator extends ElementComparator {
+
+		@Override
+		protected String getElementName(Element preferenceElement) {
+			Element nameElement = preferenceElement.element(getNameAttribute());
+
+			return nameElement.getStringValue();
+		}
+
+	}
+
+	private class ResourceActionActionKeyElementComparator
+		extends ElementComparator {
+
+		@Override
+		protected String getElementName(Element actionKeyElement) {
+			return actionKeyElement.getStringValue();
+		}
+
+	}
+
+	private class ResourceActionResourceElementComparator
+		extends ElementComparator {
+
+		public ResourceActionResourceElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		protected String getElementName(Element portletResourceElement) {
+			Element portletNameElement = portletResourceElement.element(
+				getNameAttribute());
+
+			if (portletNameElement == null) {
+				return null;
+			}
+
+			return portletNameElement.getText();
+		}
+
+	}
+
+	private class ServiceExceptionElementComparator extends ElementComparator {
+
+		@Override
+		protected String getElementName(Element exceptionElement) {
+			return exceptionElement.getStringValue();
+		}
+
+	}
+
+	private class ServiceFinderColumnElementComparator
+		extends ElementComparator {
+
+		public ServiceFinderColumnElementComparator(List<String> columnNames) {
+			_columnNames = columnNames;
+		}
+
+		@Override
+		public int compare(
+			Element finderColumnElement1, Element finderColumnElement2) {
+
+			String finderColumnName1 = finderColumnElement1.attributeValue(
+				"name");
+			String finderColumnName2 = finderColumnElement2.attributeValue(
+				"name");
+
+			int index1 = _columnNames.indexOf(finderColumnName1);
+			int index2 = _columnNames.indexOf(finderColumnName2);
+
+			return index1 - index2;
+		}
+
+		private final List<String> _columnNames;
+
+	}
+
 	private class ServiceFinderElementComparator extends ElementComparator {
 
 		public ServiceFinderElementComparator(List<String> columnNames) {
@@ -1888,36 +1933,227 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private class SolrElementComparator extends ElementComparator {
+	private class ServiceReferenceElementComparator extends ElementComparator {
+
+		public ServiceReferenceElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
 
 		@Override
-		public int compare(Element solrElement1, Element solrElement2) {
-			int value = super.compare(solrElement1, solrElement2);
+		public int compare(
+			Element referenceElement1, Element referenceElement2) {
 
-			if (value <= 0) {
-				return value;
+			String packagePath1 = referenceElement1.attributeValue(
+				"package-path");
+			String packagePath2 = referenceElement2.attributeValue(
+				"package-path");
+
+			if (!packagePath1.equals(packagePath2)) {
+				return packagePath1.compareToIgnoreCase(packagePath2);
 			}
 
-			String solrElementContent1 = solrElement1.asXML();
-			String solrElementContent2 = solrElement2.asXML();
+			String entityName1 = referenceElement1.attributeValue("entity");
+			String entityName2 = referenceElement2.attributeValue("entity");
 
-			int x =
-				_solrElementsContent.indexOf(solrElementContent1) +
-					solrElementContent1.length();
-			int y = _solrElementsContent.indexOf(solrElementContent2);
+			return entityName1.compareToIgnoreCase(entityName2);
+		}
 
-			if (x > y) {
+	}
+
+	private class SpringBeanElementComparator extends ElementComparator {
+
+		public SpringBeanElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(Element element1, Element element2) {
+			String elementName1 = getElementName(element1);
+			String elementName2 = getElementName(element2);
+
+			if ((elementName1 == null) || (elementName2 == null)) {
+				return 0;
+			}
+
+			int startsWithWeight = StringUtil.startsWithWeight(
+				elementName1, elementName2);
+
+			if (startsWithWeight != 0) {
+				String startKey = elementName1.substring(0, startsWithWeight);
+
+				if (startKey.contains(".service.")) {
+					return _compareServiceElements(elementName1, elementName2);
+				}
+			}
+
+			if ((StringUtil.count(elementName1, StringPool.PERIOD) > 1) &&
+				(StringUtil.count(elementName2, StringPool.PERIOD) > 1)) {
+
+				ImportPackage importPackage1 = new ImportPackage(
+					elementName1, false, elementName1);
+				ImportPackage importPackage2 = new ImportPackage(
+					elementName2, false, elementName2);
+
+				return importPackage1.compareTo(importPackage2);
+			}
+
+			if (StringUtil.count(elementName1, StringPool.PERIOD) > 1) {
 				return -1;
 			}
 
-			String betweenElementsContent = _solrElementsContent.substring(
-				x, y);
+			return super.compare(element1, element2);
+		}
 
-			if (betweenElementsContent.contains("<!--")) {
+		@Override
+		protected String getElementName(Element element) {
+			String elementName = super.getElementName(element);
+
+			if ((elementName != null) &&
+				(StringUtil.count(elementName, StringPool.PERIOD) > 1)) {
+
+				return elementName;
+			}
+
+			return element.attributeValue("class");
+		}
+
+		private int _compareServiceElements(String name1, String name2) {
+			SpringBeanServiceElement springBeanServiceElemen1 =
+				new SpringBeanServiceElement(name1);
+			SpringBeanServiceElement springBeanServiceElemen2 =
+				new SpringBeanServiceElement(name2);
+
+			return springBeanServiceElemen1.compareTo(springBeanServiceElemen2);
+		}
+
+		private class SpringBeanServiceElement
+			implements Comparable<SpringBeanServiceElement> {
+
+			public SpringBeanServiceElement(String name) {
+				_beanObjectName = StringPool.BLANK;
+				_type = -1;
+
+				Matcher matcher = _localServicePattern.matcher(name);
+
+				if (matcher.find()) {
+					_beanObjectName = matcher.group(1);
+					_type = _LOCAL_SERVICE;
+
+					return;
+				}
+
+				matcher = _servicePattern.matcher(name);
+
+				if (matcher.find()) {
+					_beanObjectName = matcher.group(1);
+					_type = _SERVICE;
+
+					return;
+				}
+
+				matcher = _persistencePattern.matcher(name);
+
+				if (matcher.find()) {
+					_beanObjectName = matcher.group(1);
+					_type = _PERSISTENCE;
+
+					return;
+				}
+
+				matcher = _finderPattern.matcher(name);
+
+				if (matcher.find()) {
+					_beanObjectName = matcher.group(1);
+					_type = _FINDER;
+				}
+			}
+
+			@Override
+			public int compareTo(
+				SpringBeanServiceElement springBeanServiceElement) {
+
+				if (_beanObjectName.equals(
+						springBeanServiceElement.getBeanObjectName())) {
+
+					return _type - springBeanServiceElement.getType();
+				}
+
+				NaturalOrderStringComparator comparator =
+					new NaturalOrderStringComparator();
+
+				return comparator.compare(
+					_beanObjectName,
+					springBeanServiceElement.getBeanObjectName());
+			}
+
+			public String getBeanObjectName() {
+				return _beanObjectName;
+			}
+
+			public int getType() {
+				return _type;
+			}
+
+			private static final int _FINDER = 4;
+
+			private static final int _LOCAL_SERVICE = 1;
+
+			private static final int _PERSISTENCE = 3;
+
+			private static final int _SERVICE = 2;
+
+			private String _beanObjectName;
+			private final Pattern _finderPattern = Pattern.compile(
+				"\\.service\\.persistence\\.(\\w+)Finder");
+			private final Pattern _localServicePattern = Pattern.compile(
+				"\\.service\\.(\\w+)LocalService");
+			private final Pattern _persistencePattern = Pattern.compile(
+				"\\.service\\.persistence\\.(\\w+)Persistence");
+			private final Pattern _servicePattern = Pattern.compile(
+				"\\.service\\.(\\w+)Service");
+			private int _type;
+
+		}
+
+	}
+
+	private class StrutsActionElementComparator extends ElementComparator {
+
+		public StrutsActionElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(Element actionElement1, Element actionElement2) {
+			String path1 = actionElement1.attributeValue("path");
+			String path2 = actionElement2.attributeValue("path");
+
+			if (!path1.startsWith("/portal/") && path2.startsWith("/portal/")) {
+				return 1;
+			}
+
+			if (path1.startsWith("/portal/") && !path2.startsWith("/portal/")) {
 				return -1;
 			}
 
-			return 1;
+			return path1.compareTo(path2);
+		}
+
+	}
+
+	private class TilesDefinitionElementComparator extends ElementComparator {
+
+		@Override
+		public int compare(
+			Element definitionElement1, Element definitionElement2) {
+
+			String definitionName1 = getElementName(definitionElement1);
+
+			if (definitionName1.equals("portlet")) {
+				return -1;
+			}
+
+			return super.compare(definitionElement1, definitionElement2);
 		}
 
 	}

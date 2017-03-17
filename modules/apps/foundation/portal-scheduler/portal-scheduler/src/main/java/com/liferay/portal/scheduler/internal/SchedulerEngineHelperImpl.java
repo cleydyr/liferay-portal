@@ -49,7 +49,7 @@ import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.scheduler.SchedulerClusterInvokingThreadLocal;
@@ -61,11 +61,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.portlet.PortletRequest;
 
@@ -128,7 +128,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				_jsonFactory.createJSONObject(_jsonFactory.serialize(message)));
 
 			auditMessage.setServerName(InetAddressUtil.getLocalHostName());
-			auditMessage.setServerPort(PortalUtil.getPortalLocalPort(false));
+			auditMessage.setServerPort(_portal.getPortalLocalPort(false));
 
 			_auditRouter.route(auditMessage);
 		}
@@ -590,9 +590,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				SchedulerEventMessageListener.class,
 				schedulerEventMessageListenerWrapper, properties);
 
-		synchronized (_serviceRegistrations) {
-			_serviceRegistrations.put(messageListener, serviceRegistration);
-		}
+		_serviceRegistrations.put(messageListener, serviceRegistration);
 	}
 
 	@Override
@@ -661,13 +659,13 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 	@Override
 	public void unregister(MessageListener messageListener) {
-		synchronized (_serviceRegistrations) {
-			ServiceRegistration<SchedulerEventMessageListener>
-				serviceRegistration = _serviceRegistrations.remove(
-					messageListener);
+		_serviceRegistrations.compute(
+			messageListener,
+			(key, value) -> {
+				value.unregister();
 
-			serviceRegistration.unregister();
-		}
+				return null;
+			});
 	}
 
 	@Override
@@ -897,13 +895,17 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		_destinationServiceRegistrations = new HashSet<>();
 	private JSONFactory _jsonFactory;
 	private final Map<String, ServiceRegistration<MessageListener>>
-		_messageListenerServiceRegistrations = new HashMap<>();
+		_messageListenerServiceRegistrations = new ConcurrentHashMap<>();
+
+	@Reference
+	private Portal _portal;
+
 	private SchedulerEngine _schedulerEngine;
 	private volatile SchedulerEngineHelperConfiguration
 		_schedulerEngineHelperConfiguration;
 	private final Map
 		<MessageListener, ServiceRegistration<SchedulerEventMessageListener>>
-			_serviceRegistrations = new HashMap<>();
+			_serviceRegistrations = new ConcurrentHashMap<>();
 	private volatile ServiceTracker
 		<SchedulerEventMessageListener, SchedulerEventMessageListener>
 			_serviceTracker;
@@ -955,15 +957,36 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 					schedulerEntry.getTrigger(), storageType,
 					schedulerEntry.getDescription(), destinationName, null, 0);
 
+				ServiceRegistration<MessageListener> serviceRegistration =
+					_messageListenerServiceRegistrations.get(
+						schedulerEntry.getEventListenerClass());
+
+				if (serviceRegistration != null) {
+					ServiceReference<MessageListener> oldServiceReference =
+						serviceRegistration.getReference();
+
+					MessageListener messageListener = bundleContext.getService(
+						oldServiceReference);
+
+					SchedulerEventMessageListenerWrapper
+						schedulerEventMessageListenerWrapper =
+							(SchedulerEventMessageListenerWrapper)
+								messageListener;
+
+					schedulerEventMessageListenerWrapper.setSchedulerEntry(
+						schedulerEntry);
+
+					return null;
+				}
+
 				Dictionary<String, Object> properties =
 					new HashMapDictionary<>();
 
 				properties.put("destination.name", destinationName);
 
-				ServiceRegistration<MessageListener> serviceRegistration =
-					bundleContext.registerService(
-						MessageListener.class, schedulerEventMessageListener,
-						properties);
+				serviceRegistration = bundleContext.registerService(
+					MessageListener.class, schedulerEventMessageListener,
+					properties);
 
 				_messageListenerServiceRegistrations.put(
 					schedulerEntry.getEventListenerClass(),
@@ -1028,7 +1051,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 			ServiceRegistration<MessageListener>
 				messageListenerServiceRegistration =
-					_messageListenerServiceRegistrations.get(
+					_messageListenerServiceRegistrations.remove(
 						schedulerEntry.getEventListenerClass());
 
 			messageListenerServiceRegistration.unregister();

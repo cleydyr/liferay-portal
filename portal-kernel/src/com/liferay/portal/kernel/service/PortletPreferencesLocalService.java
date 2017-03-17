@@ -127,6 +127,10 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 		long portletPreferencesId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PortletPreferences fetchPortletPreferences(long ownerId,
+		int ownerType, long plid, java.lang.String portletId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PortletPreferences fetchPortletPreferences(long portletPreferencesId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -295,10 +299,6 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	public javax.portlet.PortletPreferences getStrictPreferences(
 		PortletPreferencesIds portletPreferencesIds);
 
-	@Retry(acceptor = ExceptionRetryAcceptor.class, properties =  {
-		@Property(name = ExceptionRetryAcceptor.EXCEPTION_NAME, value = "org.springframework.dao.DataIntegrityViolationException")
-	}
-	)
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public javax.portlet.PortletPreferences getStrictPreferences(
 		long companyId, long ownerId, int ownerType, long plid,

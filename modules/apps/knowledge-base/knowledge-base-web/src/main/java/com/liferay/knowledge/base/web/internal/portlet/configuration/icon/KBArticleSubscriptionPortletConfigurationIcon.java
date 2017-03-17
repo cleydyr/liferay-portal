@@ -21,10 +21,10 @@ import com.liferay.knowledge.base.service.permission.KBArticlePermission;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
@@ -64,7 +64,7 @@ public class KBArticleSubscriptionPortletConfigurationIcon
 	public String getURL(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
+		PortletURL portletURL = _portal.getControlPanelPortletURL(
 			portletRequest, KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
 			PortletRequest.ACTION_PHASE);
 
@@ -78,7 +78,7 @@ public class KBArticleSubscriptionPortletConfigurationIcon
 		}
 
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 
 		KBArticle kbArticle = getKBArticle(portletRequest);
 
@@ -132,6 +132,9 @@ public class KBArticleSubscriptionPortletConfigurationIcon
 
 		_subscriptionLocalService = subscriptionLocalService;
 	}
+
+	@Reference
+	private Portal _portal;
 
 	private SubscriptionLocalService _subscriptionLocalService;
 

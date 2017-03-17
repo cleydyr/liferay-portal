@@ -1,10 +1,10 @@
 Bundle-Name: Liferay Portal Tools WSDD Builder
 Bundle-SymbolicName: com.liferay.portal.tools.wsdd.builder
-Bundle-Version: 1.0.7
+Bundle-Version: 1.0.8
 Import-Package:\
 	!org.apache.maven.plugin.*,\
 	*
-Main-Class: com.liferay.portal.tools.wsdd.merger.WSDDBuilder
+Main-Class: com.liferay.portal.tools.wsdd.builder.WSDDBuilder
 -donotcopy: .touch
 -includeresource:\
 	@com.liferay.portal.impl-[0-9]*.jar!/com/liferay/portal/tools/ArgumentsMap.class,\

@@ -16,7 +16,7 @@ package com.liferay.dynamic.data.mapping.type.text.internal;
 
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
-import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldTypeSettingsTest;
+import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldTypeSettingsTestCase;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -36,7 +36,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({PortalClassLoaderUtil.class, ResourceBundleUtil.class})
 @RunWith(PowerMockRunner.class)
 public class TextDDMFormFieldTypeSettingsTest
-	extends BaseDDMFormFieldTypeSettingsTest {
+	extends BaseDDMFormFieldTypeSettingsTestCase {
 
 	@Test
 	public void testCreateTextDDMFormFieldTypeSettingsDDMForm() {
@@ -46,6 +46,31 @@ public class TextDDMFormFieldTypeSettingsTest
 		Map<String, DDMFormField> ddmFormFieldsMap =
 			ddmForm.getDDMFormFieldsMap(false);
 
+		DDMFormField dataSourceTypeDDMFormField = ddmFormFieldsMap.get(
+			"dataSourceType");
+
+		Assert.assertNotNull(dataSourceTypeDDMFormField);
+		Assert.assertNotNull(dataSourceTypeDDMFormField.getLabel());
+		Assert.assertEquals(
+			"false", dataSourceTypeDDMFormField.getProperty("showLabel"));
+		Assert.assertEquals("radio", dataSourceTypeDDMFormField.getType());
+		Assert.assertNotNull(dataSourceTypeDDMFormField.getPredefinedValue());
+
+		DDMFormField ddmDataProviderInstanceIdDDMFormField =
+			ddmFormFieldsMap.get("ddmDataProviderInstanceId");
+
+		Assert.assertNotNull(ddmDataProviderInstanceIdDDMFormField.getLabel());
+		Assert.assertEquals(
+			"select", ddmDataProviderInstanceIdDDMFormField.getType());
+
+		DDMFormField ddmDataProviderInstanceOutputDDMFormField =
+			ddmFormFieldsMap.get("ddmDataProviderInstanceOutput");
+
+		Assert.assertNotNull(
+			ddmDataProviderInstanceOutputDDMFormField.getLabel());
+		Assert.assertEquals(
+			"select", ddmDataProviderInstanceOutputDDMFormField.getType());
+
 		DDMFormField displayStyleDDMFormField = ddmFormFieldsMap.get(
 			"displayStyle");
 
@@ -54,6 +79,17 @@ public class TextDDMFormFieldTypeSettingsTest
 		Assert.assertEquals(
 			"true", displayStyleDDMFormField.getProperty("inline"));
 		Assert.assertEquals("radio", displayStyleDDMFormField.getType());
+
+		DDMFormField optionsDDMFormField = ddmFormFieldsMap.get("options");
+
+		Assert.assertEquals("ddm-options", optionsDDMFormField.getDataType());
+		Assert.assertNotNull(optionsDDMFormField.getLabel());
+		Assert.assertEquals(false, optionsDDMFormField.isRequired());
+		Assert.assertEquals("options", optionsDDMFormField.getType());
+		Assert.assertEquals(
+			"false", optionsDDMFormField.getProperty("showLabel"));
+		Assert.assertEquals(
+			"true", optionsDDMFormField.getProperty("allowEmptyOptions"));
 
 		DDMFormField placeholderDDMFormField = ddmFormFieldsMap.get(
 			"placeholder");
