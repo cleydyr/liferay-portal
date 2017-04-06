@@ -18,8 +18,11 @@ import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeService;
+import com.liferay.document.library.portlet.toolbar.contributor.DLPortletToolbarContributorContext;
 import com.liferay.document.library.web.constants.DLPortletKeys;
 import com.liferay.document.library.web.internal.portlet.toolbar.contributor.helper.DLPortletToolbarContributorHelper;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -36,7 +39,7 @@ import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
@@ -47,12 +50,16 @@ import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Sergio González
  * @author Roberto Díaz
+ * @author Mauro Mariuzzo
  */
 @Component(
 	immediate = true,
@@ -77,7 +84,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		URLMenuItem urlMenuItem = new URLMenuItem();
 
 		String label = LanguageUtil.get(
-			PortalUtil.getHttpServletRequest(portletRequest),
+			_portal.getHttpServletRequest(portletRequest),
 			fileEntryType.getUnambiguousName(
 				fileEntryTypes, themeDisplay.getScopeGroupId(),
 				themeDisplay.getLocale()));
@@ -94,7 +101,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 			"mvcRenderCommandName", "/document_library/edit_file_entry");
 		portletURL.setParameter(Constants.CMD, Constants.ADD);
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 		portletURL.setParameter(
 			"repositoryId",
 			String.valueOf(_getRepositoryId(themeDisplay, folder)));
@@ -159,7 +166,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		urlMenuItem.setLabel(
 			LanguageUtil.get(
-				PortalUtil.getHttpServletRequest(portletRequest),
+				_portal.getHttpServletRequest(portletRequest),
 				(folder != null) ? "subfolder" : "folder"));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -171,7 +178,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		portletURL.setParameter(
 			"mvcRenderCommandName", "/document_library/edit_folder");
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 		portletURL.setParameter(
 			"repositoryId",
 			String.valueOf(_getRepositoryId(themeDisplay, folder)));
@@ -212,7 +219,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		urlMenuItem.setLabel(
 			LanguageUtil.get(
-				PortalUtil.getHttpServletRequest(portletRequest),
+				_portal.getHttpServletRequest(portletRequest),
 				"multiple-documents"));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -225,7 +232,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 			"mvcRenderCommandName",
 			"/document_library/upload_multiple_file_entries");
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 		portletURL.setParameter(
 			"repositoryId",
 			String.valueOf(_getRepositoryId(themeDisplay, folder)));
@@ -257,8 +264,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		urlMenuItem.setLabel(
 			LanguageUtil.get(
-				PortalUtil.getHttpServletRequest(portletRequest),
-				"repository"));
+				_portal.getHttpServletRequest(portletRequest), "repository"));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -269,7 +275,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		portletURL.setParameter(
 			"mvcRenderCommandName", "/document_library/edit_repository");
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 
 		urlMenuItem.setURL(portletURL.toString());
 
@@ -298,7 +304,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		urlMenuItem.setLabel(
 			LanguageUtil.get(
-				PortalUtil.getHttpServletRequest(portletRequest), "shortcut"));
+				_portal.getHttpServletRequest(portletRequest), "shortcut"));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -309,7 +315,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		portletURL.setParameter(
 			"mvcRenderCommandName", "/document_library/edit_file_shortcut");
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 		portletURL.setParameter(
 			"repositoryId",
 			String.valueOf(_getRepositoryId(themeDisplay, folder)));
@@ -318,6 +324,12 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		urlMenuItem.setURL(portletURL.toString());
 
 		return urlMenuItem;
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_dlPortletToolbarContributorContexts = ServiceTrackerListFactory.open(
+			bundleContext, DLPortletToolbarContributorContext.class);
 	}
 
 	protected void addPortletTitleAddDocumentMenuItems(
@@ -403,6 +415,11 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 		return true;
 	}
 
+	@Deactivate
+	protected void deactivate() {
+		_dlPortletToolbarContributorContexts.close();
+	}
+
 	protected List<DLFileEntryType> getFileEntryTypes(
 		long groupId, Folder folder) {
 
@@ -427,7 +444,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 			try {
 				fileEntryTypes =
 					_dlFileEntryTypeService.getFolderFileEntryTypes(
-						PortalUtil.getCurrentAndAncestorSiteGroupIds(groupId),
+						_portal.getCurrentAndAncestorSiteGroupIds(groupId),
 						folderId, inherited);
 			}
 			catch (PortalException pe) {
@@ -467,6 +484,15 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		addPortletTitleAddDocumentMenuItems(
 			menuItems, folder, themeDisplay, portletRequest);
+
+		for (DLPortletToolbarContributorContext
+				dlPortletToolbarContributorContext :
+					_dlPortletToolbarContributorContexts) {
+
+			dlPortletToolbarContributorContext.updatePortletTitleMenuItems(
+				menuItems, folder, themeDisplay, portletRequest,
+				portletResponse);
+		}
 
 		return menuItems;
 	}
@@ -515,7 +541,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 		urlMenuItem.setLabel(
 			LanguageUtil.get(
-				PortalUtil.getHttpServletRequest(portletRequest),
+				_portal.getHttpServletRequest(portletRequest),
 				"basic-document"));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -528,7 +554,7 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 			"mvcRenderCommandName", "/document_library/edit_file_entry");
 		portletURL.setParameter(Constants.CMD, Constants.ADD);
 		portletURL.setParameter(
-			"redirect", PortalUtil.getCurrentURL(portletRequest));
+			"redirect", _portal.getCurrentURL(portletRequest));
 		portletURL.setParameter(
 			"repositoryId",
 			String.valueOf(_getRepositoryId(themeDisplay, folder)));
@@ -582,7 +608,13 @@ public class DLPortletToolbarContributor extends BasePortletToolbarContributor {
 
 	private BaseModelPermissionChecker _baseModelPermissionChecker;
 	private DLFileEntryTypeService _dlFileEntryTypeService;
+	private ServiceTrackerList
+		<DLPortletToolbarContributorContext, DLPortletToolbarContributorContext>
+			_dlPortletToolbarContributorContexts;
 	private DLPortletToolbarContributorHelper
 		_dlPortletToolbarContributorHelper;
+
+	@Reference
+	private Portal _portal;
 
 }

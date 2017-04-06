@@ -74,6 +74,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CAPTCHA</td>
+	<td>//ul[contains(@class,'navbar-nav')]/li/a[contains(.,'CAPTCHA')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTAINER</td>
 	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//div[contains(@class,'container')]</td>
 	<td></td>
@@ -185,7 +190,7 @@
 </tr>
 <tr>
 	<td>SEARCH_TOGGLE_ADVANCED</td>
-	<td>//a[contains(@id,'searchtoggleAdvanced')]</td>
+	<td>//button[contains(@id,'searchtoggleAdvanced')]/span</td>
 	<td></td>
 </tr>
 <tr>

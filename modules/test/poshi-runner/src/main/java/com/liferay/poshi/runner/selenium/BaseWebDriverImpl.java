@@ -245,12 +245,16 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public void assertConsoleTextNotPresent(String text) throws Exception {
-		LiferaySeleniumHelper.assertConsoleTextNotPresent(text);
+		if (isConsoleTextPresent(text)) {
+			throw new Exception("\"" + text + "\" is present in console");
+		}
 	}
 
 	@Override
 	public void assertConsoleTextPresent(String text) throws Exception {
-		LiferaySeleniumHelper.assertConsoleTextPresent(text);
+		if (!isConsoleTextPresent(text)) {
+			throw new Exception("\"" + text + "\" is not present in console");
+		}
 	}
 
 	@Override
@@ -444,6 +448,16 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void assertPartialLocation(String pattern) throws Exception {
+		String location = getLocation();
+
+		if (!location.contains(pattern)) {
+			throw new Exception(
+				"\"" + location + "\" does not contain \"" + pattern + "\"");
+		}
+	}
+
+	@Override
 	public void assertPartialText(String locator, String pattern)
 		throws Exception {
 
@@ -470,6 +484,17 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 			throw new Exception(
 				"\"" + text + "\" does not contain \"" + pattern + "\" at \"" +
 					locator + "\"");
+		}
+	}
+
+	@Override
+	public void assertPrompt(String pattern, String value) throws Exception {
+		String confirmation = getConfirmation(value);
+
+		if (!pattern.equals(confirmation)) {
+			throw new Exception(
+				"Expected text \"" + pattern +
+					"\" does not match actual text \"" + confirmation + "\"");
 		}
 	}
 
@@ -568,12 +593,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void clickAndWait(String locator) {
-		click(locator);
-		waitForPageToLoad("30000");
-	}
-
-	@Override
 	public void clickAt(String locator, String coordString) {
 		clickAt(locator, coordString, true);
 	}
@@ -644,12 +663,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 			catch (Exception e) {
 			}
 		}
-	}
-
-	@Override
-	public void clickAtAndWait(String locator, String coordString) {
-		clickAt(locator, coordString);
-		waitForPageToLoad("30000");
 	}
 
 	@Override
@@ -842,7 +855,12 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public String getConfirmation() {
-		return WebDriverHelper.getConfirmation(this);
+		return getConfirmation(null);
+	}
+
+	@Override
+	public String getConfirmation(String value) {
+		return WebDriverHelper.getConfirmation(this, value);
 	}
 
 	@Override
@@ -1167,12 +1185,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void goBackAndWait() {
-		goBack();
-		waitForPageToLoad("30000");
-	}
-
-	@Override
 	public boolean isAlertPresent() {
 		boolean alertPresent = false;
 
@@ -1206,6 +1218,16 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		String confirmation = getConfirmation();
 
 		return pattern.equals(confirmation);
+	}
+
+	@Override
+	public boolean isConsoleTextNotPresent(String text) throws Exception {
+		return !LiferaySeleniumHelper.isConsoleTextPresent(text);
+	}
+
+	@Override
+	public boolean isConsoleTextPresent(String text) throws Exception {
+		return LiferaySeleniumHelper.isConsoleTextPresent(text);
 	}
 
 	@Override
@@ -1425,12 +1447,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void keyDownAndWait(String locator, String keySequence) {
-		keyDown(locator, keySequence);
-		waitForPageToLoad("30000");
-	}
-
-	@Override
 	public void keyPress(String locator, String keySequence) {
 		WebElement webElement = getWebElement(locator);
 
@@ -1467,12 +1483,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void keyPressAndWait(String locator, String keySequence) {
-		keyPress(locator, keySequence);
-		waitForPageToLoad("30000");
-	}
-
-	@Override
 	public void keyUp(String locator, String keySequence) {
 		WebElement webElement = getWebElement(locator);
 
@@ -1491,12 +1501,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		Action action = actions.build();
 
 		action.perform();
-	}
-
-	@Override
-	public void keyUpAndWait(String locator, String keySequence) {
-		keyUp(locator, keySequence);
-		waitForPageToLoad("30000");
 	}
 
 	@Override
@@ -1758,12 +1762,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void refreshAndWait() {
-		refresh();
-		waitForPageToLoad("30000");
-	}
-
-	@Override
 	public void replyToEmail(String to, String body) throws Exception {
 		EmailCommands.replyToEmail(to, body);
 
@@ -1824,12 +1822,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	@Override
 	public void select(String selectLocator, String optionLocator) {
 		WebDriverHelper.select(this, selectLocator, optionLocator);
-	}
-
-	@Override
-	public void selectAndWait(String selectLocator, String optionLocator) {
-		select(selectLocator, optionLocator);
-		waitForPageToLoad("30000");
 	}
 
 	@Override
@@ -2471,6 +2463,44 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void waitForConsoleTextNotPresent(String text) throws Exception {
+		for (int second = 0;; second++) {
+			if (second >= PropsValues.TIMEOUT_EXPLICIT_WAIT) {
+				assertConsoleTextNotPresent(text);
+			}
+
+			try {
+				if (isConsoleTextNotPresent(text)) {
+					break;
+				}
+			}
+			catch (Exception e) {
+			}
+
+			Thread.sleep(1000);
+		}
+	}
+
+	@Override
+	public void waitForConsoleTextPresent(String text) throws Exception {
+		for (int second = 0;; second++) {
+			if (second >= PropsValues.TIMEOUT_EXPLICIT_WAIT) {
+				assertConsoleTextPresent(text);
+			}
+
+			try {
+				if (isConsoleTextPresent(text)) {
+					break;
+				}
+			}
+			catch (Exception e) {
+			}
+
+			Thread.sleep(1000);
+		}
+	}
+
+	@Override
 	public void waitForElementNotPresent(String locator) throws Exception {
 		for (int second = 0;; second++) {
 			if (second >= PropsValues.TIMEOUT_EXPLICIT_WAIT) {
@@ -2611,10 +2641,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 			Thread.sleep(1000);
 		}
-	}
-
-	@Override
-	public void waitForPageToLoad(String timeout) {
 	}
 
 	@Override

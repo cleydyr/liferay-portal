@@ -22,16 +22,11 @@
 				<nav class="navbar navbar-inverse">
 					<div class="navbar-wrapper">
 						<div class="container-fluid-1280" id="headerTopBar">
-							<#if main_recursive_menu_class != "no-screen">
+							<#if !stringUtil.equals(main_recursive_menu_class, "no-screen")>
 								<div class="${main_recursive_menu_class} nav navbar-nav">
-									<#assign
-										VOID = freeMarkerPortletPreferences.setValue("displayDepth", "1")
-										VOID = freeMarkerPortletPreferences.setValue("portletSetupPortletDecoratorId", "barebone")
-									/>
+									<#assign preferencesMap = {"displayDepth": "1", "portletSetupPortletDecoratorId": "barebone"} />
 
-									<@liferay.navigation_menu default_preferences="${freeMarkerPortletPreferences}" />
-
-									<#assign VOID = freeMarkerPortletPreferences.reset() />
+									<@liferay.navigation_menu default_preferences=freeMarkerPortletPreferences.getPreferences(preferencesMap) />
 								</div>
 							</#if>
 

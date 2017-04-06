@@ -179,8 +179,17 @@ AUI.add(
 						var firstNode = instance._ratingScoreNode.one(SELECTOR_RATING_ELEMENT);
 
 						if (firstNode) {
+							var message = '';
+
+							if (averageScore == 1.0) {
+								message = Liferay.Language.get('the-average-rating-is-x-star-out-of-x');
+							}
+							else {
+								message = Liferay.Language.get('the-average-rating-is-x-stars-out-of-x');
+							}
+
 							var averageRatingText = Lang.sub(
-								Liferay.Language.get('the-average-rating-is-x-stars-out-of-x'),
+								message,
 								[averageScore, instance.get(STR_SIZE)]
 							);
 
@@ -372,7 +381,9 @@ AUI.add(
 
 						var label = instance._getLabel(description, json.totalEntries);
 
-						var averageIndex = instance.get('round') ? Math.round(averageScore) : Math.floor(averageScore);
+						var formattedAverageScore = averageScore.toFixed(1);
+
+						var averageIndex = instance.get('round') ? Math.round(formattedAverageScore) : Math.floor(formattedAverageScore);
 
 						var ratingScore = instance._ratingScoreNode;
 
@@ -392,7 +403,7 @@ AUI.add(
 							}
 						);
 
-						instance._updateAverageScoreText(averageScore);
+						instance._updateAverageScoreText(formattedAverageScore);
 						instance._updateScoreText(score);
 					}
 				}

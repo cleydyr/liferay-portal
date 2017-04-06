@@ -3382,8 +3382,35 @@ public class DDLRecordSetPersistenceImpl extends BasePersistenceImpl<DDLRecordSe
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !DDLRecordSetModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!DDLRecordSetModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { ddlRecordSetModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					ddlRecordSetModelImpl.getUuid(),
+					ddlRecordSetModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { ddlRecordSetModelImpl.getGroupId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_GROUPID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_GROUPID,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -3471,10 +3498,13 @@ public class DDLRecordSetPersistenceImpl extends BasePersistenceImpl<DDLRecordSe
 		ddlRecordSetImpl.setCompanyId(ddlRecordSet.getCompanyId());
 		ddlRecordSetImpl.setUserId(ddlRecordSet.getUserId());
 		ddlRecordSetImpl.setUserName(ddlRecordSet.getUserName());
+		ddlRecordSetImpl.setVersionUserId(ddlRecordSet.getVersionUserId());
+		ddlRecordSetImpl.setVersionUserName(ddlRecordSet.getVersionUserName());
 		ddlRecordSetImpl.setCreateDate(ddlRecordSet.getCreateDate());
 		ddlRecordSetImpl.setModifiedDate(ddlRecordSet.getModifiedDate());
 		ddlRecordSetImpl.setDDMStructureId(ddlRecordSet.getDDMStructureId());
 		ddlRecordSetImpl.setRecordSetKey(ddlRecordSet.getRecordSetKey());
+		ddlRecordSetImpl.setVersion(ddlRecordSet.getVersion());
 		ddlRecordSetImpl.setName(ddlRecordSet.getName());
 		ddlRecordSetImpl.setDescription(ddlRecordSet.getDescription());
 		ddlRecordSetImpl.setMinDisplayRows(ddlRecordSet.getMinDisplayRows());
@@ -3634,7 +3664,7 @@ public class DDLRecordSetPersistenceImpl extends BasePersistenceImpl<DDLRecordSe
 		query.append(_SQL_SELECT_DDLRECORDSET_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

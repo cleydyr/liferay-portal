@@ -20,6 +20,7 @@
 
 <%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
 taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+taglib uri="http://liferay.com/tld/comment" prefix="liferay-comment" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/expando" prefix="liferay-expando" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
@@ -39,6 +40,7 @@ page import="com.liferay.asset.kernel.service.AssetEntryServiceUtil" %><%@
 page import="com.liferay.asset.kernel.service.persistence.AssetEntryQuery" %><%@
 page import="com.liferay.document.library.display.context.DLEditFileEntryDisplayContext" %><%@
 page import="com.liferay.document.library.display.context.DLFilePicker" %><%@
+page import="com.liferay.document.library.display.context.DLViewFileEntryHistoryDisplayContext" %><%@
 page import="com.liferay.document.library.display.context.DLViewFileVersionDisplayContext" %><%@
 page import="com.liferay.document.library.kernel.antivirus.AntivirusScannerException" %><%@
 page import="com.liferay.document.library.kernel.exception.DuplicateFileEntryException" %><%@
@@ -102,6 +104,7 @@ page import="com.liferay.document.library.web.internal.search.EntriesChecker" %>
 page import="com.liferay.document.library.web.internal.search.EntriesMover" %><%@
 page import="com.liferay.document.library.web.internal.settings.DLPortletInstanceSettings" %><%@
 page import="com.liferay.document.library.web.internal.util.DLBreadcrumbUtil" %><%@
+page import="com.liferay.document.library.web.internal.util.DLSubscriptionUtil" %><%@
 page import="com.liferay.document.library.web.internal.util.DLTrashUtil" %><%@
 page import="com.liferay.document.library.web.internal.util.DLWebComponentProvider" %><%@
 page import="com.liferay.document.library.web.internal.util.IGUtil" %><%@
@@ -197,6 +200,7 @@ page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
 page import="com.liferay.portal.kernel.util.HttpUtil" %><%@
 page import="com.liferay.portal.kernel.util.ListUtil" %><%@
+page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.OrderByComparator" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
@@ -247,7 +251,9 @@ page import="java.util.Date" %><%@
 page import="java.util.HashMap" %><%@
 page import="java.util.LinkedHashMap" %><%@
 page import="java.util.List" %><%@
-page import="java.util.Map" %>
+page import="java.util.Locale" %><%@
+page import="java.util.Map" %><%@
+page import="java.util.Set" %>
 
 <%@ page import="javax.portlet.PortletRequest" %><%@
 page import="javax.portlet.PortletURL" %><%@

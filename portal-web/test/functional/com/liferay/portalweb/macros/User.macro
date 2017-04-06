@@ -449,7 +449,7 @@
 			<then>
 				<execute function="Type" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="${userFirstName}" />
 
-				<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+				<execute function="KeyPress" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="\RETURN" />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -458,16 +458,16 @@
 
 				<execute function="Type" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="${userFirstName}1" />
 
-				<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+				<execute function="KeyPress" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="\RETURN" />
 
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 			</then>
 			<elseif>
 				<equals arg1="${userAdvancedSearch}" arg2="Middle Name" />
 				<then>
 					<execute function="Type" locator1="AdvancedSearch#MIDDLE_NAME_FIELD" value1="${userMiddleName}" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#MIDDLE_NAME_FIELD" value1="\RETURN" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -476,9 +476,9 @@
 
 					<execute function="Type" locator1="AdvancedSearch#MIDDLE_NAME_FIELD" value1="${userMiddleName}1" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#MIDDLE_NAME_FIELD" value1="\RETURN" />
 
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<elseif>
@@ -486,7 +486,7 @@
 				<then>
 					<execute function="Type" locator1="AdvancedSearch#LAST_NAME_FIELD" value1="${userLastName}" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#LAST_NAME_FIELD" value1="\RETURN" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -495,9 +495,9 @@
 
 					<execute function="Type" locator1="AdvancedSearch#LAST_NAME_FIELD" value1="${userLastName}1" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#LAST_NAME_FIELD" value1="\RETURN" />
 
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<elseif>
@@ -505,7 +505,7 @@
 				<then>
 					<execute function="Type" locator1="AdvancedSearch#SCREEN_NAME_FIELD" value1="${userScreenName}" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#SCREEN_NAME_FIELD" value1="\RETURN" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -514,9 +514,9 @@
 
 					<execute function="Type" locator1="AdvancedSearch#SCREEN_NAME_FIELD" value1="${userScreenName}1" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#SCREEN_NAME_FIELD" value1="\RETURN" />
 
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<elseif>
@@ -524,7 +524,7 @@
 				<then>
 					<execute function="Type" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="${userEmailAddress}" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -533,9 +533,9 @@
 
 					<execute function="Type" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="${userEmailAddress}1" />
 
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+					<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 		</if>
@@ -575,12 +575,12 @@
 			</elseif>
 		</if>
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
 		<if>
 			<equals arg1="${searchNoResults}" arg2="true" />
 			<then>
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -632,12 +632,12 @@
 			</elseif>
 		</if>
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
 		<if>
 			<equals arg1="${searchNoResults}" arg2="true" />
 			<then>
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -689,37 +689,25 @@
 			</elseif>
 		</if>
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
 		<if>
 			<equals arg1="${searchNoResults}" arg2="true" />
 			<then>
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
-
-				<var name="key_userFirstName" value="${userFirstName}" />
-
-				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-
-				<var name="key_userLastName" value="${userLastName}" />
-
-				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
-				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_FIRST_NAME_LINK" value1="${userFirstName}" />
+				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_LAST_NAME_LINK" value1="${userLastName}" />
+				<execute function="AssertElementNotPresent" locator1="PortalDirectory#USER_TABLE_SCREEN_NAME_LINK" value1="${userScreenName}" />
 			</then>
 			<else>
-				<var name="key_userFirstName" value="${userFirstName}" />
-
-				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-
-				<var name="key_userLastName" value="${userLastName}" />
-
-				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_LAST_NAME" value1="${userLastName}" />
-
 				<var name="key_userScreenName" value="${userScreenName}" />
 
-				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_FIRST_NAME_LINK" value1="${userFirstName}" />
+				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_LAST_NAME_LINK" value1="${userLastName}" />
+				<execute function="AssertTextEquals" locator1="PortalDirectory#USER_TABLE_SCREEN_NAME_LINK" value1="${userScreenName}" />
 			</else>
 		</if>
 	</command>
@@ -758,12 +746,12 @@
 			</elseif>
 		</if>
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="KeyPress" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="\RETURN" />
 
 		<if>
 			<equals arg1="${searchNoResults}" arg2="true" />
 			<then>
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -1032,9 +1020,7 @@
 	</command>
 
 	<command name="createAccount">
-		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
-
-		<execute function="AssertClick" locator1="Link#CREATE_ACCOUNT" value1="Create Account" />
+		<execute macro="SignInNavigator#gotoCreateAccount" />
 
 		<execute function="Type" locator1="TextInput#FIRST_NAME" value1="${userFirstName}" />
 		<execute function="Type" locator1="TextInput#LAST_NAME" value1="${userLastName}" />
@@ -1551,6 +1537,8 @@
 			</then>
 			<else>
 				<execute macro="User#loginPG">
+					<var name="localization" value="${localization}" />
+					<var name="samlEnabled" value="${samlEnabled}" />
 					<var name="setupWizardEnabled" value="${setupWizardEnabled}" />
 					<var name="specificURL" value="${virtualHostsURL}" />
 					<var name="userEmailAddress" value="${userEmailAddress}" />
@@ -1589,6 +1577,26 @@
 		<execute function="AssertElementPresent" locator1="ProductMenu#PRODUCT_MENU_TABS_USER_EXPANDED" />
 	</command>
 
+	<command name="loginLocalizationPG">
+		<if>
+			<equals arg1="${localization}" arg2="JA" />
+			<then>
+				<var name="signIn" value="ログイン" />
+			</then>
+			<elseif>
+				<equals arg1="${localization}" arg2="ZH" />
+				<then>
+					<var name="signIn" value="登录" />
+				</then>
+			</elseif>
+			<else>
+				<var name="signIn" value="Sign In" />
+			</else>
+		</if>
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="${signIn}" />
+	</command>
+
 	<command name="loginPG" summary="Log into Liferay Portal as '${userEmailAddress}' using the password '${password}'">
 		<if>
 			<isset var="nodePort" />
@@ -1620,7 +1628,9 @@
 				<equals arg1="${samlEnabled}" arg2="true" />
 			</not>
 			<then>
-				<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+				<execute macro="User#loginLocalizationPG">
+					<var name="localization" value="${localization}" />
+				</execute>
 			</then>
 		</if>
 
@@ -1775,7 +1785,7 @@
 
 		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
 
-		<execute function="AssertClick" locator1="Link#FACEBOOK_LOGIN" value1="Facebook" />
+		<execute function="AssertClick" locator1="Icon#FACEBOOK" value1="Facebook" />
 
 		<execute function="SelectWindow" locator1="title=Log into Facebook | Facebook" />
 
@@ -1859,6 +1869,17 @@
 		<execute function="Type" locator1="OpenIDLogin#LOGIN_PASSWORD_FIELD" value1="${openIDPassword}" />
 
 		<execute function="AssertClick" locator1="OpenIDLogin#LOGIN_BUTTON" value1="Login" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="OpenIDLogin#LOGIN_ALLOW_ONCE_BUTTON" />
+			<then>
+				<var name="key_userName" value="${userName}" />
+
+				<execute function="Click" locator1="OpenIDLogin#LOGIN_PERSONA" />
+
+				<execute function="AssertClick" locator1="OpenIDLogin#LOGIN_ALLOW_ONCE_BUTTON" value1="Allow Once" />
+			</then>
+		</if>
 
 		<if>
 			<condition function="IsElementPresent#pauseIsElementPresent" locator1="Button#I_AGREE" value1="I Agree" />
@@ -2118,6 +2139,23 @@
 		<execute function="AssertClick" locator1="Button#UNLOCK" value1="Unlock" />
 
 		<execute macro="Alert#viewSuccessMessage" />
+	</command>
+
+	<command name="viewCaptchaPG">
+		<if>
+			<equals arg1="${captchaType}" arg2="captcha" />
+			<then>
+				<execute function="AssertElementPresent#assertElementPresent" locator1="SignInCreateAccount#CAPTCHA_IMAGE" />
+			</then>
+			<elseif>
+				<equals arg1="${captchaType}" arg2="recaptcha" />
+				<then>
+					<execute function="SelectFrame" locator1="IFrame#RECAPTCHA" />
+
+					<execute function="AssertElementPresent#assertElementPresent" locator1="SignInCreateAccount#RECAPTCHA_LABEL" />
+				</then>
+			</elseif>
+		</if>
 	</command>
 
 	<command name="viewCP">

@@ -51,9 +51,7 @@
 		</if>
 	</tear-down>
 
-	<command name="AddWikiFrontPage" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command name="AddWikiFrontPage" priority="4">
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Wiki Test Page" />
 		</execute>
@@ -213,7 +211,7 @@
 	</command>
 
 	<command name="AddWikiFrontPageChildPageFormatHTML" priority="4">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<var name="welcomeToLiferay">
 			<![CDATA[
@@ -681,6 +679,7 @@
 
 	<command name="AddWikiPageFormatJSPWiki" priority="4">
 		<property name="osgi.app.includes" value="wiki-engine-jspwiki" />
+		<property name="test.assert.warning.exceptions" value="true" />
 
 		<execute macro="ProductMenu#gotoControlPanelApps">
 			<var name="portlet" value="App Manager" />
@@ -1025,7 +1024,7 @@
 	</command>
 
 	<command name="DeleteWikiFrontPage" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Wiki Test Page" />
@@ -1136,7 +1135,7 @@
 	</command>
 
 	<command name="EditWikiFrontPage" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Wiki Test Page" />

@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
+import com.liferay.portal.kernel.servlet.DynamicResourceIncludeUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
 import com.liferay.portal.kernel.servlet.PortletResourcesUtil;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -138,6 +140,17 @@ public class DynamicCSSFilter extends IgnoreModuleRequestFilter {
 			}
 
 			if (resourceURL == null) {
+				resourceServletContext =
+					DynamicResourceIncludeUtil.getPathServletContext(
+						requestPath);
+
+				if (resourceServletContext != null) {
+					resourceURL = DynamicResourceIncludeUtil.getResource(
+						resourceServletContext, requestPath);
+				}
+			}
+
+			if (resourceURL == null) {
 				return null;
 			}
 
@@ -153,7 +166,7 @@ public class DynamicCSSFilter extends IgnoreModuleRequestFilter {
 
 		if (cacheDataFile.exists() &&
 			(cacheDataFile.lastModified() >=
-				URLUtil.getLastModifiedTime(resourceURL))) {
+				getLastModified(request, resourceURL))) {
 
 			if (cacheContentTypeFile.exists()) {
 				String contentType = FileUtil.read(cacheContentTypeFile);
@@ -231,6 +244,16 @@ public class DynamicCSSFilter extends IgnoreModuleRequestFilter {
 		}
 
 		return dynamicContent;
+	}
+
+	protected long getLastModified(HttpServletRequest request, URL resourceURL)
+		throws Exception {
+
+		long resourceLastModified = URLUtil.getLastModifiedTime(resourceURL);
+
+		long requestLastModified = ParamUtil.getLong(request, "t", -1);
+
+		return Math.max(resourceLastModified, requestLastModified);
 	}
 
 	protected String getRequestPath(HttpServletRequest request) {

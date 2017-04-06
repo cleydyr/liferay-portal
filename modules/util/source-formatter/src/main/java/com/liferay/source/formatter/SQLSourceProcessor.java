@@ -21,20 +21,18 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.source.formatter.checks.SourceCheck;
+import com.liferay.source.formatter.checks.WhitespaceCheck;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Hugo Huijser
  */
 public class SQLSourceProcessor extends BaseSourceProcessor {
-
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
 
 	@Override
 	protected String doFormat(
@@ -51,8 +49,6 @@ public class SQLSourceProcessor extends BaseSourceProcessor {
 			String previousLineSqlCommand = StringPool.BLANK;
 
 			while ((line = unsyncBufferedReader.readLine()) != null) {
-				line = trimLine(line, false);
-
 				if (Validator.isNotNull(line) &&
 					!line.startsWith(StringPool.TAB)) {
 
@@ -95,9 +91,27 @@ public class SQLSourceProcessor extends BaseSourceProcessor {
 
 	@Override
 	protected List<String> doGetFileNames() throws Exception {
-		return getFileNames(new String[0], new String[] {"**/sql/*.sql"});
+		return getFileNames(
+			new String[0], filterIncludes(new String[] {"**/sql/*.sql"}));
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	@Override
+	protected List<SourceCheck> getSourceChecks() {
+		return _sourceChecks;
+	}
+
+	@Override
+	protected void populateSourceChecks() {
+		_sourceChecks.add(new WhitespaceCheck());
 	}
 
 	private static final String[] _INCLUDES = new String[] {"**/*.sql"};
+
+	private final List<SourceCheck> _sourceChecks = new ArrayList<>();
 
 }

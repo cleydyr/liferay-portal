@@ -52,7 +52,23 @@ AUI.add(
 						valueFn: '_valueFormBuilder'
 					},
 
+					functionsMetadata: {
+						value: []
+					},
+
+					getDataProviderInstancesURL: {
+						value: ''
+					},
+
+					getDataProviderParametersSettingsURL: {
+						value: ''
+					},
+
 					getFieldTypeSettingFormContextURL: {
+						value: ''
+					},
+
+					getRolesURL: {
 						value: ''
 					},
 
@@ -234,6 +250,8 @@ AUI.add(
 
 						instance.definitionSerializer.set('pages', pages);
 
+						instance.definitionSerializer.set('successPage', formBuilder.getSuccessPageDefinition());
+
 						var definition = JSON.parse(instance.definitionSerializer.serialize());
 
 						var rules = JSON.stringify(ruleBuilder.get('rules'));
@@ -411,12 +429,10 @@ AUI.add(
 					_afterAutosave: function(event) {
 						var instance = this;
 
-						var modifiedDate = new Date(event.modifiedDate);
-
 						var autosaveMessage = A.Lang.sub(
-							Liferay.Language.get('draft-saved-at-x'),
+							Liferay.Language.get('draft-saved-on-x'),
 							[
-								modifiedDate
+								event.modifiedDate
 							]
 						);
 
@@ -445,8 +461,6 @@ AUI.add(
 						instance.serializeFormBuilder();
 
 						var state = instance.getState();
-
-						var definition = state.definition;
 
 						if (!instance.isEmpty()) {
 							if (!instance._isSameState(instance.savedState, state)) {
@@ -511,7 +525,7 @@ AUI.add(
 
 						var formURL = instance._createFormURL();
 
-						return formURL   + '/preview';
+						return formURL + '/preview';
 					},
 
 					_defineIds: function(response) {
@@ -752,6 +766,10 @@ AUI.add(
 						return new Liferay.DDL.FormBuilderRuleBuilder(
 							{
 								formBuilder: instance.get('formBuilder'),
+								functionsMetadata: instance.get('functionsMetadata'),
+								getDataProviderInstancesURL: instance.get('getDataProviderInstancesURL'),
+								getDataProviderParametersSettingsURL: instance.get('getDataProviderParametersSettingsURL'),
+								portletNamespace: instance.get('namespace'),
 								rules: instance.get('rules'),
 								visible: false
 							}

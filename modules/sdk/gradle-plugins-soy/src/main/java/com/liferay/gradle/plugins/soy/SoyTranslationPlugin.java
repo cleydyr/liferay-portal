@@ -14,18 +14,14 @@
 
 package com.liferay.gradle.plugins.soy;
 
+import com.liferay.gradle.plugins.soy.internal.SoyPluginConstants;
 import com.liferay.gradle.plugins.soy.tasks.ReplaceSoyTranslationTask;
 import com.liferay.gradle.util.GradleUtil;
-import com.liferay.gradle.util.Validator;
-
-import groovy.lang.Closure;
 
 import java.io.File;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -64,31 +60,29 @@ public class SoyTranslationPlugin implements Plugin<Project> {
 		replaceSoyTranslationTask.setGroup(BasePlugin.BUILD_GROUP);
 		replaceSoyTranslationTask.setIncludes(
 			Collections.singleton("**/*.soy.js"));
-		replaceSoyTranslationTask.setReplacementClosure(
-			new LiferayReplacementClosure(replaceSoyTranslationTask));
 
 		PluginContainer pluginContainer = project.getPlugins();
 
 		pluginContainer.withId(
-			_JS_MODULE_CONFIG_GENERATOR_PLUGIN_ID,
+			SoyPluginConstants.JS_MODULE_CONFIG_GENERATOR_PLUGIN_ID,
 			new Action<Plugin>() {
 
 				@Override
 				public void execute(Plugin plugin) {
 					replaceSoyTranslationTask.dependsOn(
-						_CONFIG_JS_MODULES_TASK_NAME);
+						SoyPluginConstants.CONFIG_JS_MODULES_TASK_NAME);
 				}
 
 			});
 
 		pluginContainer.withId(
-			_JS_TRANSPILER_PLUGIN_ID,
+			SoyPluginConstants.JS_TRANSPILER_PLUGIN_ID,
 			new Action<Plugin>() {
 
 				@Override
 				public void execute(Plugin plugin) {
 					replaceSoyTranslationTask.dependsOn(
-						_TRANSPILE_JS_TASK_NAME);
+						SoyPluginConstants.TRANSPILE_JS_TASK_NAME);
 				}
 
 			});
@@ -135,84 +129,6 @@ public class SoyTranslationPlugin implements Plugin<Project> {
 			JavaPlugin.CLASSES_TASK_NAME);
 
 		classesTask.dependsOn(replaceSoyTranslationTask);
-	}
-
-	private static final String _CONFIG_JS_MODULES_TASK_NAME =
-		"configJSModules";
-
-	private static final String _JS_MODULE_CONFIG_GENERATOR_PLUGIN_ID =
-		"com.liferay.js.module.config.generator";
-
-	private static final String _JS_TRANSPILER_PLUGIN_ID =
-		"com.liferay.js.transpiler";
-
-	private static final String _TRANSPILE_JS_TASK_NAME = "transpileJS";
-
-	private static class LiferayReplacementClosure extends Closure<String> {
-
-		public LiferayReplacementClosure(Object owner) {
-			super(owner);
-		}
-
-		@SuppressWarnings("unused")
-		public String doCall(
-			String variableName, String languageKey, String argumentsObject) {
-
-			StringBuilder sb = new StringBuilder();
-
-			sb.append("var ");
-			sb.append(variableName);
-
-			// Split string to avoid SF error
-
-			sb.append(" = Liferay.Language");
-			sb.append(".get('");
-
-			sb.append(_fixLanguageKey(languageKey));
-			sb.append("');");
-
-			if (Validator.isNotNull(argumentsObject)) {
-				_appendArgumentReplaces(sb, argumentsObject, variableName);
-			}
-
-			return sb.toString();
-		}
-
-		private void _appendArgumentReplaces(
-			StringBuilder sb, String argumentsObject, String variableName) {
-
-			int i = 0;
-
-			Matcher matcher = _argumentsObjectPattern.matcher(argumentsObject);
-
-			while (matcher.find()) {
-				sb.append(System.lineSeparator());
-
-				sb.append(variableName);
-				sb.append(" = ");
-				sb.append(variableName);
-				sb.append(".replace('{");
-				sb.append(i);
-				sb.append("}', ");
-				sb.append(matcher.group(1));
-				sb.append(");");
-
-				i++;
-			}
-		}
-
-		private String _fixLanguageKey(String languageKey) {
-			Matcher matcher = _languageKeyPlaceholderPattern.matcher(
-				languageKey);
-
-			return matcher.replaceAll("x");
-		}
-
-		private static final Pattern _argumentsObjectPattern = Pattern.compile(
-			"'.+'\\s*:\\s*([\\d\\w\\._]+)+");
-		private static final Pattern _languageKeyPlaceholderPattern =
-			Pattern.compile("\\{\\$\\w+\\}");
-
 	}
 
 }

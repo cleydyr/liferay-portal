@@ -519,8 +519,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 	@Override
 	public void reindex(Collection<T> collection) {
-		if (IndexWriterHelperUtil.isIndexReadOnly() || !isIndexerEnabled() ||
-			collection.isEmpty()) {
+		if (IndexWriterHelperUtil.isIndexReadOnly() ||
+			IndexWriterHelperUtil.isIndexReadOnly(getClassName()) ||
+			!isIndexerEnabled() || collection.isEmpty()) {
 
 			return;
 		}
@@ -539,6 +540,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 	public void reindex(String className, long classPK) throws SearchException {
 		try {
 			if (IndexWriterHelperUtil.isIndexReadOnly() ||
+				IndexWriterHelperUtil.isIndexReadOnly(getClassName()) ||
 				!isIndexerEnabled() || (classPK <= 0)) {
 
 				return;
@@ -565,6 +567,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 		try {
 			if (IndexWriterHelperUtil.isIndexReadOnly() ||
+				IndexWriterHelperUtil.isIndexReadOnly(getClassName()) ||
 				!isIndexerEnabled()) {
 
 				return;
@@ -593,6 +596,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 	public void reindex(T object) throws SearchException {
 		try {
 			if (IndexWriterHelperUtil.isIndexReadOnly() ||
+				IndexWriterHelperUtil.isIndexReadOnly(getClassName()) ||
 				!isIndexerEnabled()) {
 
 				return;
@@ -781,7 +785,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			document.addNumber(Field.RATINGS, ratingsStats.getAverageScore());
 		}
 		else {
-			document.addNumber(Field.RATINGS, 0.0f);
+			document.addNumber(Field.RATINGS, 0.0F);
 		}
 
 		document.addNumber(Field.VIEW_COUNT, assetEntry.getViewCount());
@@ -1689,8 +1693,14 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 				expandoBridge.getCompanyId(), expandoBridge.getClassName(),
 				attributeName);
 
+		UnicodeProperties unicodeProperties =
+			expandoColumn.getTypeSettingsProperties();
+
+		int indexType = GetterUtil.getInteger(
+			unicodeProperties.getProperty(ExpandoColumnConstants.INDEX_TYPE));
+
 		String fieldName = ExpandoBridgeIndexerUtil.encodeFieldName(
-			attributeName);
+			attributeName, indexType);
 
 		if (expandoColumn.getType() ==
 				ExpandoColumnConstants.STRING_LOCALIZED) {

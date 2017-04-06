@@ -2,13 +2,25 @@
 	<command name="_gotoPage">
 		<execute macro-mobile="MobileNavigator#clickReorderButton" />
 
-		<execute function="AssertClick" locator1="Home#PAGE" value1="${pageName}">
-			<var name="key_pageName" value="${pageName}" />
-		</execute>
+		<var name="key_pageName" value="${pageName}" />
 
-		<execute function="AssertVisible" locator1="Home#PAGE_ACTIVE">
-			<var name="key_pageName" value="${pageName}" />
-		</execute>
+		<var name="count" value="0" />
+
+		<while>
+			<and>
+				<not>
+					<equals arg1="${count}" arg2="3" />
+				</not>
+				<condition function="IsElementNotPresent" locator1="Home#PAGE_ACTIVE" />
+			</and>
+			<then>
+				<execute function="AssertClick" locator1="Home#PAGE" value1="${pageName}" />
+
+				<var method="MathUtil#sum('${count}', '1')" name="count" />
+			</then>
+		</while>
+
+		<execute function="AssertVisible" locator1="Home#PAGE_ACTIVE" />
 	</command>
 
 	<command name="closeSpecificWindow">
@@ -31,6 +43,12 @@
 
 	<command name="gotoBack">
 		<execute function="Click" locator1="Icon#BACK" />
+	</command>
+
+	<command name="gotoEntryInDescriptiveView">
+		<var name="key_siteName" value="${entryName}" />
+
+		<execute function="AssertClick" locator1="SitesDirectory#DESCRIPTIVE_SITE_ENTRY" value1="${entryName}" />
 	</command>
 
 	<command name="gotoNavItem">

@@ -14,11 +14,11 @@
 
 package com.liferay.gradle.plugins.workspace;
 
-import com.liferay.gradle.plugins.workspace.internal.configurators.ModulesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.PluginsProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.RootProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.ThemesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.WarsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.ModulesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.PluginsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.RootProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.ThemesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.WarsProjectConfigurator;
 import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
 
 import groovy.lang.MissingPropertyException;
@@ -124,8 +124,8 @@ public class WorkspaceExtension {
 	private static final String _BUNDLE_DIST_ROOT_DIR_NAME = null;
 
 	private static final String _BUNDLE_URL =
-		"https://sourceforge.net/projects/lportal/files/Liferay Portal" +
-			"/7.0.2 GA3/liferay-ce-portal-tomcat-7.0-ga3-20160804222206210.zip";
+		"https://cdn.lfrs.sl/releases.liferay.com/portal/7.0.2-ga3" +
+			"/liferay-ce-portal-tomcat-7.0-ga3-20160804222206210.zip";
 
 	private static final String _CONFIGS_DIR = "configs";
 

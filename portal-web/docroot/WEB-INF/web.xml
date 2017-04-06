@@ -92,12 +92,6 @@
 	<listener>
 		<listener-class>com.liferay.portal.spring.context.PortalContextLoaderListener</listener-class>
 	</listener>
-	<listener>
-		<listener-class>com.liferay.portal.servlet.PortalSessionListener</listener-class>
-	</listener>
-	<listener>
-		<listener-class>com.liferay.portal.kernel.servlet.PortletSessionListenerManager</listener-class>
-	</listener>
 	<servlet>
 		<servlet-name>Main Servlet</servlet-name>
 		<servlet-class>com.liferay.portal.servlet.MainServlet</servlet-class>
@@ -142,36 +136,28 @@
 	</servlet>
 	<servlet>
 		<servlet-name>Friendly URL Servlet - Private Group</servlet-name>
-		<servlet-class>com.liferay.portal.servlet.FriendlyURLServlet</servlet-class>
+		<servlet-class>com.liferay.portal.servlet.ServletAdapter</servlet-class>
 		<init-param>
-			<param-name>private</param-name>
-			<param-value>true</param-value>
-		</init-param>
-		<init-param>
-			<param-name>user</param-name>
-			<param-value>false</param-value>
+			<param-name>filter</param-name>
+			<param-value>(servlet.init.private=true)(servlet.init.user=false)(servlet.type=friendly-url)</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>Friendly URL Servlet - Private User</servlet-name>
-		<servlet-class>com.liferay.portal.servlet.FriendlyURLServlet</servlet-class>
+		<servlet-class>com.liferay.portal.servlet.ServletAdapter</servlet-class>
 		<init-param>
-			<param-name>private</param-name>
-			<param-value>true</param-value>
-		</init-param>
-		<init-param>
-			<param-name>user</param-name>
-			<param-value>true</param-value>
+			<param-name>filter</param-name>
+			<param-value>(servlet.init.private=true)(servlet.init.user=true)(servlet.type=friendly-url)</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>Friendly URL Servlet - Public</servlet-name>
-		<servlet-class>com.liferay.portal.servlet.FriendlyURLServlet</servlet-class>
+		<servlet-class>com.liferay.portal.servlet.ServletAdapter</servlet-class>
 		<init-param>
-			<param-name>private</param-name>
-			<param-value>false</param-value>
+			<param-name>filter</param-name>
+			<param-value>(servlet.init.private=false)(servlet.type=friendly-url)</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

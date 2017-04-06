@@ -49,10 +49,12 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 
 	@Override
 	public String getBrowserId(HttpServletRequest request) {
-		if (isIe(request)) {
+		String userAgent = getUserAgent(request);
+
+		if (isIe(userAgent)) {
 			return BROWSER_ID_IE;
 		}
-		else if (isFirefox(request)) {
+		else if (_isFirefox(userAgent)) {
 			return BROWSER_ID_FIREFOX;
 		}
 		else {
@@ -140,19 +142,7 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 
 	@Override
 	public boolean isFirefox(HttpServletRequest request) {
-		if (!isMozilla(request)) {
-			return false;
-		}
-
-		String userAgent = getUserAgent(request);
-
-		for (String firefoxAlias : _FIREFOX_ALIASES) {
-			if (userAgent.contains(firefoxAlias)) {
-				return true;
-			}
-		}
-
-		return false;
+		return _isFirefox(getUserAgent(request));
 	}
 
 	@Override
@@ -235,7 +225,7 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		String userAgent = getUserAgent(request);
 
 		if (userAgent.contains("mobile") ||
-			(isAndroid(request) && userAgent.contains("nexus"))) {
+			(userAgent.contains("android") && userAgent.contains("nexus"))) {
 
 			return true;
 		}
@@ -458,20 +448,17 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 	}
 
 	protected String getUserAgent(HttpServletRequest request) {
-		String userAgent = StringPool.BLANK;
-
 		if (request == null) {
-			return userAgent;
+			return StringPool.BLANK;
 		}
 
-		userAgent = String.valueOf(
-			request.getAttribute(HttpHeaders.USER_AGENT));
+		Object userAgentObject = request.getAttribute(HttpHeaders.USER_AGENT);
 
-		if (Validator.isNotNull(userAgent)) {
-			return userAgent;
+		if (userAgentObject != null) {
+			return userAgentObject.toString();
 		}
 
-		userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+		String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
 
 		if (userAgent != null) {
 			userAgent = StringUtil.toLowerCase(userAgent);
@@ -502,6 +489,36 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		{"version", "firefox", "minefield", "chrome"};
 	protected static char[] versionSeparators =
 		{CharPool.BACK_SLASH, CharPool.SLASH};
+
+	private boolean _isFirefox(String userAgent) {
+		if (!_isMozilla(userAgent)) {
+			return false;
+		}
+
+		for (String firefoxAlias : _FIREFOX_ALIASES) {
+			if (userAgent.contains(firefoxAlias)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _isMozilla(String userAgent) {
+		if (userAgent.contains("compatible")) {
+			return false;
+		}
+
+		if (userAgent.contains("webkit")) {
+			return false;
+		}
+
+		if (userAgent.contains("mozilla")) {
+			return true;
+		}
+
+		return false;
+	}
 
 	private static final String[] _FIREFOX_ALIASES = {
 		"firefox", "minefield", "granparadiso", "bonecho", "firebird",

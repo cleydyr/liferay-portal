@@ -14,13 +14,18 @@
 
 package com.liferay.source.formatter;
 
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.tools.ToolsUtil;
+import com.liferay.source.formatter.checks.SourceCheck;
+import com.liferay.source.formatter.checks.WhitespaceCheck;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,11 +37,6 @@ import java.util.regex.Pattern;
  * @author Andrea Di Giorgi
  */
 public class GradleSourceProcessor extends BaseSourceProcessor {
-
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
 
 	protected void checkDefaultVersion(String fileName, String content) {
 		Matcher matcher = _defaultVersionPattern.matcher(content);
@@ -65,12 +65,17 @@ public class GradleSourceProcessor extends BaseSourceProcessor {
 
 		checkDefaultVersion(fileName, content);
 
-		return trimContent(content, false);
+		return content;
 	}
 
 	@Override
 	protected List<String> doGetFileNames() throws Exception {
 		return getFileNames(new String[0], getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
 	}
 
 	protected String formatDependencies(String absolutePath, String content) {
@@ -81,6 +86,25 @@ public class GradleSourceProcessor extends BaseSourceProcessor {
 		}
 
 		String dependencies = matcher.group(1);
+
+		matcher = _incorrectWhitespacePattern.matcher(dependencies);
+
+		while (matcher.find()) {
+			if (!ToolsUtil.isInsideQuotes(dependencies, matcher.start())) {
+				String newDependencies = StringUtil.insert(
+					dependencies, StringPool.SPACE, matcher.end() - 1);
+
+				return StringUtil.replace(
+					content, dependencies, newDependencies);
+			}
+		}
+
+		if (dependencies.contains(StringPool.APOSTROPHE)) {
+			String newDependencies = StringUtil.replace(
+				dependencies, CharPool.APOSTROPHE, CharPool.QUOTE);
+
+			return StringUtil.replace(content, dependencies, newDependencies);
+		}
 
 		Set<String> uniqueDependencies = new TreeSet<>();
 
@@ -104,8 +128,7 @@ public class GradleSourceProcessor extends BaseSourceProcessor {
 			String configuration = dependency.substring(0, pos);
 
 			if (configuration.equals("compile") &&
-				(absolutePath.contains("/modules/apps/") ||
-				 absolutePath.contains("/modules/private/apps/"))) {
+				isModulesApp(absolutePath, false)) {
 
 				dependency = StringUtil.replaceFirst(
 					dependency, "compile", "provided");
@@ -127,11 +150,24 @@ public class GradleSourceProcessor extends BaseSourceProcessor {
 		return StringUtil.replace(content, dependencies, sb.toString());
 	}
 
+	@Override
+	protected List<SourceCheck> getSourceChecks() {
+		return _sourceChecks;
+	}
+
+	@Override
+	protected void populateSourceChecks() {
+		_sourceChecks.add(new WhitespaceCheck());
+	}
+
 	private static final String[] _INCLUDES = new String[] {"**/build.gradle"};
 
 	private final Pattern _defaultVersionPattern = Pattern.compile(
 		"name: \"(.*?)\", version: \"default\"");
 	private final Pattern _dependenciesPattern = Pattern.compile(
 		"^dependencies \\{(.+?\n)\\}", Pattern.DOTALL | Pattern.MULTILINE);
+	private final Pattern _incorrectWhitespacePattern = Pattern.compile(
+		":[^ \n]");
+	private final List<SourceCheck> _sourceChecks = new ArrayList<>();
 
 }

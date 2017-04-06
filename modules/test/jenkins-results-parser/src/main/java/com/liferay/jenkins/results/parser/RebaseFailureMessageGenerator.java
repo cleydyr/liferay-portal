@@ -14,7 +14,9 @@
 
 package com.liferay.jenkins.results.parser;
 
-import org.apache.tools.ant.Project;
+import java.util.Hashtable;
+
+import org.dom4j.Element;
 
 /**
  * @author Peter Yoo
@@ -23,12 +25,10 @@ public class RebaseFailureMessageGenerator extends BaseFailureMessageGenerator {
 
 	@Override
 	public String getMessage(
-			String buildURL, String consoleOutput, Project project)
-		throws Exception {
+		String buildURL, String consoleOutput, Hashtable<?, ?> properties) {
 
 		if (!consoleOutput.contains(_REBASE_END_STRING) ||
-			!consoleOutput.contains(_REBASE_START_STRING) ||
-			!consoleOutput.contains("CONFLICT")) {
+			!consoleOutput.contains(_REBASE_START_STRING)) {
 
 			return null;
 		}
@@ -37,15 +37,15 @@ public class RebaseFailureMessageGenerator extends BaseFailureMessageGenerator {
 
 		sb.append("<p>Please fix <strong>rebase errors</strong> on <strong>");
 		sb.append("<a href=\"https://github.com/");
-		sb.append(project.getProperty("github.origin.name"));
+		sb.append(properties.get("github.origin.name"));
 		sb.append("/");
-		sb.append(project.getProperty("repository"));
+		sb.append(properties.get("repository"));
 		sb.append("/tree/");
-		sb.append(project.getProperty("github.sender.branch.name"));
+		sb.append(properties.get("github.sender.branch.name"));
 		sb.append("\">");
-		sb.append(project.getProperty("github.origin.name"));
+		sb.append(properties.get("github.origin.name"));
 		sb.append("/");
-		sb.append(project.getProperty("github.sender.branch.name"));
+		sb.append(properties.get("github.sender.branch.name"));
 		sb.append("</a></strong>.</p>");
 
 		int end = consoleOutput.indexOf(_REBASE_END_STRING);
@@ -61,10 +61,38 @@ public class RebaseFailureMessageGenerator extends BaseFailureMessageGenerator {
 		return sb.toString();
 	}
 
-	private static final String _REBASE_END_STRING =
-		"The copy of the patch that failed is found in";
+	@Override
+	public Element getMessageElement(Build build) {
+		String consoleText = build.getConsoleText();
 
-	private static final String _REBASE_START_STRING =
-		"First, rewinding head to replay your work on top of it...";
+		if (!consoleText.contains(_REBASE_END_STRING) ||
+			!consoleText.contains(_REBASE_START_STRING)) {
+
+			return null;
+		}
+
+		int end = consoleText.indexOf(_REBASE_END_STRING);
+
+		end = consoleText.lastIndexOf("\n", end);
+
+		int start = consoleText.lastIndexOf(_REBASE_START_STRING, end);
+
+		start = consoleText.lastIndexOf("\n", start);
+
+		return Dom4JUtil.getNewElement(
+			"div", null,
+			Dom4JUtil.getNewElement(
+				"p", null, "Please fix ",
+				Dom4JUtil.getNewElement("strong", null, "rebase errors"),
+				" on ",
+				Dom4JUtil.getNewElement(
+					"strong", null,
+					getBaseBranchAnchorElement(build.getTopLevelBuild())),
+				getConsoleOutputSnippetElement(consoleText, true, start, end)));
+	}
+
+	private static final String _REBASE_END_STRING = "Aborting rebase ABORT";
+
+	private static final String _REBASE_START_STRING = "Unable to rebase.";
 
 }

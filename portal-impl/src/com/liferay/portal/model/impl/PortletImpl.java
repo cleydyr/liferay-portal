@@ -60,6 +60,7 @@ import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -68,7 +69,6 @@ import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.xmlrpc.Method;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.DefaultControlPanelEntryFactory;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceRegistrar;
@@ -466,7 +466,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	@Override
 	public Object clone() {
-		Portlet portlet = new PortletImpl(
+		PortletImpl portletImpl = new PortletImpl(
 			getPortletId(), getRootPortlet(), getPluginPackage(),
 			getDefaultPluginSetting(), getCompanyId(), getIcon(),
 			getVirtualPath(), getStrutsPath(), getParentStrutsPath(),
@@ -511,11 +511,13 @@ public class PortletImpl extends PortletBaseImpl {
 			getPublishingEvents(), getPublicRenderParameters(),
 			getPortletApp());
 
-		portlet.setApplicationTypes(getApplicationTypes());
-		portlet.setId(getId());
-		portlet.setUndeployedPortlet(isUndeployedPortlet());
+		portletImpl.setApplicationTypes(getApplicationTypes());
+		portletImpl.setId(getId());
+		portletImpl.setUndeployedPortlet(isUndeployedPortlet());
 
-		return portlet;
+		portletImpl._rootPortletId = _rootPortletId;
+
+		return portletImpl;
 	}
 
 	/**
@@ -826,7 +828,7 @@ public class PortletImpl extends PortletBaseImpl {
 			portletBag.getControlPanelEntryInstances();
 
 		if (controlPanelEntryInstances.isEmpty()) {
-			return DefaultControlPanelEntryFactory.getInstance();
+			return _controlPanelEntry;
 		}
 
 		return controlPanelEntryInstances.get(0);
@@ -1754,7 +1756,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	@Override
 	public String getRootPortletId() {
-		return PortletConstants.getRootPortletId(getPortletId());
+		return _rootPortletId;
 	}
 
 	/**
@@ -3426,6 +3428,13 @@ public class PortletImpl extends PortletBaseImpl {
 		_portletFilters = portletFilters;
 	}
 
+	@Override
+	public void setPortletId(String portletId) {
+		super.setPortletId(portletId);
+
+		_rootPortletId = PortletConstants.getRootPortletId(getPortletId());
+	}
+
 	/**
 	 * Sets the portlet info of the portlet.
 	 *
@@ -4102,6 +4111,13 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	private static final Log _log = LogFactoryUtil.getLog(PortletImpl.class);
 
+	private static volatile ControlPanelEntry _controlPanelEntry =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			ControlPanelEntry.class, PortletImpl.class, "_controlPanelEntry",
+			"(&(!(javax.portlet.name=*))(objectClass=" +
+				ControlPanelEntry.class.getName() + "))",
+			false);
+
 	/**
 	 * Map of the ready states of all portlets keyed by their root portlet ID.
 	 */
@@ -4519,6 +4535,8 @@ public class PortletImpl extends PortletBaseImpl {
 	 * The root portlet of this portlet instance.
 	 */
 	private final Portlet _rootPortlet;
+
+	private String _rootPortletId;
 
 	/**
 	 * The scheduler entries of the portlet.

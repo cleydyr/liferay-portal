@@ -93,7 +93,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -434,6 +434,17 @@ public class PortletImportController implements ImportController {
 				if (ownerType == PortletKeys.PREFS_OWNER_TYPE_GROUP) {
 					curPlid = PortletKeys.PREFS_PLID_SHARED;
 					curPortletId = portletDataContext.getRootPortletId();
+					ownerId = portletDataContext.getScopeGroupId();
+				}
+
+				long elementPlid = GetterUtil.getLong(
+					element.attributeValue("plid"));
+
+				if ((ownerType == PortletKeys.PREFS_OWNER_TYPE_LAYOUT) &&
+					(ownerId != PortletKeys.PREFS_OWNER_ID_DEFAULT) &&
+					(elementPlid == PortletKeys.PREFS_PLID_SHARED)) {
+
+					curPlid = PortletKeys.PREFS_PLID_SHARED;
 					ownerId = portletDataContext.getScopeGroupId();
 				}
 
@@ -1366,7 +1377,7 @@ public class PortletImportController implements ImportController {
 		String xml = zipReader.getEntryAsString("/manifest.xml");
 
 		if (xml == null) {
-			throw new LARFileException("manifest.xml not found in the LAR");
+			throw new LARFileException(LARFileException.TYPE_MISSING_MANIFEST);
 		}
 
 		Element rootElement = null;
@@ -1377,7 +1388,8 @@ public class PortletImportController implements ImportController {
 			rootElement = document.getRootElement();
 		}
 		catch (Exception e) {
-			throw new LARFileException(e);
+			throw new LARFileException(
+				LARFileException.TYPE_INVALID_MANIFEST, e);
 		}
 
 		// Build compatibility
@@ -1391,8 +1403,8 @@ public class PortletImportController implements ImportController {
 
 		if (buildNumber != importBuildNumber) {
 			throw new LayoutImportException(
-				"LAR build number " + importBuildNumber + " does not match " +
-					"portal build number " + buildNumber);
+				LayoutImportException.TYPE_WRONG_BUILD_NUMBER,
+				new Object[] {importBuildNumber, buildNumber});
 		}
 
 		// Type
@@ -1400,17 +1412,18 @@ public class PortletImportController implements ImportController {
 		String larType = headerElement.attributeValue("type");
 
 		if (!larType.equals("portlet")) {
-			throw new LARTypeException(larType);
+			throw new LARTypeException(larType, new String[] {"portlet"});
 		}
 
 		// Portlet compatibility
 
 		String rootPortletId = headerElement.attributeValue("root-portlet-id");
 
-		if (!PortletConstants.getRootPortletId(portletId).equals(
-				rootPortletId)) {
+		String expectedRootPortletId = PortletConstants.getRootPortletId(
+			portletId);
 
-			throw new PortletIdException("Invalid portlet id " + rootPortletId);
+		if (!expectedRootPortletId.equals(rootPortletId)) {
+			throw new PortletIdException(expectedRootPortletId);
 		}
 
 		// Available locales
@@ -1426,18 +1439,16 @@ public class PortletImportController implements ImportController {
 
 			for (Locale sourceAvailableLocale : sourceAvailableLocales) {
 				if (!LanguageUtil.isAvailableLocale(
-						PortalUtil.getSiteGroupId(groupId),
+						_portal.getSiteGroupId(groupId),
 						sourceAvailableLocale)) {
 
 					LocaleException le = new LocaleException(
-						LocaleException.TYPE_EXPORT_IMPORT,
-						"Locale " + sourceAvailableLocale + " is not " +
-							"available in company " + companyId);
+						LocaleException.TYPE_EXPORT_IMPORT);
 
 					le.setSourceAvailableLocales(sourceAvailableLocales);
 					le.setTargetAvailableLocales(
 						LanguageUtil.getAvailableLocales(
-							PortalUtil.getSiteGroupId(groupId)));
+							_portal.getSiteGroupId(groupId)));
 
 					throw le;
 				}
@@ -1459,6 +1470,9 @@ public class PortletImportController implements ImportController {
 	private LayoutLocalService _layoutLocalService;
 	private final PermissionImporter _permissionImporter =
 		PermissionImporter.getInstance();
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private PortletDataHandlerProvider _portletDataHandlerProvider;

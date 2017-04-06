@@ -18,6 +18,8 @@ import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
 import com.liferay.announcements.kernel.model.AnnouncementsDelivery;
 import com.liferay.announcements.kernel.model.AnnouncementsEntryConstants;
 import com.liferay.announcements.kernel.service.AnnouncementsDeliveryLocalService;
+import com.liferay.asset.kernel.exception.AssetCategoryException;
+import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.exception.AddressCityException;
@@ -84,7 +86,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -245,7 +247,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected void deleteRole(ActionRequest actionRequest) throws Exception {
-		User user = PortalUtil.getSelectedUser(actionRequest);
+		User user = portal.getSelectedUser(actionRequest);
 
 		long roleId = ParamUtil.getLong(actionRequest, "roleId");
 
@@ -409,6 +411,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			else if (e instanceof AddressCityException ||
 					 e instanceof AddressStreetException ||
 					 e instanceof AddressZipException ||
+					 e instanceof AssetCategoryException ||
+					 e instanceof AssetTagException ||
 					 e instanceof CompanyMaxUsersException ||
 					 e instanceof ContactBirthdayException ||
 					 e instanceof ContactNameException ||
@@ -456,11 +460,11 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 				if (e instanceof CompanyMaxUsersException ||
 					e instanceof RequiredUserException || submittedPassword) {
 
-					String redirect = PortalUtil.escapeRedirect(
+					String redirect = portal.escapeRedirect(
 						ParamUtil.getString(actionRequest, "redirect"));
 
 					if (submittedPassword) {
-						User user = PortalUtil.getSelectedUser(actionRequest);
+						User user = portal.getSelectedUser(actionRequest);
 
 						redirect = HttpUtil.setParameter(
 							redirect, actionResponse.getNamespace() + "p_u_i_d",
@@ -567,7 +571,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected User updateLockout(ActionRequest actionRequest) throws Exception {
-		User user = PortalUtil.getSelectedUser(actionRequest);
+		User user = portal.getSelectedUser(actionRequest);
 
 		_userService.updateLockoutById(user.getUserId(), false);
 
@@ -581,7 +585,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		User user = PortalUtil.getSelectedUser(actionRequest);
+		User user = portal.getSelectedUser(actionRequest);
 
 		Contact contact = user.getContact();
 
@@ -731,9 +735,9 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 
 			// Reset the locale
 
-			HttpServletRequest request = PortalUtil.getOriginalServletRequest(
-				PortalUtil.getHttpServletRequest(actionRequest));
-			HttpServletResponse response = PortalUtil.getHttpServletResponse(
+			HttpServletRequest request = portal.getOriginalServletRequest(
+				portal.getHttpServletRequest(actionRequest));
+			HttpServletResponse response = portal.getHttpServletResponse(
 				actionResponse);
 			HttpSession session = request.getSession();
 
@@ -804,7 +808,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			}
 		}
 
-		Company company = PortalUtil.getCompany(actionRequest);
+		Company company = portal.getCompany(actionRequest);
 
 		if (company.isStrangersVerify() &&
 			!StringUtil.equalsIgnoreCase(oldEmailAddress, emailAddress)) {
@@ -814,6 +818,9 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 
 		return new Object[] {user, oldScreenName, updateLanguageId};
 	}
+
+	@Reference
+	protected Portal portal;
 
 	protected UserLocalService userLocalService;
 

@@ -6,6 +6,13 @@ AUI.add(
 		var FormPaginationSupport = function() {
 		};
 
+		FormPaginationSupport.ATTRS = {
+			pagesState: {
+				setter: '_setPagesSate',
+				valueFn: '_valuePagesState'
+			}
+		};
+
 		FormPaginationSupport.prototype = {
 			initializer: function() {
 				var instance = this;
@@ -89,7 +96,25 @@ AUI.add(
 
 				var pagination = instance.getPagination();
 
-				pagination.next();
+				var pages = instance.get('pagesState');
+
+				var page;
+
+				var pageIndex = pagination.get('page');
+
+				instance.validatePage(
+					instance.getPageNode(pageIndex),
+					function(hasErrors) {
+						if (!hasErrors) {
+							do {
+								page = pages[pageIndex];
+								pageIndex++;
+							} while (!page.enabled);
+
+							pagination.set('page', pageIndex);
+						}
+					}
+				);
 			},
 
 			prevPage: function() {
@@ -97,7 +122,23 @@ AUI.add(
 
 				var pagination = instance.getPagination();
 
-				pagination.prev();
+				var pages = instance.get('pagesState');
+
+				if (!pages.length) {
+					pagination.prev();
+					return;
+				}
+
+				var page;
+
+				var prevPage = pagination.get('page') - 2;
+
+				do {
+					page = pages[prevPage];
+					prevPage--;
+				} while (!page.enabled);
+
+				pagination.set('page', prevPage + 2);
 			},
 
 			showPage: function(page) {
@@ -218,20 +259,30 @@ AUI.add(
 				if (nextPage > currentPage) {
 					event.preventDefault();
 
-					var pages = instance._getPaginationNodes();
-
-					instance.validatePage(
-						pages.item(currentPage - 1),
-						function(hasErrors) {
-							if (!hasErrors) {
-								pagination.set('page', nextPage);
-							}
-						}
-					);
+					pagination.set('page', nextPage);
 				}
 				else {
 					pagination.set('page', nextPage);
 				}
+			},
+
+			_setPagesSate: function(pages) {
+				var pagesState = [];
+
+				for (var i = 0; i < pages.length; i++) {
+					if (pages[i].enabled === undefined) {
+						pagesState[i] = {
+							enabled: true
+						};
+					}
+					else {
+						pagesState[i] = {
+							enabled: pages[i].enabled
+						};
+					}
+				}
+
+				return pagesState;
 			},
 
 			_syncPaginationControlsUI: function() {
@@ -284,6 +335,12 @@ AUI.add(
 
 					wizard.activate(currentPage - 1);
 				}
+			},
+
+			_valuePagesState: function() {
+				var instance = this;
+
+				return instance.get('layout').pages;
 			}
 		};
 

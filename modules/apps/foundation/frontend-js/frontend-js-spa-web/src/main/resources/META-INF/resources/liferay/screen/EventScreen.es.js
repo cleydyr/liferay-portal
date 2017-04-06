@@ -10,6 +10,7 @@ class EventScreen extends HtmlScreen {
 		super();
 
 		this.cacheable = false;
+		this.timeout = Liferay.SPA.app.timeout;
 	}
 
 	dispose() {
@@ -118,7 +119,7 @@ class EventScreen extends HtmlScreen {
 	isValidResponseStatusCode(statusCode) {
 		var validStatusCodes = Liferay.SPA.app.getValidStatusCodes();
 
-		return super.isValidResponseStatusCode(statusCode) || (validStatusCodes.indexOf(statusCode) > -1);
+		return (statusCode >= 200 && statusCode <= 500) || (validStatusCodes.indexOf(statusCode) > -1);
 	}
 
 	load(path) {

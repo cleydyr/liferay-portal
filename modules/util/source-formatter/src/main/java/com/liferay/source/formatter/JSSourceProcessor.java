@@ -17,9 +17,13 @@ package com.liferay.source.formatter;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.source.formatter.checks.LanguageKeysCheck;
+import com.liferay.source.formatter.checks.SourceCheck;
+import com.liferay.source.formatter.checks.WhitespaceCheck;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,19 +34,12 @@ import java.util.regex.Pattern;
 public class JSSourceProcessor extends BaseSourceProcessor {
 
 	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
-	@Override
 	protected String doFormat(
 			File file, String fileName, String absolutePath, String content)
 		throws Exception {
 
-		String newContent = trimContent(content, false);
-
-		newContent = StringUtil.replace(
-			newContent,
+		String newContent = StringUtil.replace(
+			content,
 			new String[] {
 				StringPool.TAB + "else{", StringPool.TAB + "for(",
 				StringPool.TAB + "if(", StringPool.TAB + "while(",
@@ -80,9 +77,6 @@ public class JSSourceProcessor extends BaseSourceProcessor {
 			newContent = newContent.substring(0, newContent.length() - 1);
 		}
 
-		checkLanguageKeys(
-			fileName, absolutePath, newContent, languageKeyPattern);
-
 		if (newContent.contains("debugger.")) {
 			processMessage(fileName, "debugger");
 		}
@@ -101,9 +95,32 @@ public class JSSourceProcessor extends BaseSourceProcessor {
 		return getFileNames(excludes, getIncludes());
 	}
 
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	@Override
+	protected List<SourceCheck> getSourceChecks() {
+		return _sourceChecks;
+	}
+
+	@Override
+	protected void populateSourceChecks() throws Exception {
+		_sourceChecks.add(new WhitespaceCheck());
+
+		if (portalSource) {
+			_sourceChecks.add(
+				new LanguageKeysCheck(
+					getExcludes(LANGUAGE_KEYS_CHECK_EXCLUDES),
+					getPortalLanguageProperties()));
+		}
+	}
+
 	private static final String[] _INCLUDES = {"**/*.js"};
 
 	private final Pattern _multipleVarsOnSingleLinePattern = Pattern.compile(
 		"\t+var \\w+\\, ");
+	private final List<SourceCheck> _sourceChecks = new ArrayList<>();
 
 }

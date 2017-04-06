@@ -31,10 +31,12 @@ import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeJournalArticles;
 import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeJournalDisplayPreferences;
 import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeLastPublishDate;
 import com.liferay.journal.internal.upgrade.v0_0_5.UpgradePortletSettings;
+import com.liferay.journal.internal.upgrade.v1_0_0.UpgradeImageTypeContentAttributes;
 import com.liferay.journal.internal.upgrade.v1_0_0.UpgradeJournalArticleImage;
 import com.liferay.journal.internal.upgrade.v1_1_0.UpgradeDocumentLibraryTypeContent;
 import com.liferay.journal.internal.upgrade.v1_1_0.UpgradeImageTypeContent;
 import com.liferay.journal.internal.upgrade.v1_1_0.UpgradeJournalArticleLocalizedValues;
+import com.liferay.journal.internal.upgrade.v1_1_1.UpgradeFileUploadsConfiguration;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBProcessContext;
@@ -50,10 +52,12 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
+import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import java.io.PrintWriter;
 
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -115,6 +119,7 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 
 		registry.register(
 			"com.liferay.journal.service", "0.0.5", "1.0.0",
+			new UpgradeImageTypeContentAttributes(),
 			new UpgradeJournalArticleImage());
 
 		registry.register(
@@ -122,6 +127,11 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 			new UpgradeDocumentLibraryTypeContent(_dlAppLocalService),
 			new UpgradeImageTypeContent(_imageLocalService),
 			new UpgradeJournalArticleLocalizedValues());
+
+		registry.register(
+			"com.liferay.journal.service", "1.1.0", "1.1.1",
+			new UpgradeFileUploadsConfiguration(
+				_configurationAdmin, _prefsProps));
 	}
 
 	protected void deleteTempImages() throws Exception {
@@ -164,6 +174,13 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 		CompanyLocalService companyLocalService) {
 
 		_companyLocalService = companyLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setConfigurationAdmin(
+		ConfigurationAdmin configurationAdmin) {
+
+		_configurationAdmin = configurationAdmin;
 	}
 
 	@Reference(unbind = "-")
@@ -217,6 +234,11 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 	}
 
 	@Reference(unbind = "-")
+	protected void setPrefsProps(PrefsProps prefsProps) {
+		_prefsProps = prefsProps;
+	}
+
+	@Reference(unbind = "-")
 	protected void setResourceActionLocalService(
 		ResourceActionLocalService resourceActionLocalService) {
 
@@ -245,6 +267,7 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 	private AssetEntryLocalService _assetEntryLocalService;
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
 	private CompanyLocalService _companyLocalService;
+	private ConfigurationAdmin _configurationAdmin;
 	private DDMStorageLinkLocalService _ddmStorageLinkLocalService;
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private DDMTemplateLinkLocalService _ddmTemplateLinkLocalService;
@@ -253,6 +276,7 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 	private GroupLocalService _groupLocalService;
 	private ImageLocalService _imageLocalService;
 	private LayoutLocalService _layoutLocalService;
+	private PrefsProps _prefsProps;
 	private ResourceActionLocalService _resourceActionLocalService;
 	private ResourceActions _resourceActions;
 	private SettingsFactory _settingsFactory;

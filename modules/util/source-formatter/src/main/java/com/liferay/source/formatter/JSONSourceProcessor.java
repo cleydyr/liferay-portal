@@ -21,9 +21,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.ToolsUtil;
+import com.liferay.source.formatter.checks.SourceCheck;
+import com.liferay.source.formatter.checks.WhitespaceCheck;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,15 +36,40 @@ import java.util.regex.Pattern;
  */
 public class JSONSourceProcessor extends BaseSourceProcessor {
 
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
+	protected void checkIndentation(
+		String line, String fileName, int expectedTabCount, int lineCount) {
+
+		if (Validator.isNull(line)) {
+			return;
+		}
+
+		int leadingTabCount = getLeadingTabCount(line);
+
+		if (line.matches("\t*[\\}\\]].*")) {
+			expectedTabCount -= 1;
+		}
+
+		if (leadingTabCount == expectedTabCount) {
+			return;
+		}
+
+		StringBundler sb = new StringBundler(5);
+
+		sb.append("Line starts with '");
+		sb.append(leadingTabCount);
+		sb.append("' tabs, but '");
+		sb.append(expectedTabCount);
+		sb.append("' tabs are expected");
+
+		processMessage(fileName, sb.toString(), lineCount);
 	}
 
 	@Override
 	protected String doFormat(
 			File file, String fileName, String absolutePath, String content)
 		throws Exception {
+
+		int expectedTabCount = 0;
 
 		StringBundler sb = new StringBundler();
 
@@ -50,8 +78,12 @@ public class JSONSourceProcessor extends BaseSourceProcessor {
 
 			String line = null;
 
+			int lineCount = 0;
+
 			while ((line = unsyncBufferedReader.readLine()) != null) {
-				line = trimLine(line, true);
+				lineCount++;
+
+				checkIndentation(line, fileName, expectedTabCount, lineCount);
 
 				while (true) {
 					Matcher matcher = _leadingSpacesPattern.matcher(line);
@@ -69,6 +101,16 @@ public class JSONSourceProcessor extends BaseSourceProcessor {
 				sb.append(line);
 
 				sb.append("\n");
+
+				expectedTabCount = getLevel(
+					line,
+					new String[] {
+						StringPool.OPEN_BRACKET, StringPool.OPEN_CURLY_BRACE
+					},
+					new String[] {
+						StringPool.CLOSE_BRACKET, StringPool.CLOSE_CURLY_BRACE
+					},
+					expectedTabCount);
 			}
 		}
 
@@ -104,6 +146,21 @@ public class JSONSourceProcessor extends BaseSourceProcessor {
 	@Override
 	protected List<String> doGetFileNames() throws Exception {
 		return getFileNames(new String[0], getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	@Override
+	protected List<SourceCheck> getSourceChecks() {
+		return _sourceChecks;
+	}
+
+	@Override
+	protected void populateSourceChecks() {
+		_sourceChecks.add(new WhitespaceCheck(true));
 	}
 
 	protected String sort(String content) {
@@ -167,5 +224,6 @@ public class JSONSourceProcessor extends BaseSourceProcessor {
 	private final Pattern _leadingSpacesPattern = Pattern.compile(
 		"(^[\t ]*)(  )([^ ])");
 	private final Pattern _missingWhitespacePattern = Pattern.compile(":\\S");
+	private final List<SourceCheck> _sourceChecks = new ArrayList<>();
 
 }

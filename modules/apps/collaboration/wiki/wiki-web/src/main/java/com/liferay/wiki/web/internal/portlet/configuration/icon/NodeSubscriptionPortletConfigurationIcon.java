@@ -18,12 +18,12 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigurationIcon;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.wiki.configuration.WikiGroupServiceOverriddenConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -83,7 +83,7 @@ public class NodeSubscriptionPortletConfigurationIcon
 		try {
 			WikiNode node = ActionUtil.getNode(portletRequest);
 
-			PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
+			PortletURL portletURL = _portal.getControlPanelPortletURL(
 				portletRequest, WikiPortletKeys.WIKI_ADMIN,
 				PortletRequest.ACTION_PHASE);
 
@@ -118,7 +118,7 @@ public class NodeSubscriptionPortletConfigurationIcon
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+		HttpServletRequest request = _portal.getHttpServletRequest(
 			portletRequest);
 
 		WikiRequestHelper wikiRequestHelper = new WikiRequestHelper(request);
@@ -164,6 +164,9 @@ public class NodeSubscriptionPortletConfigurationIcon
 
 		_subscriptionLocalService = subscriptionLocalService;
 	}
+
+	@Reference
+	private Portal _portal;
 
 	private SubscriptionLocalService _subscriptionLocalService;
 

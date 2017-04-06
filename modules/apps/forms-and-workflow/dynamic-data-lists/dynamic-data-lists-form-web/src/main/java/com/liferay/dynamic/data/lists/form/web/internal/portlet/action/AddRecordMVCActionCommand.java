@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.lists.service.DDLRecordService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetService;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
@@ -36,7 +37,7 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
 import javax.portlet.ActionRequest;
@@ -87,20 +88,29 @@ public class AddRecordMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, ddlRecord);
 		}
 
-		DDLRecordSetSettings recordSetSettings = recordSet.getSettingsModel();
+		if (SessionErrors.isEmpty(actionRequest)) {
+			DDLRecordSetSettings recordSetSettings =
+				recordSet.getSettingsModel();
 
-		String redirectURL = recordSetSettings.redirectURL();
+			String redirectURL = recordSetSettings.redirectURL();
 
-		if (SessionErrors.isEmpty(actionRequest) &&
-			Validator.isNotNull(redirectURL)) {
+			if (Validator.isNotNull(redirectURL)) {
+				sendRedirect(actionRequest, actionResponse, redirectURL);
+			}
+			else {
+				DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+					ddmForm.getDDMFormSuccessPageSettings();
 
-			String portletId = PortalUtil.getPortletId(actionRequest);
+				if (ddmFormSuccessPageSettings.isEnabled()) {
+					String portletId = _portal.getPortletId(actionRequest);
 
-			SessionMessages.add(
-				actionRequest, portletId,
-				SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
-
-			actionResponse.sendRedirect(redirectURL);
+					SessionMessages.add(
+						actionRequest,
+						portletId.concat(
+							SessionMessages.
+								KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE));
+				}
+			}
 		}
 	}
 
@@ -169,5 +179,8 @@ public class AddRecordMVCActionCommand extends BaseMVCActionCommand {
 	private DDLRecordService _ddlRecordService;
 	private DDLRecordSetService _ddlRecordSetService;
 	private DDMFormValuesFactory _ddmFormValuesFactory;
+
+	@Reference
+	private Portal _portal;
 
 }

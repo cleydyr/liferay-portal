@@ -69,6 +69,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import javax.portlet.PortletMode;
 import javax.portlet.PortletModeException;
@@ -90,14 +91,29 @@ public class PortletURLImpl
 	implements LiferayPortletURL, PortletURL, ResourceURL, Serializable {
 
 	public PortletURLImpl(
+		HttpServletRequest request, Portlet portlet, Layout layout,
+		String lifecycle) {
+
+		this(request, portlet, null, layout, lifecycle);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #PortletURLImpl(HttpServletRequest, Portlet, Layout, String)}
+	 */
+	@Deprecated
+	public PortletURLImpl(
 		HttpServletRequest request, String portletId, Layout layout,
 		String lifecycle) {
 
-		this(request, portletId, null, layout.getPlid(), lifecycle);
-
-		_layout = layout;
+		this(request, portletId, null, layout, lifecycle);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #PortletURLImpl(HttpServletRequest, String, Layout, String)}
+	 */
+	@Deprecated
 	public PortletURLImpl(
 		HttpServletRequest request, String portletId, long plid,
 		String lifecycle) {
@@ -106,16 +122,33 @@ public class PortletURLImpl
 	}
 
 	public PortletURLImpl(
+		PortletRequest portletRequest, Portlet portlet, Layout layout,
+		String lifecycle) {
+
+		this(
+			PortalUtil.getHttpServletRequest(portletRequest), portlet,
+			portletRequest, layout, lifecycle);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #PortletURLImpl(PortletRequest, Portlet, Layout, String)}
+	 */
+	@Deprecated
+	public PortletURLImpl(
 		PortletRequest portletRequest, String portletId, Layout layout,
 		String lifecycle) {
 
 		this(
 			PortalUtil.getHttpServletRequest(portletRequest), portletId,
-			portletRequest, layout.getPlid(), lifecycle);
-
-		_layout = layout;
+			portletRequest, layout, lifecycle);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #PortletURLImpl(PortletRequest, String, Layout, String)}
+	 */
+	@Deprecated
 	public PortletURLImpl(
 		PortletRequest portletRequest, String portletId, long plid,
 		String lifecycle) {
@@ -127,6 +160,10 @@ public class PortletURLImpl
 
 	@Override
 	public void addParameterIncludedInPath(String name) {
+		if (_parametersIncludedInPath.isEmpty()) {
+			_parametersIncludedInPath = new LinkedHashSet<>();
+		}
+
 		_parametersIncludedInPath.add(name);
 	}
 
@@ -270,49 +307,18 @@ public class PortletURLImpl
 		return _removedParameterNames;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #visitReservedParameters(
+	 *             BiConsumer)}
+	 */
+	@Deprecated
 	@Override
 	public Map<String, String> getReservedParameterMap() {
-		if (_reservedParameters != null) {
-			return _reservedParameters;
-		}
+		LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>();
 
-		_reservedParameters = new LinkedHashMap<>();
+		visitReservedParameters(linkedHashMap::put);
 
-		_reservedParameters.put("p_p_id", _portletId);
-
-		if (_lifecycle.equals(PortletRequest.ACTION_PHASE)) {
-			_reservedParameters.put("p_p_lifecycle", "1");
-		}
-		else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
-			_reservedParameters.put("p_p_lifecycle", "0");
-		}
-		else if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-			_reservedParameters.put("p_p_lifecycle", "2");
-		}
-
-		if (_windowStateString != null) {
-			_reservedParameters.put("p_p_state", _windowStateString);
-		}
-
-		if (_windowStateRestoreCurrentView) {
-			_reservedParameters.put("p_p_state_rcv", "1");
-		}
-
-		if (_portletModeString != null) {
-			_reservedParameters.put("p_p_mode", _portletModeString);
-		}
-
-		if (_resourceID != null) {
-			_reservedParameters.put("p_p_resource_id", _resourceID);
-		}
-
-		if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-			_reservedParameters.put("p_p_cacheability", _cacheability);
-		}
-
-		_reservedParameters = Collections.unmodifiableMap(_reservedParameters);
-
-		return _reservedParameters;
+		return Collections.unmodifiableMap(linkedHashMap);
 	}
 
 	@Override
@@ -389,9 +395,8 @@ public class PortletURLImpl
 
 		QName qName = publicRenderParameter.getQName();
 
-		_removePublicRenderParameters.put(
-			PortletQNameUtil.getRemovePublicRenderParameterName(qName),
-			new String[] {"1"});
+		_removePublicRenderParameters.add(
+			PortletQNameUtil.getRemovePublicRenderParameterName(qName));
 	}
 
 	@Override
@@ -501,7 +506,7 @@ public class PortletURLImpl
 			throw new IllegalArgumentException();
 		}
 
-		if (value == null) {
+		if ((value == null) || value.isEmpty()) {
 			removeParameter(name);
 
 			return;
@@ -700,6 +705,41 @@ public class PortletURLImpl
 	}
 
 	@Override
+	public void visitReservedParameters(BiConsumer<String, String> biConsumer) {
+		biConsumer.accept("p_p_id", _portletId);
+
+		if (_lifecycle.equals(PortletRequest.ACTION_PHASE)) {
+			biConsumer.accept("p_p_lifecycle", "1");
+		}
+		else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+			biConsumer.accept("p_p_lifecycle", "0");
+		}
+		else if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+			biConsumer.accept("p_p_lifecycle", "2");
+		}
+
+		if (_windowStateString != null) {
+			biConsumer.accept("p_p_state", _windowStateString);
+		}
+
+		if (_windowStateRestoreCurrentView) {
+			biConsumer.accept("p_p_state_rcv", "1");
+		}
+
+		if (_portletModeString != null) {
+			biConsumer.accept("p_p_mode", _portletModeString);
+		}
+
+		if (_resourceID != null) {
+			biConsumer.accept("p_p_resource_id", _resourceID);
+		}
+
+		if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+			biConsumer.accept("p_p_cacheability", _cacheability);
+		}
+	}
+
+	@Override
 	public void write(Writer writer) throws IOException {
 		write(writer, _escapeXml);
 	}
@@ -715,50 +755,22 @@ public class PortletURLImpl
 		writer.write(toString);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #PortletURLImpl(PortletRequest, String, PortletRequest, Layout, String)}
+	 */
+	@Deprecated
 	protected PortletURLImpl(
 		HttpServletRequest request, String portletId,
 		PortletRequest portletRequest, long plid, String lifecycle) {
 
-		_request = request;
-		_portletId = portletId;
-		_portletRequest = portletRequest;
+		this(request, portletId, portletRequest, null, lifecycle);
+
 		_plid = plid;
-		_lifecycle = lifecycle;
-		_parametersIncludedInPath = new LinkedHashSet<>();
-		_params = new LinkedHashMap<>();
-		_removePublicRenderParameters = new LinkedHashMap<>();
-		_secure = PortalUtil.isSecure(request);
-		_wsrp = ParamUtil.getBoolean(request, "wsrp");
-
-		Portlet portlet = getPortlet();
-
-		if (portlet != null) {
-			Set<String> autopropagatedParameters =
-				portlet.getAutopropagatedParameters();
-
-			for (String autopropagatedParameter : autopropagatedParameters) {
-				if (PortalUtil.isReservedParameter(autopropagatedParameter)) {
-					continue;
-				}
-
-				String value = request.getParameter(autopropagatedParameter);
-
-				if (value != null) {
-					setParameter(autopropagatedParameter, value);
-				}
-			}
-
-			PortletApp portletApp = portlet.getPortletApp();
-
-			_escapeXml = MapUtil.getBoolean(
-				portletApp.getContainerRuntimeOptions(),
-				LiferayPortletConfig.RUNTIME_OPTION_ESCAPE_XML,
-				PropsValues.PORTLET_URL_ESCAPE_XML);
-		}
 
 		Layout layout = (Layout)request.getAttribute(WebKeys.LAYOUT);
 
-		if ((layout != null) && (layout.getPlid() == _plid) &&
+		if ((layout != null) && (layout.getPlid() == plid) &&
 			(layout instanceof VirtualLayout)) {
 
 			_layout = layout;
@@ -774,7 +786,6 @@ public class PortletURLImpl
 	}
 
 	protected void clearCache() {
-		_reservedParameters = null;
 		_toString = null;
 	}
 
@@ -813,28 +824,12 @@ public class PortletURLImpl
 			_log.error(e);
 		}
 
-		Key key = null;
-
-		try {
-			if (_encrypt) {
-				Company company = PortalUtil.getCompany(_request);
-
-				key = company.getKeyObj();
-			}
-		}
-		catch (Exception e) {
-			_log.error(e);
-		}
+		Key key = _getKey();
 
 		if (Validator.isNull(_layoutFriendlyURL)) {
 			sb.append(PortalUtil.getPortalURL(_request, _secure));
 			sb.append(themeDisplay.getPathMain());
-			sb.append("/portal/layout?");
-
-			addPortalAuthToken(sb, key);
-
-			sb.append("p_l_id");
-			sb.append(StringPool.EQUAL);
+			sb.append("/portal/layout?p_l_id=");
 			sb.append(processValue(key, _plid));
 			sb.append(StringPool.AMPERSAND);
 		}
@@ -860,31 +855,25 @@ public class PortletURLImpl
 			}
 
 			sb.append(StringPool.QUESTION);
-
-			addPortalAuthToken(sb, key);
 		}
 
+		addPortalAuthToken(sb, key);
 		addPortletAuthToken(sb, key);
 
-		for (Map.Entry<String, String> entry :
-				getReservedParameterMap().entrySet()) {
-
-			String name = entry.getKey();
-
+		visitReservedParameters((name, value) -> {
 			if (!isParameterIncludedInPath(name)) {
-				sb.append(HttpUtil.encodeURL(name));
+				sb.append(name);
 				sb.append(StringPool.EQUAL);
-				sb.append(processValue(key, entry.getValue()));
+				sb.append(processValue(key, value));
 				sb.append(StringPool.AMPERSAND);
 			}
-		}
+		});
 
 		if (_doAsUserId > 0) {
 			try {
 				Company company = PortalUtil.getCompany(_request);
 
-				sb.append("doAsUserId");
-				sb.append(StringPool.EQUAL);
+				sb.append("doAsUserId=");
 				sb.append(processValue(company.getKeyObj(), _doAsUserId));
 				sb.append(StringPool.AMPERSAND);
 			}
@@ -896,8 +885,7 @@ public class PortletURLImpl
 			String doAsUserId = themeDisplay.getDoAsUserId();
 
 			if (Validator.isNotNull(doAsUserId)) {
-				sb.append("doAsUserId");
-				sb.append(StringPool.EQUAL);
+				sb.append("doAsUserId=");
 				sb.append(processValue(key, doAsUserId));
 				sb.append(StringPool.AMPERSAND);
 			}
@@ -910,8 +898,7 @@ public class PortletURLImpl
 		}
 
 		if (Validator.isNotNull(doAsUserLanguageId)) {
-			sb.append("doAsUserLanguageId");
-			sb.append(StringPool.EQUAL);
+			sb.append("doAsUserLanguageId=");
 			sb.append(processValue(key, doAsUserLanguageId));
 			sb.append(StringPool.AMPERSAND);
 		}
@@ -923,8 +910,7 @@ public class PortletURLImpl
 		}
 
 		if (doAsGroupId > 0) {
-			sb.append("doAsGroupId");
-			sb.append(StringPool.EQUAL);
+			sb.append("doAsGroupId=");
 			sb.append(processValue(key, doAsGroupId));
 			sb.append(StringPool.AMPERSAND);
 		}
@@ -936,8 +922,7 @@ public class PortletURLImpl
 		}
 
 		if (refererGroupId > 0) {
-			sb.append("refererGroupId");
-			sb.append(StringPool.EQUAL);
+			sb.append("refererGroupId=");
 			sb.append(processValue(key, refererGroupId));
 			sb.append(StringPool.AMPERSAND);
 		}
@@ -949,15 +934,12 @@ public class PortletURLImpl
 		}
 
 		if (refererPlid > 0) {
-			sb.append("refererPlid");
-			sb.append(StringPool.EQUAL);
+			sb.append("refererPlid=");
 			sb.append(processValue(key, refererPlid));
 			sb.append(StringPool.AMPERSAND);
 		}
 
-		for (Map.Entry<String, String[]> entry :
-				_removePublicRenderParameters.entrySet()) {
-
+		if (!_removePublicRenderParameters.isEmpty()) {
 			String lastString = sb.stringAt(sb.index() - 1);
 
 			if (lastString.charAt(lastString.length() - 1) !=
@@ -966,10 +948,16 @@ public class PortletURLImpl
 				sb.append(StringPool.AMPERSAND);
 			}
 
-			sb.append(HttpUtil.encodeURL(entry.getKey()));
-			sb.append(StringPool.EQUAL);
-			sb.append(processValue(key, entry.getValue()[0]));
-			sb.append(StringPool.AMPERSAND);
+			String removeValue = processValue(key, "1");
+
+			for (String removedPublicParameter :
+					_removePublicRenderParameters) {
+
+				sb.append(HttpUtil.encodeURL(removedPublicParameter));
+				sb.append(StringPool.EQUAL);
+				sb.append(removeValue);
+				sb.append(StringPool.AMPERSAND);
+			}
 		}
 
 		Map<String, String[]> renderParams = _params;
@@ -995,10 +983,9 @@ public class PortletURLImpl
 				name = publicRenderParameterName;
 			}
 
-			name = HttpUtil.encodeURL(prependNamespace(name));
-
 			for (String value : values) {
-				sb.append(name);
+				_appendNamespaceAndEncode(sb, name);
+
 				sb.append(StringPool.EQUAL);
 				sb.append(processValue(key, value));
 				sb.append(StringPool.AMPERSAND);
@@ -1038,13 +1025,19 @@ public class PortletURLImpl
 			}
 		}
 
-		String result = sb.toString();
+		String lastString = sb.stringAt(sb.index() - 1);
 
-		if (result.endsWith(StringPool.AMPERSAND) ||
-			result.endsWith(StringPool.QUESTION)) {
+		char lastChar = lastString.charAt(lastString.length() - 1);
 
-			result = result.substring(0, result.length() - 1);
+		if ((lastChar == CharPool.AMPERSAND) ||
+			(lastChar == CharPool.QUESTION)) {
+
+			sb.setStringAt(
+				lastString.substring(0, lastString.length() - 1),
+				sb.index() - 1);
 		}
+
+		String result = sb.toString();
 
 		if (!CookieKeys.hasSessionId(_request)) {
 			result = PortalUtil.getURLWithSessionId(
@@ -1081,29 +1074,25 @@ public class PortletURLImpl
 		sb.append(StringPool.AMPERSAND);
 
 		if (_windowStateString != null) {
-			sb.append("wsrp-windowState");
-			sb.append(StringPool.EQUAL);
+			sb.append("wsrp-windowState=");
 			sb.append(HttpUtil.encodeURL("wsrp:" + _windowStateString));
 			sb.append(StringPool.AMPERSAND);
 		}
 
 		if (_portletModeString != null) {
-			sb.append("wsrp-mode");
-			sb.append(StringPool.EQUAL);
+			sb.append("wsrp-mode=");
 			sb.append(HttpUtil.encodeURL("wsrp:" + _portletModeString));
 			sb.append(StringPool.AMPERSAND);
 		}
 
 		if (_resourceID != null) {
-			sb.append("wsrp-resourceID");
-			sb.append(StringPool.EQUAL);
+			sb.append("wsrp-resourceID=");
 			sb.append(HttpUtil.encodeURL(_resourceID));
 			sb.append(StringPool.AMPERSAND);
 		}
 
 		if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-			sb.append("wsrp-resourceCacheability");
-			sb.append(StringPool.EQUAL);
+			sb.append("wsrp-resourceCacheability=");
 			sb.append(HttpUtil.encodeURL(_cacheability));
 			sb.append(StringPool.AMPERSAND);
 		}
@@ -1116,9 +1105,7 @@ public class PortletURLImpl
 				!_windowStateString.equals(
 					LiferayWindowState.POP_UP.toString())) {
 
-				sb.append("wsrp-fragmentID");
-				sb.append(StringPool.EQUAL);
-				sb.append("#p_");
+				sb.append("wsrp-fragmentID=#p_");
 				sb.append(HttpUtil.encodeURL(_portletId));
 				sb.append(StringPool.AMPERSAND);
 			}
@@ -1130,7 +1117,7 @@ public class PortletURLImpl
 			renderParams = _mergeWithRenderParameters(renderParams);
 		}
 
-		StringBundler parameterSb = new StringBundler();
+		StringBundler parameterSB = new StringBundler();
 
 		int previousSbIndex = sb.index();
 
@@ -1149,13 +1136,12 @@ public class PortletURLImpl
 				name = publicRenderParameterName;
 			}
 
-			name = HttpUtil.encodeURL(prependNamespace(name));
-
 			for (String value : values) {
-				parameterSb.append(name);
-				parameterSb.append(StringPool.EQUAL);
-				parameterSb.append(HttpUtil.encodeURL(value));
-				parameterSb.append(StringPool.AMPERSAND);
+				_appendNamespaceAndEncode(parameterSB, name);
+
+				parameterSB.append(StringPool.EQUAL);
+				parameterSB.append(HttpUtil.encodeURL(value));
+				parameterSB.append(StringPool.AMPERSAND);
 			}
 		}
 
@@ -1169,7 +1155,7 @@ public class PortletURLImpl
 		byte[] parameterBytes = null;
 
 		try {
-			String parameterString = parameterSb.toString();
+			String parameterString = parameterSB.toString();
 
 			parameterBytes = parameterString.getBytes(StringPool.UTF8);
 		}
@@ -1228,6 +1214,10 @@ public class PortletURLImpl
 		_params = _mergeWithRenderParameters(_params);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	protected String prependNamespace(String name) {
 		String namespace = getNamespace();
 
@@ -1268,15 +1258,102 @@ public class PortletURLImpl
 		}
 	}
 
+	private PortletURLImpl(
+		HttpServletRequest request, Portlet portlet,
+		PortletRequest portletRequest, Layout layout, String lifecycle) {
+
+		_request = request;
+		_portlet = portlet;
+		_portletRequest = portletRequest;
+		_layout = layout;
+		_lifecycle = lifecycle;
+		_parametersIncludedInPath = Collections.emptySet();
+		_params = new LinkedHashMap<>();
+		_removePublicRenderParameters = new LinkedHashSet<>();
+		_secure = PortalUtil.isSecure(request);
+		_wsrp = ParamUtil.getBoolean(request, "wsrp");
+
+		if (portlet != null) {
+			_portletId = portlet.getPortletId();
+
+			Set<String> autopropagatedParameters =
+				portlet.getAutopropagatedParameters();
+
+			for (String autopropagatedParameter : autopropagatedParameters) {
+				if (PortalUtil.isReservedParameter(autopropagatedParameter)) {
+					continue;
+				}
+
+				String value = request.getParameter(autopropagatedParameter);
+
+				if (value != null) {
+					setParameter(autopropagatedParameter, value);
+				}
+			}
+
+			PortletApp portletApp = portlet.getPortletApp();
+
+			_escapeXml = MapUtil.getBoolean(
+				portletApp.getContainerRuntimeOptions(),
+				LiferayPortletConfig.RUNTIME_OPTION_ESCAPE_XML,
+				PropsValues.PORTLET_URL_ESCAPE_XML);
+		}
+
+		if (layout != null) {
+			_plid = layout.getPlid();
+		}
+	}
+
+	private PortletURLImpl(
+		HttpServletRequest request, String portletId,
+		PortletRequest portletRequest, Layout layout, String lifecycle) {
+
+		this(
+			request,
+			PortletLocalServiceUtil.fetchPortletById(
+				PortalUtil.getCompanyId(request), portletId),
+			portletRequest, layout, lifecycle);
+	}
+
+	private void _appendNamespaceAndEncode(StringBundler sb, String name) {
+		String namespace = getNamespace();
+
+		if (!name.startsWith(PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE) &&
+			!name.startsWith(namespace) &&
+			!PortalUtil.isReservedParameter(name)) {
+
+			if (_encodedNamespace == null) {
+				_encodedNamespace = HttpUtil.encodeURL(namespace);
+			}
+
+			sb.append(_encodedNamespace);
+		}
+
+		sb.append(HttpUtil.encodeURL(name));
+	}
+
+	private Key _getKey() {
+		try {
+			if (_encrypt) {
+				Company company = PortalUtil.getCompany(_request);
+
+				return company.getKeyObj();
+			}
+		}
+		catch (Exception e) {
+			_log.error(e);
+		}
+
+		return null;
+	}
+
 	private Map<String, String[]> _mergeWithRenderParameters(
 		Map<String, String[]> portletURLParams) {
 
 		String namespace = getNamespace();
 
-		Layout layout = getLayout();
-
 		Map<String, String[]> renderParameters = RenderParametersPool.get(
-			_request, layout.getPlid(), getPortlet().getPortletId());
+			_request, _plid, _portletId);
 
 		if (renderParameters == null) {
 			return portletURLParams;
@@ -1326,13 +1403,14 @@ public class PortletURLImpl
 	private long _doAsGroupId;
 	private long _doAsUserId;
 	private String _doAsUserLanguageId;
+	private String _encodedNamespace;
 	private boolean _encrypt;
 	private boolean _escapeXml = PropsValues.PORTLET_URL_ESCAPE_XML;
 	private Layout _layout;
 	private String _layoutFriendlyURL;
 	private String _lifecycle;
 	private String _namespace;
-	private final Set<String> _parametersIncludedInPath;
+	private Set<String> _parametersIncludedInPath;
 	private Map<String, String[]> _params;
 	private long _plid;
 	private Portlet _portlet;
@@ -1342,9 +1420,8 @@ public class PortletURLImpl
 	private long _refererGroupId;
 	private long _refererPlid;
 	private Set<String> _removedParameterNames;
-	private final Map<String, String[]> _removePublicRenderParameters;
+	private final Set<String> _removePublicRenderParameters;
 	private final HttpServletRequest _request;
-	private Map<String, String> _reservedParameters;
 	private String _resourceID;
 	private boolean _secure;
 	private String _toString;

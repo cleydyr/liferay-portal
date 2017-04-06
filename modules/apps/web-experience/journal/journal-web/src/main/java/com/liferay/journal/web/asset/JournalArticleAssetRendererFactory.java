@@ -40,7 +40,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Locale;
@@ -77,6 +77,19 @@ public class JournalArticleAssetRendererFactory
 		setPortletId(JournalPortletKeys.JOURNAL);
 		setSearchable(true);
 		setSupportsClassTypes(true);
+	}
+
+	@Override
+	public AssetRenderer<JournalArticle> getAssetRenderer(
+			JournalArticle journalArticle, int type)
+		throws PortalException {
+
+		JournalArticleAssetRenderer journalArticleAssetRenderer =
+			getJournalArticleAssetRenderer(journalArticle);
+
+		journalArticleAssetRenderer.setAssetRendererType(type);
+
+		return journalArticleAssetRenderer;
 	}
 
 	@Override
@@ -173,7 +186,7 @@ public class JournalArticleAssetRendererFactory
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
-		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
+		PortletURL portletURL = _portal.getControlPanelPortletURL(
 			liferayPortletRequest, getGroup(liferayPortletRequest),
 			JournalPortletKeys.JOURNAL, 0, 0, PortletRequest.RENDER_PHASE);
 
@@ -314,6 +327,10 @@ public class JournalArticleAssetRendererFactory
 	private JournalArticleService _journalArticleService;
 	private JournalContent _journalContent;
 	private JournalConverter _journalConverter;
+
+	@Reference
+	private Portal _portal;
+
 	private ServletContext _servletContext;
 
 }

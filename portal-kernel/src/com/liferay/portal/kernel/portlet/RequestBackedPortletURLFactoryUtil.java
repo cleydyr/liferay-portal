@@ -18,8 +18,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -66,9 +68,15 @@ public class RequestBackedPortletURLFactoryUtil {
 		Layout layout = null;
 
 		try {
-			long plid = PortalUtil.getControlPanelPlid(companyId);
+			Group controlPanelGroup = GroupLocalServiceUtil.getGroup(
+				companyId, GroupConstants.CONTROL_PANEL);
 
-			layout = LayoutLocalServiceUtil.getLayout(plid);
+			layout = LayoutLocalServiceUtil.fetchDefaultLayout(
+				controlPanelGroup.getGroupId(), true);
+
+			if (layout == null) {
+				return null;
+			}
 		}
 		catch (PortalException pe) {
 			_log.error("Unable to get control panel layout", pe);
@@ -132,17 +140,16 @@ public class RequestBackedPortletURLFactoryUtil {
 			String portletId, Group group, long refererGroupId,
 			long refererPlid, String lifecycle) {
 
-			ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 			if (group == null) {
+				ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 				group = themeDisplay.getScopeGroup();
 			}
 
 			LiferayPortletURL liferayPortletURL = PortletURLFactoryUtil.create(
 				_request, portletId,
-				_getControlPanelLayout(themeDisplay.getCompanyId(), group),
-				lifecycle);
+				_getControlPanelLayout(group.getCompanyId(), group), lifecycle);
 
 			return _populateControlPanelPortletURL(
 				liferayPortletURL, refererGroupId, refererPlid);
@@ -220,18 +227,17 @@ public class RequestBackedPortletURLFactoryUtil {
 			String portletId, Group group, long refererGroupId,
 			long refererPlid, String lifecycle) {
 
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)_liferayPortletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
 			if (group == null) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)_liferayPortletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
 				group = themeDisplay.getScopeGroup();
 			}
 
 			LiferayPortletURL liferayPortletURL = PortletURLFactoryUtil.create(
 				_liferayPortletRequest, portletId,
-				_getControlPanelLayout(themeDisplay.getCompanyId(), group),
-				lifecycle);
+				_getControlPanelLayout(group.getCompanyId(), group), lifecycle);
 
 			return _populateControlPanelPortletURL(
 				liferayPortletURL, refererGroupId, refererPlid);

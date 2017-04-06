@@ -14,6 +14,8 @@
 
 package com.liferay.users.admin.web.portlet.action;
 
+import com.liferay.asset.kernel.exception.AssetCategoryException;
+import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.portal.kernel.exception.AddressCityException;
 import com.liferay.portal.kernel.exception.AddressStreetException;
@@ -54,7 +56,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -135,6 +137,11 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 
 				mvcPath = "/error.jsp";
 			}
+			else if (e instanceof AssetCategoryException ||
+					 e instanceof AssetTagException) {
+
+				SessionErrors.add(actionRequest, e.getClass(), e);
+			}
 			else if (e instanceof AddressCityException ||
 					 e instanceof AddressStreetException ||
 					 e instanceof AddressZipException ||
@@ -163,7 +170,7 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 				}
 
 				if (e instanceof RequiredOrganizationException) {
-					String redirect = PortalUtil.escapeRedirect(
+					String redirect = _portal.escapeRedirect(
 						ParamUtil.getString(actionRequest, "redirect"));
 
 					long organizationId = ParamUtil.getLong(
@@ -310,5 +317,8 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 
 	private DLAppLocalService _dlAppLocalService;
 	private OrganizationService _organizationService;
+
+	@Reference
+	private Portal _portal;
 
 }

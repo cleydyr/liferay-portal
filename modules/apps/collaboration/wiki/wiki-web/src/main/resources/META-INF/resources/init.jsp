@@ -20,6 +20,7 @@
 
 <%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
 taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+taglib uri="http://liferay.com/tld/comment" prefix="liferay-comment" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/expando" prefix="liferay-expando" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
@@ -65,7 +66,6 @@ page import="com.liferay.portal.kernel.search.SearchResultUtil" %><%@
 page import="com.liferay.portal.kernel.search.Summary" %><%@
 page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
 page import="com.liferay.portal.kernel.service.ServiceContext" %><%@
-page import="com.liferay.portal.kernel.service.SubscriptionLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.TicketLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionErrors" %><%@
@@ -97,6 +97,7 @@ page import="com.liferay.portlet.asset.util.AssetUtil" %><%@
 page import="com.liferay.social.kernel.model.SocialActivity" %><%@
 page import="com.liferay.social.kernel.model.SocialActivityConstants" %><%@
 page import="com.liferay.social.kernel.service.SocialActivityLocalServiceUtil" %><%@
+page import="com.liferay.subscription.service.SubscriptionLocalServiceUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.trash.kernel.util.TrashUtil" %><%@
 page import="com.liferay.wiki.web.internal.search.NodesChecker" %><%@

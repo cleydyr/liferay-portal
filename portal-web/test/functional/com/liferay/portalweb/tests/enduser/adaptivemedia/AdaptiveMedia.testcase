@@ -1,0 +1,287 @@
+<definition component-name="portal-collaboration">
+	<property name="portal.release" value="false" />
+	<property name="portal.upstream" value="false" />
+	<property name="custom.properties" value="default.layout.template.id=1_column" />
+	<property name="testray.main.component.name" value="Adaptive Media" />
+
+	<set-up>
+		<execute macro="TestCase#setUpPortalInstance" />
+
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+	</tear-down>
+
+	<command name="AddAMIWithHighDensityResolution" priority="5">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="addHighDensityDisplay" value="true" />
+			<var name="imageName" value="Low Resolution" />
+			<var name="maxHeight" value="480" />
+			<var name="maxWidth" value="320" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Low Resolution" />
+			<var name="maxHeight" value="480" />
+			<var name="maxWidth" value="320" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Low Resolution-2x" />
+			<var name="maxHeight" value="960" />
+			<var name="maxWidth" value="640" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+	</command>
+
+	<command name="AddAndUpdateAMIWithImagesInDM" priority="5">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="Low Resolution" />
+			<var name="maxHeight" value="480" />
+			<var name="maxWidth" value="320" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Low Resolution" />
+			<var name="maxHeight" value="480" />
+			<var name="maxWidth" value="320" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMDocument#addCP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentFile" value="Document_1.jpg" />
+			<var name="dmDocumentTitle" value="Document_1.jpg" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#optimizeRemainingImages">
+			<var name="imageName" value="Low Resolution" />
+			<var name="percentOptimized" value="100" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="High Resolution" />
+			<var name="maxHeight" value="1280" />
+			<var name="maxWidth" value="1440" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="High Resolution" />
+			<var name="maxHeight" value="1280" />
+			<var name="maxWidth" value="1440" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#selectAdaptiveMediaImage">
+			<var name="imageName" value="High Resolution" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewNumberOfOptimizedImages">
+			<var name="numberOfOptimizedImages" value="0/1" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#editImageResolution">
+			<var name="imageName" value="High Resolution" />
+			<var name="imageNameEdit" value="High Resolution Edited" />
+			<var name="maxHeightEdit" value="1080" />
+			<var name="maxWidthEdit" value="1920" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#selectAdaptiveMediaImage">
+			<var name="imageName" value="High Resolution Edited" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewNumberOfOptimizedImages">
+			<var name="numberOfOptimizedImages" value="0/1" />
+		</execute>
+	</command>
+
+	<command name="AddImageVariantsForBlogEntry" priority="5">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="Large Image Variant" />
+			<var name="maxHeight" value="1000" />
+			<var name="maxWidth" value="1000" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Large Image Variant" />
+			<var name="maxHeight" value="1000" />
+			<var name="maxWidth" value="1000" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMDocument#addCP">
+			<var name="dmDocumentDescription" value="Adaptive Media Image Description" />
+			<var name="dmDocumentFile" value="high_resolution_photo.jpg" />
+			<var name="dmDocumentTitle" value="high_resolution_photo.jpg" />
+		</execute>
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+			<var name="percentOptimized" value="100" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Large Image Variant" />
+			<var name="maxHeight" value="1000" />
+			<var name="maxWidth" value="1000" />
+			<var name="percentOptimized" value="100" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Blogs" />
+		</execute>
+
+		<execute macro="BlogsNavigator#gotoAddEntry" />
+
+		<execute macro="BlogsEntry#addTitle">
+			<var name="entryTitle" value="Blogs Entry With Adaptive Media Image" />
+		</execute>
+
+		<execute macro="ItemSelector#gotoItemSelectorViaAlloyEditor" />
+
+		<execute macro="ItemSelector#selectDMImage">
+			<var name="imageFileName" value="high_resolution_photo.jpg" />
+		</execute>
+
+		<execute function="Pause" locator1="2000" />
+
+		<execute macro="AdaptiveMedia#viewImageVariantURL">
+			<var name="dmDocumentTitle" value="high_resolution_photo.jpg" />
+			<var name="imageName" value="large-image-variant" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageVariantURL">
+			<var name="dmDocumentTitle" value="high_resolution_photo.jpg" />
+			<var name="imageName" value="small-image-variant" />
+		</execute>
+
+		<execute macro="Button#clickPublish" />
+	</command>
+
+	<command name="EditImageResolutionWithOptimizedImages" priority="5">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMDocument#addCP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentFile" value="Document_1.jpg" />
+			<var name="dmDocumentTitle" value="Document_1.jpg" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#editImageResolution">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="imageNameEdit" value="Small Image Variant Edited" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Small Image Variant Edited" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+		</execute>
+	</command>
+
+	<command name="EditImageResolutionWithoutOptimizedImage" priority="5">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Adaptive Media" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#addImageResolution">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Small Image Variant" />
+			<var name="maxHeight" value="100" />
+			<var name="maxWidth" value="100" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#editImageResolution">
+			<var name="imageIDEdit" value="large-image" />
+			<var name="imageName" value="Small Image Variant" />
+			<var name="imageNameEdit" value="Large Image Variant" />
+			<var name="maxHeightEdit" value="1000" />
+			<var name="maxWidthEdit" value="1000" />
+		</execute>
+
+		<execute macro="AdaptiveMedia#viewImageResolutionTableEntry">
+			<var name="imageName" value="Large Image Variant" />
+			<var name="maxHeight" value="1000" />
+			<var name="maxWidth" value="1000" />
+			<var name="percentOptimized" value="0" />
+		</execute>
+	</command>
+</definition>

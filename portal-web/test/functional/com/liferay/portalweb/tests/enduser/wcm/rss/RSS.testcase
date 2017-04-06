@@ -44,6 +44,8 @@
 	</tear-down>
 
 	<command name="AddFeedBetweenFeeds" priority="3">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
@@ -117,6 +119,8 @@
 	</command>
 
 	<command name="AddFeedWithWrongUrl" priority="4">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
@@ -175,6 +179,7 @@
 
 	<command name="AddRSSFeed" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="RSS" />
 
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
@@ -211,6 +216,8 @@
 	</command>
 
 	<command name="AddWebContentFeed" priority="3">
+		<property name="testray.component.names" value="Asset Publisher,RSS" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -289,6 +296,8 @@
 	</command>
 
 	<command name="ChangeDefaultToNavigationDisplay" priority="3">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
@@ -338,6 +347,8 @@
 	</command>
 
 	<command name="ChangeOrderOfRSSFeeds" priority="3">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
@@ -433,6 +444,8 @@
 	</command>
 
 	<command name="DeleteFeedFromRSS" priority="4">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Welcome" />
 		</execute>
@@ -487,6 +500,8 @@
 	</command>
 
 	<command name="DisabledFeedTitle" priority="3">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
@@ -542,6 +557,8 @@
 	</command>
 
 	<command name="EnableRSSFeedFromAssetpublisher" priority="3">
+		<property name="testray.component.names" value="Asset Publisher,RSS" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -636,6 +653,8 @@
 	</command>
 
 	<command name="RemoveRSSPortlet" priority="4">
+		<property name="testray.component.names" value="RSS" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Welcome" />
 		</execute>
@@ -668,6 +687,8 @@
 	</command>
 
 	<command name="UpdateRSSFeedViaAssetpublisher" priority="4">
+		<property name="testray.component.names" value="Asset Publisher,RSS" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -695,7 +716,7 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="pageName" value="Site Page Name 2" />
+			<var name="pageName" value="Asset Publisher Page" />
 		</execute>
 
 		<execute macro="Navigator#gotoSitePage">
@@ -708,7 +729,7 @@
 		</execute>
 
 		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Site Page Name 2" />
+			<var name="pageName" value="Asset Publisher Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
@@ -733,7 +754,7 @@
 		<execute macro="IFrame#selectTopFrame" />
 
 		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Site Page Name 2" />
+			<var name="pageName" value="Asset Publisher Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
@@ -771,7 +792,7 @@
 		</execute>
 
 		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Site Page Name 2" />
+			<var name="pageName" value="Asset Publisher Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
@@ -781,19 +802,14 @@
 			<var name="webContentTitleEdit" value="Web Content Title Updated Feed" />
 		</execute>
 
-		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Site Page Name" />
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<execute macro="RSS#viewDisplayFeedTitle">
-			<var name="feedTitle" value="Web Asset Publisher" />
-		</execute>
-
 		<execute macro="RSS#viewUpdateFeedTitle">
 			<var name="feedHeading" value="Web Content Title Updated Feed" />
 			<var name="pageName" value="Site Page Name" />
 			<var name="updateFeed" value="true" />
+		</execute>
+
+		<execute macro="RSS#viewDisplayFeedTitle">
+			<var name="feedTitle" value="Web Asset Publisher" />
 		</execute>
 	</command>
 </definition>

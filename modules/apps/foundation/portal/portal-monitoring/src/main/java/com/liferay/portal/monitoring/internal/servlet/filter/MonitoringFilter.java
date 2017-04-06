@@ -32,7 +32,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.AutoResetThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.monitoring.internal.statistics.portal.PortalRequestDataSample;
 
@@ -59,7 +59,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 @Component(
 	enabled = false, immediate = true,
 	property = {
-		"after-filter=Session Max Allowed Filter", "dispatcher=FORWARD",
+		"after-filter=Absolute Redirects Filter", "dispatcher=FORWARD",
 		"dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=Monitoring Filter", "url-pattern=/c/*",
 		"url-pattern=/group/*", "url-pattern=/user/*", "url-pattern=/web/*"
@@ -152,7 +152,7 @@ public class MonitoringFilter
 			FilterChain filterChain)
 		throws IOException, ServletException {
 
-		long companyId = PortalUtil.getCompanyId(request);
+		long companyId = _portal.getCompanyId(request);
 		long groupId = getGroupId(request);
 
 		PortalRequestDataSample portalRequestDataSample = null;
@@ -261,11 +261,15 @@ public class MonitoringFilter
 	private static final ThreadLocal<AtomicInteger> _processFilterCount =
 		new AutoResetThreadLocal<>(
 			MonitoringFilter.class + "._processFilterCount",
-			new AtomicInteger(0));
+			AtomicInteger::new);
 
 	private DataSampleFactory _dataSampleFactory;
 	private LayoutLocalService _layoutLocalService;
 	private boolean _monitorPortalRequest;
+
+	@Reference
+	private Portal _portal;
+
 	private PortletMonitoringControl _portletMonitoringControl;
 	private ServiceMonitoringControl _serviceMonitoringControl;
 

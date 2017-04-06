@@ -1170,6 +1170,8 @@
 				Util.submitForm(form);
 
 				form.attr('target', '');
+
+				Util._submitLocked = null;
 			}
 		},
 
@@ -1279,6 +1281,8 @@
 			}
 
 			iframeBody.addClass(dialog.iframeConfig.bodyCssClass);
+
+			event.win.focus();
 
 			var detachEventHandles = function() {
 				AArray.invoke(eventHandles, 'detach');
@@ -1869,7 +1873,7 @@
 		DROP_POSITION: 450,
 		MENU: 5000,
 		OVERLAY: 1000,
-		POPOVER: 1060,
+		POPOVER: 1600,
 		TOOLTIP: 10000,
 		WINDOW: 1200
 	};

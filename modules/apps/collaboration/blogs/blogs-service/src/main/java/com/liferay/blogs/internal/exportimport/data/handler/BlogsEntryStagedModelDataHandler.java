@@ -15,11 +15,11 @@
 package com.liferay.blogs.internal.exportimport.data.handler;
 
 import com.liferay.asset.kernel.model.AssetCategory;
-import com.liferay.blogs.internal.exportimport.content.processor.BlogsEntryExportImportContentProcessor;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.document.library.kernel.exception.NoSuchFileException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
 import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
@@ -27,8 +27,8 @@ import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
-import com.liferay.friendly.url.model.FriendlyURL;
-import com.liferay.friendly.url.service.FriendlyURLLocalService;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.portal.kernel.comment.CommentManagerUtil;
 import com.liferay.portal.kernel.comment.DiscussionStagingHandler;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -46,7 +46,7 @@ import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -64,6 +64,7 @@ import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Zsolt Berentey
@@ -181,15 +182,14 @@ public class BlogsEntryStagedModelDataHandler
 				PortletDataContext.REFERENCE_TYPE_WEAK);
 		}
 
-		_exportFriendlyURLs(portletDataContext, entry);
+		_exportFriendlyURLEntries(portletDataContext, entry);
 
 		String content =
-			_blogsEntryExportImportContentProcessor.
-				replaceExportContentReferences(
-					portletDataContext, entry, entry.getContent(),
-					portletDataContext.getBooleanParameter(
-						"blogs", "referenced-content"),
-					true);
+			_exportImportContentProcessor.replaceExportContentReferences(
+				portletDataContext, entry, entry.getContent(),
+				portletDataContext.getBooleanParameter(
+					"blogs", "referenced-content"),
+				true);
 
 		entry.setContent(content);
 
@@ -227,9 +227,8 @@ public class BlogsEntryStagedModelDataHandler
 			portletDataContext.getImportDataStagedModelElement(entry);
 
 		String content =
-			_blogsEntryExportImportContentProcessor.
-				replaceImportContentReferences(
-					portletDataContext, entry, entry.getContent());
+			_exportImportContentProcessor.replaceImportContentReferences(
+				portletDataContext, entry, entry.getContent());
 
 		entry.setContent(content);
 
@@ -368,7 +367,7 @@ public class BlogsEntryStagedModelDataHandler
 
 		newPrimaryKeysMap.put(entry.getEntryId(), importedEntry.getEntryId());
 
-		_importFriendlyURLs(portletDataContext, entry);
+		_importFriendlyURLEntries(portletDataContext, entry);
 
 		portletDataContext.importClassedModel(entry, importedEntry);
 	}
@@ -458,7 +457,7 @@ public class BlogsEntryStagedModelDataHandler
 		for (Element referenceElement : referenceElements) {
 			String className = referenceElement.attributeValue("class-name");
 
-			if (className.equals(FriendlyURL.class.getName()) ||
+			if (className.equals(FriendlyURLEntry.class.getName()) ||
 				className.equals(AssetCategory.class.getName()) ||
 				className.equals(RatingsEntry.class.getName()) ||
 				className.equals(stagedModelClassName)) {
@@ -475,26 +474,28 @@ public class BlogsEntryStagedModelDataHandler
 	}
 
 	@Reference(unbind = "-")
-	protected void setBlogsEntryExportImportContentProcessor(
-		BlogsEntryExportImportContentProcessor
-			blogsEntryExportImportContentProcessor) {
-
-		_blogsEntryExportImportContentProcessor =
-			blogsEntryExportImportContentProcessor;
-	}
-
-	@Reference(unbind = "-")
 	protected void setBlogsEntryLocalService(
 		BlogsEntryLocalService blogsEntryLocalService) {
 
 		_blogsEntryLocalService = blogsEntryLocalService;
 	}
 
-	@Reference(unbind = "-")
-	protected void setFriendlyURLLocalService(
-		FriendlyURLLocalService friendlyURLLocalService) {
+	@Reference(
+		policyOption = ReferencePolicyOption.GREEDY,
+		target = "(model.class.name=com.liferay.blogs.kernel.model.BlogsEntry)",
+		unbind = "-"
+	)
+	protected void setExportImportContentProcessor(
+		ExportImportContentProcessor<String> exportImportContentProcessor) {
 
-		_friendlyURLLocalService = friendlyURLLocalService;
+		_exportImportContentProcessor = exportImportContentProcessor;
+	}
+
+	@Reference(unbind = "-")
+	protected void setFriendlyURLEntryLocalService(
+		FriendlyURLEntryLocalService friendlyURLEntryLocalService) {
+
+		_friendlyURLEntryLocalService = friendlyURLEntryLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -502,20 +503,20 @@ public class BlogsEntryStagedModelDataHandler
 		_imageLocalService = imageLocalService;
 	}
 
-	private void _exportFriendlyURLs(
+	private void _exportFriendlyURLEntries(
 			PortletDataContext portletDataContext, BlogsEntry blogsEntry)
 		throws PortletDataException {
 
-		long classNameId = PortalUtil.getClassNameId(BlogsEntry.class);
+		long classNameId = _portal.getClassNameId(BlogsEntry.class);
 
-		List<FriendlyURL> friendlyURLs =
-			_friendlyURLLocalService.getFriendlyURLs(
-				blogsEntry.getCompanyId(), blogsEntry.getGroupId(), classNameId,
+		List<FriendlyURLEntry> friendlyURLEntries =
+			_friendlyURLEntryLocalService.getFriendlyURLEntries(
+				blogsEntry.getGroupId(), blogsEntry.getCompanyId(), classNameId,
 				blogsEntry.getEntryId());
 
-		for (FriendlyURL friendlyURL : friendlyURLs) {
+		for (FriendlyURLEntry friendlyURLEntry : friendlyURLEntries) {
 			StagedModelDataHandlerUtil.exportReferenceStagedModel(
-				portletDataContext, blogsEntry, friendlyURL,
+				portletDataContext, blogsEntry, friendlyURLEntry,
 				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
 		}
 	}
@@ -583,32 +584,34 @@ public class BlogsEntryStagedModelDataHandler
 		return null;
 	}
 
-	private void _importFriendlyURLs(
+	private void _importFriendlyURLEntries(
 			PortletDataContext portletDataContext, BlogsEntry blogsEntry)
 		throws PortletDataException {
 
-		List<Element> friendlyURLElements =
+		List<Element> friendlyURLEntryElements =
 			portletDataContext.getReferenceDataElements(
-				blogsEntry, FriendlyURL.class);
+				blogsEntry, FriendlyURLEntry.class);
 
-		for (Element friendlyURLElement : friendlyURLElements) {
-			String path = friendlyURLElement.attributeValue("path");
+		for (Element friendlyURLEntryElement : friendlyURLEntryElements) {
+			String path = friendlyURLEntryElement.attributeValue("path");
 
-			FriendlyURL friendlyURL =
-				(FriendlyURL)portletDataContext.getZipEntryAsObject(path);
+			FriendlyURLEntry friendlyURLEntry =
+				(FriendlyURLEntry)portletDataContext.getZipEntryAsObject(path);
 
 			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, friendlyURL);
+				portletDataContext, friendlyURLEntry);
 		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BlogsEntryStagedModelDataHandler.class);
 
-	private BlogsEntryExportImportContentProcessor
-		_blogsEntryExportImportContentProcessor;
 	private BlogsEntryLocalService _blogsEntryLocalService;
-	private FriendlyURLLocalService _friendlyURLLocalService;
+	private ExportImportContentProcessor<String> _exportImportContentProcessor;
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 	private ImageLocalService _imageLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }

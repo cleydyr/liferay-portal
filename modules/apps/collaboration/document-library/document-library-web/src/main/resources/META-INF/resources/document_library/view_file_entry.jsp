@@ -212,10 +212,19 @@ if (portletTitleBasedNavigation) {
 					<c:if test="<%= dlViewFileVersionDisplayContext.isDownloadLinkVisible() %>">
 						<div class="sidebar-block">
 							<span class="download-document">
+
+								<%
+								Map<String, Object> data = new HashMap<String, Object>();
+
+								data.put("senna-off", "true");
+								%>
+
 								<liferay-ui:icon
+									data="<%= data %>"
 									iconCssClass="icon-download"
 									label="<%= true %>"
 									message='<%= LanguageUtil.get(resourceBundle, "download") + " (" + TextFormatter.formatStorageSize(fileVersion.getSize(), locale) + ")" %>'
+									method="get"
 									url="<%= DLUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK) %>"
 								/>
 							</span>
@@ -227,6 +236,7 @@ if (portletTitleBasedNavigation) {
 								%>
 
 									<liferay-ui:icon
+										data="<%= data %>"
 										iconCssClass="<%= DLUtil.getFileIconCssClass(conversion) %>"
 										label="<%= true %>"
 										message="<%= StringUtil.toUpperCase(conversion) %>"
@@ -533,7 +543,7 @@ if (portletTitleBasedNavigation) {
 
 			<c:if test="<%= showComments && fileEntry.isRepositoryCapabilityProvided(CommentCapability.class) %>">
 				<liferay-ui:panel collapsible="<%= true %>" cssClass="lfr-document-library-comments panel-group" extended="<%= true %>" markupView="lexicon" persistState="<%= true %>" title="<%= dlViewFileVersionDisplayContext.getDiscussionLabel(locale) %>">
-					<liferay-ui:discussion
+					<liferay-comment:discussion
 						className="<%= dlViewFileVersionDisplayContext.getDiscussionClassName() %>"
 						classPK="<%= dlViewFileVersionDisplayContext.getDiscussionClassPK() %>"
 						formName="fm2"

@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.storage.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.dynamic.data.mapping.internal.util.DDMImpl;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
@@ -35,7 +36,6 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesToFieldsConverter;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
-import com.liferay.dynamic.data.mapping.util.impl.DDMImpl;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONSerializer;
@@ -456,12 +456,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
 
 		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {1, 1.5f, 2});
+			new Serializable[] {1, 1.5F, 2});
 
 		dataMap.put(_enLocale, enValues);
 
 		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {3, 3.5f, 4});
+			new Serializable[] {3, 3.5F, 4});
 
 		dataMap.put(_ptLocale, ptValues);
 

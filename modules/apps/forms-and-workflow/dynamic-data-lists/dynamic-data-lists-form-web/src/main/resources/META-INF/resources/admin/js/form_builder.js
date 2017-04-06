@@ -91,6 +91,10 @@ AUI.add(
 						writeOnce: true
 					},
 
+					successPage: {
+						value: {}
+					},
+
 					visitor: {
 						getter: '_getVisitor',
 						valueFn: '_valueVisitor'
@@ -294,6 +298,20 @@ AUI.add(
 						return instance._sidebar;
 					},
 
+					getPagesTitle: function() {
+						var instance = this;
+
+						return instance._getPageManagerInstance().get('titles');
+					},
+
+					getSuccessPageDefinition: function() {
+						var instance = this;
+
+						var pageManager = instance._getPageManagerInstance();
+
+						return pageManager.getSuccessPageDefinition();
+					},
+
 					openConfirmCancelFieldChangesDiolog: function(confirmFn) {
 						var instance = this;
 
@@ -446,6 +464,8 @@ AUI.add(
 									config
 								)
 							);
+
+							instance._pageManager.setSuccessPage(instance.get('definition').successPage);
 						}
 
 						return instance._pageManager;

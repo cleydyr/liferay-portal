@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +71,7 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 			"clearScreensCache",
 			String.valueOf(
 				_spaUtil.isClearScreensCache(request, request.getSession())));
+		values.put("debugEnabled", String.valueOf(_spaUtil.isDebugEnabled()));
 		values.put("excludedPaths", _spaUtil.getExcludedPaths());
 		values.put(
 			"loginRedirect",
@@ -100,24 +100,10 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 		scriptData.append(
 			null,
 			StringUtil.replaceToStringBundler(
-				_initTemplate, StringPool.POUND, StringPool.POUND, values),
+				_TMPL_CONTENT, StringPool.POUND, StringPool.POUND, values),
 			"frontend-js-spa-web/liferay/init.es", ScriptData.ModulesType.ES6);
 
 		scriptData.writeTo(response.getWriter());
-	}
-
-	private static final String _initTemplate;
-
-	static {
-		try (InputStream inputStream =
-				SPATopHeadJSPDynamicInclude.class.getResourceAsStream(
-					"/META-INF/resources/init.tmpl")) {
-
-			_initTemplate = StringUtil.read(inputStream);
-		}
-		catch (IOException ioe) {
-			throw new ExceptionInInitializerError(ioe);
-		}
 	}
 
 	@Override
@@ -153,6 +139,9 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 	protected void unsetSPAUtil(SPAUtil spaUtil) {
 		_spaUtil = null;
 	}
+
+	private static final String _TMPL_CONTENT = StringUtil.read(
+		SPATopHeadJSPDynamicInclude.class, "/META-INF/resources/init.tmpl");
 
 	@Reference
 	private Html _html;

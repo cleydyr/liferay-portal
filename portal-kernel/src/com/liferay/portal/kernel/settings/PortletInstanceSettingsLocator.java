@@ -17,7 +17,6 @@ package com.liferay.portal.kernel.settings;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -50,12 +49,9 @@ public class PortletInstanceSettingsLocator implements SettingsLocator {
 	public Settings getSettings() throws SettingsException {
 		long companyId = getCompanyId(_layout.getGroupId());
 
-		Settings portalPropertiesSettings =
-			_settingsLocatorHelper.getPortalPropertiesSettings();
-
 		Settings configurationBeanSettings =
 			_settingsLocatorHelper.getConfigurationBeanSettings(
-				_configurationPid, portalPropertiesSettings);
+				_configurationPid);
 
 		Settings portalPreferencesSettings =
 			_settingsLocatorHelper.getPortalPreferencesSettings(
@@ -117,11 +113,8 @@ public class PortletInstanceSettingsLocator implements SettingsLocator {
 		_embeddedPortlet = false;
 
 		if (_layout.isSupportsEmbeddedPortlets()) {
-			LayoutTypePortlet layoutTypePortlet =
-				(LayoutTypePortlet)_layout.getLayoutType();
-
-			_embeddedPortlet = layoutTypePortlet.isPortletEmbedded(
-				_portletInstanceKey);
+			_embeddedPortlet = _layout.isPortletEmbedded(
+				_portletInstanceKey, _layout.getGroupId());
 		}
 
 		return _embeddedPortlet;

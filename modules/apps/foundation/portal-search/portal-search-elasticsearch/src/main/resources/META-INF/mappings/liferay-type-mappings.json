@@ -1,5 +1,6 @@
 {
 	"LiferayDocumentType": {
+		"date_detection": false,
 		"dynamic_templates": [
 			{
 				"template_long_sortable": {
@@ -24,6 +25,17 @@
 				}
 			},
 			{
+				"template_geolocation": {
+					"mapping": {
+						"index": "not_analyzed",
+						"lat_lon": true,
+						"store": true,
+						"type": "geo_point"
+					},
+					"match": "*_geolocation"
+				}
+			},
+			{
 				"template_assetCategoryTitles": {
 					"mapping": {
 						"index": "analyzed",
@@ -43,6 +55,17 @@
 						"type": "string"
 					},
 					"match": "ddm__keyword__*",
+					"match_mapping_type": "string"
+				}
+			},
+			{
+				"template_expando_keyword": {
+					"mapping": {
+						"analyzer" : "keyword_lowercase",
+						"store": "true",
+						"type": "string"
+					},
+					"match": "expando__keyword__*",
 					"match_mapping_type": "string"
 				}
 			},
@@ -479,7 +502,7 @@
 			{
 				"template_expando": {
 					"mapping": {
-						"index": "not_analyzed",
+						"index": "analyzed",
 						"store": "true",
 						"type": "string"
 					},

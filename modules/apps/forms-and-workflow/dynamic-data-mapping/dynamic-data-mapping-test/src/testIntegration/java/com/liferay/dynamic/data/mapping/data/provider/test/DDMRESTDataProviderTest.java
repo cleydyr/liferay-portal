@@ -19,18 +19,19 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProvider;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderContext;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseOutput;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
+import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -82,9 +83,6 @@ public class DDMRESTDataProviderTest {
 				"filterParameterName", StringPool.BLANK));
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"key", "countryId"));
-		ddmFormValues.addDDMFormFieldValue(
-			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"password", "test"));
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
@@ -93,26 +91,47 @@ public class DDMRESTDataProviderTest {
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"username", "test@liferay.com"));
-		ddmFormValues.addDDMFormFieldValue(
+
+		DDMFormFieldValue outputParameters =
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"value", "nameCurrentValue"));
+				"outputParameters", StringPool.BLANK);
+
+		ddmFormValues.addDDMFormFieldValue(outputParameters);
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterName", "output"));
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterPath", "nameCurrentValue;countryId"));
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterType", "[\"list\"]"));
 
 		DDMDataProviderContext ddmDataProviderContext =
-			new DDMDataProviderContext(ddmFormValues);
+			new DDMDataProviderContext(null, null, ddmFormValues);
 
 		DDMDataProviderRequest ddmDataProviderRequest =
-			new DDMDataProviderRequest(ddmDataProviderContext);
+			new DDMDataProviderRequest(ddmDataProviderContext, null);
 
-		DDMDataProviderResponse ddmDtaProviderResponse =
+		DDMDataProviderResponse ddmDataProviderResponse =
 			_ddmDataProvider.getData(ddmDataProviderRequest);
 
-		List<Map<Object, Object>> data = ddmDtaProviderResponse.getData();
+		Assert.assertNotNull(ddmDataProviderResponse);
 
-		Assert.assertFalse(data.isEmpty());
+		DDMDataProviderResponseOutput ddmDataProviderResponseOutput =
+			ddmDataProviderResponse.get("output");
 
-		List<Map<Object, Object>> expectedData = createExpectedData();
+		Assert.assertNotNull(ddmDataProviderResponseOutput);
 
-		Assert.assertTrue(data.containsAll(expectedData));
+		List<KeyValuePair> actualData = ddmDataProviderResponseOutput.getValue(
+			List.class);
+
+		List<KeyValuePair> expectedData = createExpectedData();
+
+		Assert.assertTrue(actualData.containsAll(expectedData));
 	}
 
 	@Test
@@ -139,9 +158,6 @@ public class DDMRESTDataProviderTest {
 				"filterParameterName", "name"));
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"key", "countryId"));
-		ddmFormValues.addDDMFormFieldValue(
-			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"password", "test"));
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
@@ -149,60 +165,63 @@ public class DDMRESTDataProviderTest {
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"username", "test@liferay.com"));
-		ddmFormValues.addDDMFormFieldValue(
+
+		DDMFormFieldValue outputParameters =
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"value", "nameCurrentValue"));
+				"outputParameters", StringPool.BLANK);
+
+		ddmFormValues.addDDMFormFieldValue(outputParameters);
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterName", "output"));
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterPath", "nameCurrentValue;countryId"));
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterType", "[\"list\"]"));
 
 		DDMDataProviderContext ddmDataProviderContext =
-			new DDMDataProviderContext(ddmFormValues);
-
-		ddmDataProviderContext.addParameter("filterParameterValue", "brazil");
+			new DDMDataProviderContext(null, null, ddmFormValues);
 
 		DDMDataProviderRequest ddmDataProviderRequest =
-			new DDMDataProviderRequest(ddmDataProviderContext);
+			new DDMDataProviderRequest(ddmDataProviderContext, null);
+
+		ddmDataProviderRequest.queryString("filterParameterValue", "brazil");
 
 		DDMDataProviderResponse ddmDataProviderResponse =
 			_ddmDataProvider.getData(ddmDataProviderRequest);
 
 		Assert.assertNotNull(ddmDataProviderResponse);
 
-		List<Map<Object, Object>> data = ddmDataProviderResponse.getData();
+		DDMDataProviderResponseOutput ddmDataProviderResponseOutput =
+			ddmDataProviderResponse.get("output");
 
-		Assert.assertEquals(1, data.size());
+		Assert.assertNotNull(ddmDataProviderResponseOutput);
 
-		Map<Object, Object> map = new HashMap<>();
+		List<KeyValuePair> actualData = ddmDataProviderResponseOutput.getValue(
+			List.class);
 
-		map.put("48", "Brazil");
+		int actualSize = actualData.size();
 
-		Assert.assertTrue(data.contains(map));
+		Assert.assertEquals(1, actualSize);
+
+		KeyValuePair actualKeyValuePair = actualData.get(0);
+
+		Assert.assertEquals("48", actualKeyValuePair.getKey());
+		Assert.assertEquals("Brazil", (String)actualKeyValuePair.getValue());
 	}
 
-	protected List<Map<Object, Object>> createExpectedData() {
-		List<Map<Object, Object>> expectedData = new ArrayList<>();
+	protected List<KeyValuePair> createExpectedData() {
+		List<KeyValuePair> expectedData = new ArrayList<>();
 
-		Map<Object, Object> map = new HashMap<>();
-
-		map.put("3", "France");
-
-		expectedData.add(map);
-
-		map = new HashMap<>();
-
-		map.put("15", "Spain");
-
-		expectedData.add(map);
-
-		map = new HashMap<>();
-
-		map.put("19", "United States");
-
-		expectedData.add(map);
-
-		map = new HashMap<>();
-
-		map.put("48", "Brazil");
-
-		expectedData.add(map);
+		expectedData.add(new KeyValuePair("3", "France"));
+		expectedData.add(new KeyValuePair("15", "Spain"));
+		expectedData.add(new KeyValuePair("19", "United States"));
+		expectedData.add(new KeyValuePair("48", "Brazil"));
 
 		return expectedData;
 	}

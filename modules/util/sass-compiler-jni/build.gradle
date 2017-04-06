@@ -41,14 +41,14 @@ make -j5""")
 
 buildLibSass_Linux_x64 {
 	inputFileName = "libsass.so"
-	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.4 shared"
+	makeExecutable = "make shared"
 	outputFileName = "libliferaysass.so"
 	resourcesDirName = "linux_x64"
 }
 
 buildLibSass_Linux_x86 {
 	inputFileName = "libsass.so"
-	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.4 shared"
+	makeExecutable = "make shared"
 	outputFileName = "libliferaysass.so"
 	resourcesDirName = "linux_x86"
 }
@@ -78,9 +78,9 @@ configurations {
 dependencies {
 	compile group: "com.liferay", name: "com.liferay.sass.compiler.api", version: "2.0.0"
 
-	jnaerator classifier: "shaded", group: "com.nativelibs4java", name: "jnaerator", transitive: false, version: "0.12"
+	compileInclude group: "com.nativelibs4java", name: "bridj", version: "0.7.0"
 
-	provided group: "com.nativelibs4java", name: "bridj", transitive: false, version: "0.7.0"
+	jnaerator classifier: "shaded", group: "com.nativelibs4java", name: "jnaerator", transitive: false, version: "0.12"
 }
 
 downloadSassSpec {
@@ -136,6 +136,10 @@ generateJNALibrary {
 	onlyIf {
 		!jnaLibraryFile.exists()
 	}
+}
+
+liferayOSGi {
+	expandCompileInclude = true
 }
 
 processTestResources {

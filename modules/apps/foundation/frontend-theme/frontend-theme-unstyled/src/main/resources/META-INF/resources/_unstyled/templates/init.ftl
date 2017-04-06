@@ -47,34 +47,37 @@
 	<#assign company_url = portalUtil.getURLWithSessionId(company_url, request.getSession().getId()) />
 </#if>
 
-<#-- ---------- LPS-66428 ---------- -->
-
 <#assign
-	is_default_user = user.isDefaultUser()
-	is_female = user.isFemale()
-	is_male = user.isMale()
-	is_setup_complete = user.isSetupComplete()
-	language = locale.getLanguage()
-	language_id = user.getLanguageId()
 	time_zone = user.getTimeZoneId()
-	user_birthday = user.getBirthday()
-	user_comments = user.getComments()
-	user_email_address = user.getEmailAddress()
-	user_first_name = user.getFirstName()
-	user_greeting = htmlUtil.escape(user.getGreeting())
-	user_id = user.getUserId()
-	user_last_login_ip = user.getLastLoginIP()
-	user_last_name = user.getLastName()
-	user_login_ip = user.getLoginIP()
-	user_middle_name = user.getMiddleName()
-	user_name = user.getFullName()
-	w3c_language_id = localeUtil.toW3cLanguageId(theme_display.getLanguageId())
-
 	is_login_redirect_required = portalUtil.isLoginRedirectRequired(request)
 	is_signed_in = theme_display.isSignedIn()
-
 	group_id = theme_display.getScopeGroupId()
 />
+
+<#-- ---------- LPS-66428 ---------- -->
+
+<#if !user_initialized??>
+	<#assign
+		is_default_user = user.isDefaultUser()
+		is_female = user.isFemale()
+		is_male = user.isMale()
+		is_setup_complete = user.isSetupComplete()
+		language = locale.getLanguage()
+		language_id = user.getLanguageId()
+		user_birthday = user.getBirthday()
+		user_comments = user.getComments()
+		user_email_address = user.getEmailAddress()
+		user_first_name = user.getFirstName()
+		user_greeting = htmlUtil.escape(user.getGreeting())
+		user_id = user.getUserId()
+		user_last_login_ip = user.getLastLoginIP()
+		user_last_name = user.getLastName()
+		user_login_ip = user.getLoginIP()
+		user_middle_name = user.getMiddleName()
+		user_name = user.getFullName()
+		w3c_language_id = localeUtil.toW3cLanguageId(theme_display.getLanguageId())
+	/>
+</#if>
 
 <#-- ---------- URLs ---------- -->
 
@@ -153,7 +156,7 @@
 		is_portlet_page = false
 	/>
 
-	<#if page.getType() = "portlet">
+	<#if stringUtil.equals(page.getType(), "portlet")>
 		<#assign is_portlet_page = true />
 	</#if>
 
@@ -256,7 +259,7 @@
 	<#assign the_title = htmlUtil.escape(the_title) />
 </#if>
 
-<#if the_title ?has_content && company_name != site_name && !page_group.isLayoutPrototype()>
+<#if the_title ?has_content && !stringUtil.equals(company_name, site_name) && !page_group.isLayoutPrototype()>
 	<#assign the_title = the_title + " - " + site_name />
 </#if>
 
@@ -333,6 +336,7 @@
 		my_places_text = my_sites_text
 	/>
 </#if>
+
 <#-- ---------- Includes ---------- -->
 
 <#assign dir_include = "/html" />

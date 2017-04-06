@@ -14,6 +14,7 @@
 
 package com.liferay.login.web.internal.portlet.action;
 
+import com.liferay.captcha.configuration.CaptchaConfiguration;
 import com.liferay.login.web.constants.LoginPortletKeys;
 import com.liferay.portal.kernel.captcha.CaptchaConfigurationException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
@@ -45,12 +47,11 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.util.PropsValues;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -82,7 +83,7 @@ public class CreateAnonymousAccountMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+		HttpServletRequest request = _portal.getHttpServletRequest(
 			actionRequest);
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -115,9 +116,11 @@ public class CreateAnonymousAccountMVCActionCommand
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
 
-		serviceContext.setAttribute("anonymousUser", true);
+		serviceContext.setAttribute("anonymousUser", Boolean.TRUE);
 
-		if (PropsValues.CAPTCHA_CHECK_PORTAL_CREATE_ACCOUNT) {
+		CaptchaConfiguration captchaConfiguration = getCaptchaConfiguration();
+
+		if (captchaConfiguration.createAccountCaptchaEnabled()) {
 			CaptchaUtil.check(actionRequest);
 		}
 
@@ -251,8 +254,20 @@ public class CreateAnonymousAccountMVCActionCommand
 			else {
 				_log.error("Unable to create anonymous account", e);
 
-				PortalUtil.sendError(e, actionRequest, actionResponse);
+				_portal.sendError(e, actionRequest, actionResponse);
 			}
+		}
+	}
+
+	protected CaptchaConfiguration getCaptchaConfiguration()
+		throws CaptchaConfigurationException {
+
+		try {
+			return _configurationProvider.getSystemConfiguration(
+				CaptchaConfiguration.class);
+		}
+		catch (Exception e) {
+			throw new CaptchaConfigurationException(e);
 		}
 	}
 
@@ -319,6 +334,12 @@ public class CreateAnonymousAccountMVCActionCommand
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CreateAnonymousAccountMVCActionCommand.class);
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private Portal _portal;
 
 	private UserLocalService _userLocalService;
 	private UserService _userService;

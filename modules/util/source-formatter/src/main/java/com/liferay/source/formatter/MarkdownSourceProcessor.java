@@ -14,8 +14,12 @@
 
 package com.liferay.source.formatter;
 
+import com.liferay.source.formatter.checks.SourceCheck;
+import com.liferay.source.formatter.checks.WhitespaceCheck;
+
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,16 +28,11 @@ import java.util.List;
 public class MarkdownSourceProcessor extends BaseSourceProcessor {
 
 	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
-	@Override
 	protected String doFormat(
 			File file, String fileName, String absolutePath, String content)
 		throws Exception {
 
-		return trimContent(content, true);
+		return content;
 	}
 
 	@Override
@@ -41,6 +40,23 @@ public class MarkdownSourceProcessor extends BaseSourceProcessor {
 		return getFileNames(new String[0], getIncludes());
 	}
 
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	@Override
+	protected List<SourceCheck> getSourceChecks() {
+		return _sourceChecks;
+	}
+
+	@Override
+	protected void populateSourceChecks() {
+		_sourceChecks.add(new WhitespaceCheck(true));
+	}
+
 	private static final String[] _INCLUDES = new String[] {"**/*.markdown"};
+
+	private final List<SourceCheck> _sourceChecks = new ArrayList<>();
 
 }

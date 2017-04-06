@@ -18,6 +18,7 @@ import aQute.bnd.osgi.Constants;
 
 import aQute.lib.converter.Converter;
 
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -456,6 +458,9 @@ public class JSLoaderModulesServletTest extends PowerMockito {
 		JSLoaderModulesServlet jsLoaderModulesServlet =
 			new JSLoaderModulesServlet();
 
+		ReflectionTestUtil.setFieldValue(
+			jsLoaderModulesServlet, "_portal", PortalUtil.getPortal());
+
 		jsLoaderModulesServlet.activate(
 			mock(ComponentContext.class), mock(Details.class));
 
@@ -571,19 +576,28 @@ public class JSLoaderModulesServletTest extends PowerMockito {
 	protected BundleWiring mockBundleWiring(String bsn, boolean capability) {
 		BundleWiring bundleWiring = mock(BundleWiring.class);
 
+		List<BundleCapability> bundleCapabilities = Collections.emptyList();
+
+		if (capability) {
+			bundleCapabilities = Arrays.asList(mockBundleCapability(bsn));
+		}
+
 		doReturn(
-			capability ?
-				Arrays.asList(mockBundleCapability(bsn)) :
-					Collections.emptyList()
+			bundleCapabilities
 		).when(
 			bundleWiring
 		).getCapabilities(
 			Details.OSGI_WEBRESOURCE
 		);
 
+		List<BundleWire> bundleWires = Collections.emptyList();
+
+		if (capability) {
+			bundleWires = Arrays.asList(mockBundleWire());
+		}
+
 		doReturn(
-			capability ?
-				Arrays.asList(mockBundleWire()) : Collections.emptyList()
+			bundleWires
 		).when(
 			bundleWiring
 		).getRequiredWires(

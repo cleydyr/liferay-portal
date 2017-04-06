@@ -14,6 +14,8 @@
 
 package com.liferay.jenkins.results.parser;
 
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +61,7 @@ public class TestResult {
 
 		className = caseJSONObject.getString("className");
 
-		duration = (long)(caseJSONObject.getDouble("duration") * 1000d);
+		duration = (long)(caseJSONObject.getDouble("duration") * 1000D);
 
 		int x = className.lastIndexOf(".");
 
@@ -80,8 +82,64 @@ public class TestResult {
 		return className;
 	}
 
+	public String getConsoleOutputURL() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(axisBuild.getTestRayLogsURL());
+		sb.append("/jenkins-console.txt.gz");
+
+		return sb.toString();
+	}
+
+	public String getDisplayName() {
+		if (testName.startsWith("test[")) {
+			return testName.substring(5, testName.length() - 1);
+		}
+
+		return simpleClassName + "." + testName;
+	}
+
 	public long getDuration() {
 		return duration;
+	}
+
+	public String getLiferayLogURL() {
+		StringBuilder sb = new StringBuilder();
+
+		String name = getDisplayName();
+
+		sb.append(axisBuild.getTestRayLogsURL());
+		sb.append("/");
+		sb.append(name.replace("#", "_"));
+		sb.append("/liferay-log.txt.gz");
+
+		return sb.toString();
+	}
+
+	public String getPoshiReportURL() {
+		StringBuilder sb = new StringBuilder();
+
+		String name = getDisplayName();
+
+		sb.append(axisBuild.getTestRayLogsURL());
+		sb.append("/");
+		sb.append(name.replace("#", "_"));
+		sb.append("/index.html.gz");
+
+		return sb.toString();
+	}
+
+	public String getPoshiSummaryURL() {
+		StringBuilder sb = new StringBuilder();
+
+		String name = getDisplayName();
+
+		sb.append(axisBuild.getTestRayLogsURL());
+		sb.append("/");
+		sb.append(name.replace("#", "_"));
+		sb.append("/summary.html.gz");
+
+		return sb.toString();
 	}
 
 	public String getStatus() {
@@ -90,6 +148,45 @@ public class TestResult {
 
 	public String getTestName() {
 		return testName;
+	}
+
+	public String getTestReportURL() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(axisBuild.getBuildURL());
+		sb.append("/testReport/");
+		sb.append(packageName);
+		sb.append("/");
+		sb.append(simpleClassName);
+		sb.append("/");
+
+		String encodedTestName = testName;
+
+		encodedTestName = encodedTestName.replace("[", "_");
+		encodedTestName = encodedTestName.replace("]", "_");
+		encodedTestName = encodedTestName.replace("#", "_");
+
+		if (packageName.equals("junit.framework")) {
+			encodedTestName = encodedTestName.replace(".", "_");
+		}
+
+		sb.append(encodedTestName);
+
+		return sb.toString();
+	}
+
+	public boolean hasLiferayLog() {
+		String liferayLog = null;
+
+		try {
+			liferayLog = JenkinsResultsParserUtil.toString(
+				getLiferayLogURL(), false, 0, 0, 0);
+		}
+		catch (IOException ioe) {
+			return false;
+		}
+
+		return !liferayLog.isEmpty();
 	}
 
 	protected AxisBuild axisBuild;

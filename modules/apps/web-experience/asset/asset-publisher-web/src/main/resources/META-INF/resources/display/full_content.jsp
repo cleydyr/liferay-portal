@@ -46,12 +46,13 @@ String languageId = LanguageUtil.getLanguageId(request);
 String title = assetRenderer.getTitle(LocaleUtil.fromLanguageId(languageId));
 
 boolean print = ((Boolean)request.getAttribute("view.jsp-print")).booleanValue();
+boolean workflowEnabled = WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(assetEntry.getCompanyId(), assetEntry.getGroupId(), assetEntry.getClassName());
 
 assetPublisherDisplayContext.setLayoutAssetEntry(assetEntry);
 
 assetEntry = assetPublisherDisplayContext.incrementViewCounter(assetEntry);
 
-request.setAttribute("view.jsp-fullContentRedirect", currentURL);
+request.setAttribute("view.jsp-fullContentRedirect", workflowEnabled ? redirect : currentURL);
 request.setAttribute("view.jsp-showIconLabel", true);
 %>
 
@@ -187,15 +188,26 @@ request.setAttribute("view.jsp-showIconLabel", true);
 		</c:if>
 
 		<c:if test="<%= assetPublisherDisplayContext.isEnableRelatedAssets() %>">
+
+			<%
+			PortletURL assetLingsURL = renderResponse.createRenderURL();
+
+			assetLingsURL.setParameter("mvcPath", "/view_content.jsp");
+
+			if (print) {
+				assetLingsURL.setParameter("viewMode", Constants.PRINT);
+			}
+			%>
+
 			<liferay-ui:asset-links
 				assetEntryId="<%= assetEntry.getEntryId() %>"
-				portletURL="<%= viewFullContentURL %>"
+				portletURL="<%= assetLingsURL %>"
 			/>
 		</c:if>
 
 		<c:if test="<%= assetPublisherDisplayContext.isEnableComments() && assetRenderer.isCommentable() %>">
 			<div class="col-md-12">
-				<liferay-ui:discussion
+				<liferay-comment:discussion
 					className="<%= assetEntry.getClassName() %>"
 					classPK="<%= assetEntry.getClassPK() %>"
 					formName='<%= "fm" + assetEntry.getClassPK() %>'

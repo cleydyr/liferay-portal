@@ -5,7 +5,7 @@ The TLDDoc Builder Gradle plugin lets you run the
 tool in order to generate documentation for the JSP Tag Library Descriptor (TLD)
 files in your project.
 
-The plugin has been successfully tested with Gradle 2.5 up to 3.2.1.
+The plugin has been successfully tested with Gradle 2.5 up to 3.3.
 
 ## Usage
 
@@ -167,7 +167,7 @@ Property Name | Type | Default Value | Description
 `excludes` | `Set<String>` | `[]` | The TLD file patterns to exclude.
 <a name="includes"></a>`includes` | `Set<String>` | `[]` | The TLD file patterns to include.
 <a name="source"></a>`source` | [`FileTree`](https://docs.gradle.org/current/javadoc/org/gradle/api/file/FileTree.html) | `[]` | The TLD files to generate documentation for, after the include and exclude patterns have been applied.
-`xsltDir` | `File` | `null` | The directory which contains the custom XSLT stylesheets used by the Tag Library Documentation Generator to produce the final documentation files. It sets the `-xslt` argument.
+`xsltDir` | `File` | `null` | The directory that contains the custom XSLT stylesheets used by the Tag Library Documentation Generator to produce the final documentation files. It sets the `-xslt` argument.
 
 The properties of type `File` support any type that can be resolved by
 [`project.file`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.tlddoc.Object)).

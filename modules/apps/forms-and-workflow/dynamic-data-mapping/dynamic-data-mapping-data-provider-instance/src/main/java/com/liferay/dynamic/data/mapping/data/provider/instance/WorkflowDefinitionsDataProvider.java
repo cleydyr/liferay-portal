@@ -19,10 +19,11 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderContext;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderException;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseOutput;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowDefinitionManager;
@@ -31,10 +32,8 @@ import com.liferay.portal.kernel.workflow.WorkflowException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -63,24 +62,24 @@ public class WorkflowDefinitionsDataProvider implements DDMDataProvider {
 			DDMDataProviderRequest ddmDataProviderRequest)
 		throws DDMDataProviderException {
 
-		List<Map<Object, Object>> data = new ArrayList<>();
-
-		DDMDataProviderContext ddmDataProviderContext =
-			ddmDataProviderRequest.getDDMDataProviderContext();
+		List<KeyValuePair> data = new ArrayList<>();
 
 		Locale locale = getLocale(
-			ddmDataProviderContext.getHttpServletRequest());
+			ddmDataProviderRequest.getHttpServletRequest());
 
 		data.add(
-			createMap(LanguageUtil.get(locale, "no-workflow"), "no-workflow"));
+			new KeyValuePair(
+				LanguageUtil.get(locale, "no-workflow"), "no-workflow"));
 
 		if (!_workflowEngineManager.isDeployed()) {
-			return new DDMDataProviderResponse(data);
+			return DDMDataProviderResponse.of(
+				DDMDataProviderResponseOutput.of(
+					"Default-Output", "list", data));
 		}
 
 		try {
 			long companyId = getCompanyId(
-				ddmDataProviderContext.getHttpServletRequest());
+				ddmDataProviderRequest.getHttpServletRequest());
 
 			List<WorkflowDefinition> workflowDefinitions =
 				_workflowDefinitionManager.getActiveWorkflowDefinitions(
@@ -98,14 +97,15 @@ public class WorkflowDefinitionsDataProvider implements DDMDataProvider {
 					workflowDefinition.getName() + StringPool.AT +
 						workflowDefinition.getVersion();
 
-				data.add(createMap(label, value));
+				data.add(new KeyValuePair(value, label));
 			}
 		}
 		catch (WorkflowException we) {
 			throw new DDMDataProviderException(we);
 		}
 
-		return new DDMDataProviderResponse(data);
+		return DDMDataProviderResponse.of(
+			DDMDataProviderResponseOutput.of("Default-Output", "list", data));
 	}
 
 	@Override
@@ -113,21 +113,16 @@ public class WorkflowDefinitionsDataProvider implements DDMDataProvider {
 		throw new UnsupportedOperationException();
 	}
 
-	protected Map<Object, Object> createMap(String label, String value) {
-		Map<Object, Object> map = new HashMap<>();
-
-		map.put(label, value);
-
-		return map;
-	}
-
 	protected long getCompanyId(HttpServletRequest httpServletRequest) {
-		return PortalUtil.getCompanyId(httpServletRequest);
+		return _portal.getCompanyId(httpServletRequest);
 	}
 
 	protected Locale getLocale(HttpServletRequest httpServletRequest) {
-		return PortalUtil.getLocale(httpServletRequest);
+		return _portal.getLocale(httpServletRequest);
 	}
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private WorkflowDefinitionManager _workflowDefinitionManager;

@@ -6546,8 +6546,51 @@ public class SyncDLObjectPersistenceImpl extends BasePersistenceImpl<SyncDLObjec
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !SyncDLObjectModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!SyncDLObjectModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] {
+					syncDLObjectModelImpl.getRepositoryId(),
+					syncDLObjectModelImpl.getParentFolderId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_P,
+				args);
+
+			args = new Object[] {
+					syncDLObjectModelImpl.getRepositoryId(),
+					syncDLObjectModelImpl.getType()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_T, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_T,
+				args);
+
+			args = new Object[] {
+					syncDLObjectModelImpl.getVersion(),
+					syncDLObjectModelImpl.getType()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_V_T, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_V_T,
+				args);
+
+			args = new Object[] {
+					syncDLObjectModelImpl.getRepositoryId(),
+					syncDLObjectModelImpl.getParentFolderId(),
+					syncDLObjectModelImpl.getType()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_P_T, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_P_T,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -6841,7 +6884,7 @@ public class SyncDLObjectPersistenceImpl extends BasePersistenceImpl<SyncDLObjec
 		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

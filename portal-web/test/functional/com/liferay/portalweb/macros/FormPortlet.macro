@@ -23,6 +23,10 @@
 		<execute function="AssertTextEquals" locator1="FormPortlet#FORM_PAGE_ACTIVE" value1="${formPageNext}" />
 	</command>
 
+	<command name="previousPage">
+		<execute function="Click" locator1="Button#PREVIOUS" />
+	</command>
+
 	<command name="submit">
 		<if>
 			<condition function="IsElementPresent" locator1="FormPortlet#PORTLET_CONTENT" />
@@ -53,5 +57,15 @@
 		<execute macro="FormPortlet#submit" />
 
 		<execute function="AssertTextEquals" locator1="Message#ERROR_FORM_FIELD_REQUIRED" value1="${validationErrorMessage}" />
+	</command>
+
+	<command name="viewSuccessPage">
+		<var name="key_successPageTitle" value="${successPageTitle}" />
+
+		<execute function="AssertTextEquals" locator1="FormPortlet#SUCCESS_PAGE_TITLE" value1="${successPageTitle}" />
+
+		<var name="key_successPageDescription" value="${successPageDescription}" />
+
+		<execute function="AssertTextEquals" locator1="FormPortlet#SUCCESS_PAGE_DESCRIPTION" value1="${successPageDescription}" />
 	</command>
 </definition>

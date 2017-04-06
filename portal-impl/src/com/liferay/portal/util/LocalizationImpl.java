@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.util.ContentUtil;
+import com.liferay.util.xml.XMLUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -191,18 +192,18 @@ public class LocalizationImpl implements Localization {
 		String xml, String requestedLanguageId, boolean useDefault,
 		String defaultValue) {
 
-		String systemDefaultLanguageId = LocaleUtil.toLanguageId(
-			LocaleUtil.getSiteDefault());
-
 		if (!Validator.isXml(xml)) {
-			if (useDefault ||
-				requestedLanguageId.equals(systemDefaultLanguageId)) {
+			if (useDefault) {
+				return xml;
+			}
+
+			if (requestedLanguageId.equals(
+					LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()))) {
 
 				return xml;
 			}
-			else {
-				return defaultValue;
-			}
+
+			return defaultValue;
 		}
 
 		String value = _getCachedValue(xml, requestedLanguageId, useDefault);
@@ -210,6 +211,9 @@ public class LocalizationImpl implements Localization {
 		if (value != null) {
 			return value;
 		}
+
+		String systemDefaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getSiteDefault());
 
 		String priorityLanguageId = null;
 
@@ -1117,11 +1121,13 @@ public class LocalizationImpl implements Localization {
 					_LANGUAGE_ID, requestedLanguageId);
 			}
 
+			String safeValue = XMLUtil.stripInvalidChars(value);
+
 			if (cdata) {
-				xmlStreamWriter.writeCData(value);
+				xmlStreamWriter.writeCData(safeValue);
 			}
 			else {
-				xmlStreamWriter.writeCharacters(value);
+				xmlStreamWriter.writeCharacters(safeValue);
 			}
 
 			xmlStreamWriter.writeEndElement();
@@ -1275,6 +1281,10 @@ public class LocalizationImpl implements Localization {
 
 	private String _getRootAttributeValue(
 		String xml, String name, String defaultValue) {
+
+		if (!Validator.isXml(xml)) {
+			return defaultValue;
+		}
 
 		String value = null;
 

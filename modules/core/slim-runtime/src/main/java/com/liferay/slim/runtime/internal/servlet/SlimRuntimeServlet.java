@@ -96,7 +96,7 @@ public class SlimRuntimeServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 
-		servletContext.setAttribute(WebKeys.STARTUP_FINISHED, true);
+		servletContext.setAttribute(WebKeys.STARTUP_FINISHED, Boolean.TRUE);
 
 		registerPortalInitialized();
 
@@ -138,7 +138,7 @@ public class SlimRuntimeServlet extends HttpServlet {
 		DB db = DBManagerUtil.getDB();
 
 		if ((db.getDBType() == DBType.MYSQL) &&
-			GetterUtil.getFloat(db.getVersionString()) < 5.6F) {
+			(GetterUtil.getFloat(db.getVersionString()) < 5.6F)) {
 
 			throw new ServletException(
 				"Please upgrade to at least MySQL 5.6.4. The portal no " +

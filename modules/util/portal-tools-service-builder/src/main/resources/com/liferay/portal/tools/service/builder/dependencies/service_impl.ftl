@@ -3,9 +3,7 @@ package ${packagePath}.service.impl;
 import ${apiPackagePath}.service.${entity.name}${sessionTypeName}Service;
 import ${packagePath}.service.base.${entity.name}${sessionTypeName}ServiceBaseImpl;
 
-import aQute.bnd.annotation.ProviderType;
-
-<#if sessionTypeName == "Local">
+<#if stringUtil.equals(sessionTypeName, "Local")>
 /**
  * The implementation of the ${entity.humanName} local service.
  *
@@ -37,13 +35,12 @@ import aQute.bnd.annotation.ProviderType;
  */
 </#if>
 
-@ProviderType
 public class ${entity.name}${sessionTypeName}ServiceImpl extends ${entity.name}${sessionTypeName}ServiceBaseImpl {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-<#if sessionTypeName == "Local">
+<#if stringUtil.equals(sessionTypeName, "Local")>
 	 * Never reference this class directly. Always use {@link ${apiPackagePath}.service.${entity.name}LocalServiceUtil} to access the ${entity.humanName} local service.
 <#else>
 	 * Never reference this class directly. Always use {@link ${apiPackagePath}.service.${entity.name}ServiceUtil} to access the ${entity.humanName} remote service.

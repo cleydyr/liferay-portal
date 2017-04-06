@@ -22,6 +22,7 @@ String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_ui_reposi
 String displayStyle = GetterUtil.getString(request.getAttribute("liferay-item-selector:repository-entry-browser:displayStyle"));
 String emptyResultsMessage = GetterUtil.getString(request.getAttribute("liferay-item-selector:repository-entry-browser:emptyResultsMessage"));
 ItemSelectorReturnType existingFileEntryReturnType = (ItemSelectorReturnType)request.getAttribute("liferay-item-selector:repository-entry-browser:existingFileEntryReturnType");
+List<String> extensions = (List)request.getAttribute("liferay-item-selector:repository-entry-browser:extensions");
 String itemSelectedEventName = GetterUtil.getString(request.getAttribute("liferay-item-selector:repository-entry-browser:itemSelectedEventName"));
 ItemSelectorReturnTypeResolver itemSelectorReturnTypeResolver = (ItemSelectorReturnTypeResolver)request.getAttribute("liferay-item-selector:repository-entry-browser:itemSelectorReturnTypeResolver");
 long maxFileSize = GetterUtil.getLong(request.getAttribute("liferay-item-selector:repository-entry-browser:maxFileSize"));
@@ -174,7 +175,7 @@ if (Validator.isNotNull(keywords)) {
 		<liferay-util:buffer var="selectFileHTML">
 			<label class="btn btn-default" for="<%= randomNamespace %>InputFile"><liferay-ui:message key="select-file" /></label>
 
-			<input class="hide" id="<%= randomNamespace %>InputFile" type="file" />
+			<input accept="<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>" class="hide" id="<%= randomNamespace %>InputFile" type="file" />
 		</liferay-util:buffer>
 
 		<div class="drop-enabled drop-zone no-border">
@@ -322,7 +323,7 @@ if (Validator.isNotNull(keywords)) {
 									<liferay-ui:search-container-column-text colspan="<%= 3 %>">
 										<liferay-frontend:horizontal-card
 											resultRow="<%= row %>"
-											text="<%= HtmlUtil.escape(folder.getName()) %>"
+											text="<%= folder.getName() %>"
 											url="<%= viewFolderURL.toString() %>"
 										>
 											<liferay-frontend:horizontal-card-col>
@@ -498,7 +499,8 @@ if (Validator.isNotNull(keywords)) {
 					Liferay.Util.getOpener().Liferay.fire('<%= itemSelectedEventName %>', event);
 				}
 			},
-			rootNode: '#<%= randomNamespace %>ItemSelectorContainer'
+			rootNode: '#<%= randomNamespace %>ItemSelectorContainer',
+			validExtensions: '<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>'
 
 			<c:if test="<%= uploadURL != null %>">
 				, uploadItemReturnType: '<%= ItemSelectorRepositoryEntryBrowserUtil.getItemSelectorReturnTypeClassName(itemSelectorReturnTypeResolver, existingFileEntryReturnType) %>',

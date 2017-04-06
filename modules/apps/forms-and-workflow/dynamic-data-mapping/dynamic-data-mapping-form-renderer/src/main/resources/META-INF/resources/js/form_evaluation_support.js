@@ -62,6 +62,8 @@ AUI.add(
 				if (result && Lang.isObject(result)) {
 					var visitor = instance.get('visitor');
 
+					instance.set('pagesState', result);
+
 					visitor.set('pages', result);
 
 					visitor.set(
@@ -81,7 +83,9 @@ AUI.add(
 									delete fieldContext.valid;
 								}
 
-								field.setValue(fieldContext.value);
+								if (!Util.compare(field.get('value'), fieldContext.value)) {
+									field.setValue(fieldContext.value);
+								}
 							}
 
 							if (fieldContext.valid) {

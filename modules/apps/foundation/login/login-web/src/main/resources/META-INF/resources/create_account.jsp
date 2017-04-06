@@ -190,10 +190,10 @@ birthdayCalendar.set(Calendar.YEAR, 1970);
 				</aui:select>
 			</c:if>
 
-			<c:if test="<%= PropsValues.CAPTCHA_CHECK_PORTAL_CREATE_ACCOUNT %>">
+			<c:if test="<%= captchaConfiguration.createAccountCaptchaEnabled() %>">
 				<portlet:resourceURL id="/login/captcha" var="captchaURL" />
 
-				<liferay-ui:captcha url="<%= captchaURL %>" />
+				<liferay-captcha:captcha url="<%= captchaURL %>" />
 			</c:if>
 		</aui:col>
 	</aui:fieldset>
@@ -203,4 +203,4 @@ birthdayCalendar.set(Calendar.YEAR, 1970);
 	</aui:button-row>
 </aui:form>
 
-<liferay-util:include page="/navigation.jsp" servletContext="<%= application %>" />
+<%@ include file="/navigation.jspf" %>

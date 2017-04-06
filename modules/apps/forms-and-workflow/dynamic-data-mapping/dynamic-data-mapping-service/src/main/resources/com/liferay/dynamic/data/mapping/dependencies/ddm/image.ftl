@@ -1,6 +1,6 @@
 <#include "../init.ftl">
 
-<#if !(fields?? && fields.get(fieldName)??) && (fieldRawValue == "")>
+<#if !(fields?? && fields.get(fieldName)??) && validator.isNull(fieldRawValue)>
 	<#assign fieldRawValue = predefinedValue />
 </#if>
 
@@ -21,8 +21,6 @@
 		name = fileJSONObject.getString("name")
 	/>
 </#if>
-
-<#assign itemSelectorAuthToken = authTokenUtil.getToken(request, themeDisplay.getPlid(), "com_liferay_item_selector_web_portlet_ItemSelectorPortlet") />
 
 <#assign data = data + {
 	"itemSelectorAuthToken": itemSelectorAuthToken

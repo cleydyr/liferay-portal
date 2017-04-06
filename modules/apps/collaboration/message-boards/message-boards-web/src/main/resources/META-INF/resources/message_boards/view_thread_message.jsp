@@ -158,7 +158,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 				<c:if test="<%= editable %>">
 
 					<%
-					boolean hasBanUserPermission = (messageUser != null) && (user.getUserId() != messageUser.getUserId()) && !PortalUtil.isGroupAdmin(messageUser, scopeGroupId) && MBPermission.contains(permissionChecker, scopeGroupId, ActionKeys.BAN_USER);
+					boolean hasBanUserPermission = (messageUser != null) && (user.getUserId() != messageUser.getUserId()) && MBPermission.contains(permissionChecker, scopeGroupId, ActionKeys.BAN_USER) && !PortalUtil.isGroupAdmin(messageUser, scopeGroupId);
 					boolean hasDeletePermission = !thread.isLocked() && (thread.getMessageCount() > 1) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.DELETE);
 					boolean hasMoveThreadPermission = (message.getParentMessageId() != MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) && MBCategoryPermission.contains(permissionChecker, scopeGroupId, category.getCategoryId(), ActionKeys.MOVE_THREAD);
 					boolean hasPermissionsPermission = !thread.isLocked() && !message.isRoot() && MBMessagePermission.contains(permissionChecker, message, ActionKeys.PERMISSIONS);
@@ -384,7 +384,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 			<div class="card-row card-row-padded custom-attributes">
 				<liferay-expando:custom-attribute-list
 					className="<%= MBMessage.class.getName() %>"
-					classPK="<%= (message != null) ? message.getMessageId() : 0 %>"
+					classPK="<%= message.getMessageId() %>"
 					editable="<%= false %>"
 					label="<%= true %>"
 				/>
@@ -409,34 +409,23 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 				<div class="card-row card-row-padded message-attachments">
 					<h3><liferay-ui:message key="attachments" />:</h3>
 
-					<%
-					List<FileEntry> attachmentsFileEntries = message.getAttachmentsFileEntries();
-
-					for (FileEntry fileEntry : attachmentsFileEntries) {
-						if (MimeTypesUtil.isWebImage(fileEntry.getMimeType())) {
-					%>
-
-							<p>
-								<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="attachment" />" class="crop-img" src="<%= PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>" />
-							</p>
-
-					<%
-						}
-					}
-					%>
-
 					<ul>
 
 						<%
-						for (FileEntry fileEntry : attachmentsFileEntries) {
+						for (FileEntry fileEntry : message.getAttachmentsFileEntries()) {
 						%>
 
 							<li class="message-attachment">
 
 								<%
+								Map<String, Object> data = new HashMap<String, Object>();
+
+								data.put("senna-off", "true");
+
 								StringBundler sb = new StringBundler(4);
 
 								sb.append(fileEntry.getTitle());
+								sb.append(StringPool.SPACE);
 								sb.append(StringPool.OPEN_PARENTHESIS);
 								sb.append(TextFormatter.formatStorageSize(fileEntry.getSize(), locale));
 								sb.append(StringPool.CLOSE_PARENTHESIS);
@@ -447,6 +436,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 								%>
 
 								<liferay-ui:icon
+									data="<%= data %>"
 									icon="<%= assetRenderer.getIconCssClass() %>"
 									label="<%= true %>"
 									markupView="lexicon"

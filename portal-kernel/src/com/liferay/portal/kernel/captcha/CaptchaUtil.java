@@ -15,6 +15,9 @@
 package com.liferay.portal.kernel.captcha;
 
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
+import com.liferay.registry.collections.ServiceTrackerCollections;
+import com.liferay.registry.collections.ServiceTrackerMap;
 
 import java.io.IOException;
 
@@ -45,7 +48,13 @@ public class CaptchaUtil {
 	public static Captcha getCaptcha() {
 		PortalRuntimePermission.checkGetBeanProperty(CaptchaUtil.class);
 
-		return _captcha;
+		if (_serviceTrackerMap == null) {
+			return null;
+		}
+
+		String captchaClassName = _captchaSettings.getCaptchaEngine();
+
+		return _serviceTrackerMap.getService(captchaClassName);
 	}
 
 	public static String getTaglibPath() {
@@ -74,12 +83,20 @@ public class CaptchaUtil {
 		getCaptcha().serveImage(resourceRequest, resourceResponse);
 	}
 
-	public void setCaptcha(Captcha captcha) {
+	public void setCaptcha(Captcha captcha) throws Exception {
 		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
-		_captcha = captcha;
+		Class<?> clazz = captcha.getClass();
+
+		_captchaSettings.setCaptchaEngine(clazz.getName());
 	}
 
-	private static Captcha _captcha;
+	private static volatile CaptchaSettings _captchaSettings =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			CaptchaSettings.class, CaptchaUtil.class, "_captchaSettings",
+			false);
+	private static final ServiceTrackerMap<String, Captcha> _serviceTrackerMap =
+		ServiceTrackerCollections.openSingleValueMap(
+			Captcha.class, "captcha.engine.impl");
 
 }

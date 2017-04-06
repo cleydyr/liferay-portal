@@ -100,6 +100,10 @@ public interface WebKeys {
 
 	public static final String CTX = "CTX";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CTX_PATH = "CTX_PATH";
 
 	public static final String CURRENT_COMPLETE_URL = "CURRENT_COMPLETE_URL";
@@ -484,6 +488,10 @@ public interface WebKeys {
 
 	public static final String SEARCH_CONTAINER = "SEARCH_CONTAINER";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String SEARCH_CONTAINER_REFERENCE = "LIFERAY_SHARED_SEARCH_CONTAINER_REFERENCE";
 
 	public static final String SEARCH_CONTAINER_RESULT_ROW = "SEARCH_CONTAINER_RESULT_ROW";
@@ -591,6 +599,8 @@ public interface WebKeys {
 
 	public static final String THEME = "THEME";
 
+	public static final String THEME_DEFINE_OBJECTS = "THEME_DEFINE_OBJECTS";
+
 	public static final String THEME_DISPLAY = "LIFERAY_SHARED_THEME_DISPLAY";
 
 	public static final String TICKET = "TICKET";
@@ -631,6 +641,10 @@ public interface WebKeys {
 
 	public static final String USER_PASSWORD = "USER_PASSWORD";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USER_UUID = "USER_UUID";
 
 	public static final String USERS_NOTIFIED = "USERS_NOTIFIED";
