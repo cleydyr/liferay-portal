@@ -2606,7 +2606,7 @@ public class ServiceBuilder {
 
 		ToolsUtil.writeFile(
 			modelFile, content, _author, _jalopySettings, _modifiedFileNames,
-			_packagePath);
+			_packagePath + ".model");
 	}
 
 	private void _createModelCache(Entity entity) throws Exception {
