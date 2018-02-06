@@ -579,8 +579,8 @@ public class LiferayPortlet extends GenericPortlet {
 	}
 
 	protected boolean isSessionErrorException(Throwable cause) {
-		if (_log.isDebugEnabled()) {
-			_log.debug(cause, cause);
+		if (_log.isWarnEnabled()) {
+			_log.warn(cause, cause);
 		}
 
 		if (cause instanceof PortalException) {
