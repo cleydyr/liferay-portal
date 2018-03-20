@@ -968,7 +968,7 @@ public class JournalDisplayContext {
 
 			articleSearchContainer.setResults(results);
 		}
-		else if (isSearch()) {
+		else {
 			List<Long> folderIds = new ArrayList<>(1);
 
 			if (getFolderId() !=
@@ -1093,44 +1093,6 @@ public class JournalDisplayContext {
 
 				articleSearchContainer.setResults(results);
 			}
-		}
-		else {
-			int total = JournalFolderServiceUtil.getFoldersAndArticlesCount(
-				themeDisplay.getScopeGroupId(), 0, getFolderId(), getStatus());
-
-			articleSearchContainer.setTotal(total);
-
-			OrderByComparator<Object> folderOrderByComparator = null;
-
-			boolean orderByAsc = false;
-
-			if (Objects.equals(getOrderByType(), "asc")) {
-				orderByAsc = true;
-			}
-
-			if (Objects.equals(getOrderByCol(), "display-date")) {
-				folderOrderByComparator =
-					new FolderArticleDisplayDateComparator(orderByAsc);
-			}
-			else if (Objects.equals(getOrderByCol(), "id")) {
-				folderOrderByComparator = new FolderArticleArticleIdComparator(
-					orderByAsc);
-			}
-			else if (Objects.equals(getOrderByCol(), "modified-date")) {
-				folderOrderByComparator =
-					new FolderArticleModifiedDateComparator(orderByAsc);
-			}
-			else if (Objects.equals(getOrderByCol(), "title")) {
-				folderOrderByComparator = new FolderArticleTitleComparator(
-					orderByAsc);
-			}
-
-			List results = JournalFolderServiceUtil.getFoldersAndArticles(
-				themeDisplay.getScopeGroupId(), 0, getFolderId(), getStatus(),
-				themeDisplay.getLocale(), articleSearchContainer.getStart(),
-				articleSearchContainer.getEnd(), folderOrderByComparator);
-
-			articleSearchContainer.setResults(results);
 		}
 
 		return articleSearchContainer;
