@@ -16,12 +16,18 @@ package com.liferay.portal.upload.internal.configuration;
 
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.upload.UploadServletRequestImpl;
 
 import java.io.File;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import java.util.Dictionary;
+import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -44,6 +50,57 @@ public class UploadServletRequestConfigurationModelListener
 
 		if (Validator.isNotNull(tempDir)) {
 			UploadServletRequestImpl.setTempDir(new File(tempDir));
+		}
+	}
+
+	@Override
+	public void onBeforeSave(String pid, Dictionary<String, Object> properties)
+		throws ConfigurationModelListenerException {
+
+		String tempDir = (String)properties.get("tempDir");
+
+		try {
+			if (Validator.isNotNull(tempDir)) {
+				_validateFolder(tempDir);
+			}
+		}
+		catch (Exception e) {
+			throw new ConfigurationModelListenerException(
+				e.getMessage(), UploadServletRequestConfiguration.class,
+				getClass(), properties);
+		}
+	}
+
+	private String _getLocalizedResourceBundleMessage(String key) {
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", LocaleThreadLocal.getThemeDisplayLocale(),
+			getClass());
+
+		String message = ResourceBundleUtil.getString(resourceBundle, key);
+
+		return message;
+	}
+
+	private void _validateFolder(String tempDir) throws Exception {
+		File file = new File(tempDir);
+
+		String message = null;
+
+		if (!file.exists()) {
+			message = _getLocalizedResourceBundleMessage(
+				"temporary-directory-must-exist");
+		}
+		else if (!file.isDirectory()) {
+			message = _getLocalizedResourceBundleMessage(
+				"path-must-be-a-directory");
+		}
+		else if (!Files.isWritable(Paths.get(tempDir))) {
+			message = _getLocalizedResourceBundleMessage(
+				"path-must-be-writable");
+		}
+
+		if (message != null) {
+			throw new Exception(message);
 		}
 	}
 
