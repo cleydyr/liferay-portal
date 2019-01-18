@@ -51,7 +51,7 @@ public class ModelAdapterUtil {
 
 		return (T)ProxyUtil.newProxyInstance(
 			clazz.getClassLoader(), new Class<?>[] {clazz, ModelWrapper.class},
-			new DelegateInvocationHandler(delegateObject));
+			new DelegateInvocationHandler(clazz, delegateObject));
 	}
 
 	public static <T> T[] adapt(Class<T> clazz, Object[] delegateObjects) {
@@ -136,7 +136,26 @@ public class ModelAdapterUtil {
 				method.getName(), method.getParameterTypes());
 
 			if (args == null) {
-				return method.invoke(_delegateObject);
+				Object returnObject = method.invoke(_delegateObject);
+
+				try {
+					Method adapteeMethod = _clazz.getDeclaredMethod(
+						method.getName(), method.getParameterTypes());
+
+					Class<?> adapteeClass =
+						adapteeMethod.getReturnType();
+
+					String adapteeName = adapteeClass.getName();
+
+					if (adapteeName.contains("kernel")) {
+						return ModelAdapterUtil.adapt(
+							adapteeClass, returnObject);
+					}
+				}
+				catch (NoSuchMethodException nsme) {
+				}
+
+				return returnObject;
 			}
 
 			for (int i = 0; i < args.length; i++) {
@@ -158,10 +177,12 @@ public class ModelAdapterUtil {
 			return method.invoke(_delegateObject, args);
 		}
 
-		private DelegateInvocationHandler(Object delegateObject) {
+		private DelegateInvocationHandler(Class clazz, Object delegateObject) {
+			_clazz = clazz;
 			_delegateObject = delegateObject;
 		}
 
+		private final Class<?> _clazz;
 		private final Object _delegateObject;
 
 	}
