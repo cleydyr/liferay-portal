@@ -477,8 +477,20 @@ AUI.add(
 						var fieldLabel;
 
 						for (var index in fields) {
-							if (fields[index].value === fieldValue) {
-								fieldLabel = fields[index].label;
+							var field = fields[index];
+
+							if (field.type === 'radio' || field.type === 'checkbox_multiple') {
+								for (var optionIndex in field.options) {
+									var option = field.options[optionIndex];
+									if (option.value === fieldValue) {
+										fieldLabel = option.label;
+									}
+								}
+							}
+							else {
+								if (field.value === fieldValue) {
+									fieldLabel = field.label;
+								}
 							}
 						}
 
