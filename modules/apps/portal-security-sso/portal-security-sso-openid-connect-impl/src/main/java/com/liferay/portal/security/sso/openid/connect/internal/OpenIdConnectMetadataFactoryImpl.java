@@ -78,7 +78,7 @@ public class OpenIdConnectMetadataFactoryImpl
 			_oidcProviderMetadata.setUserInfoEndpointURI(
 				new URI(userInfoEndPointURL));
 
-			List<JWSAlgorithm> idTokenJWSAlgs = new ArrayList<JWSAlgorithm>();
+			List<JWSAlgorithm> idTokenJWSAlgs = new ArrayList<>();
 
 			for (String idTokenSigningAlg : idTokenSigningAlgs) {
 				idTokenJWSAlgs.add(JWSAlgorithm.parse(idTokenSigningAlg));

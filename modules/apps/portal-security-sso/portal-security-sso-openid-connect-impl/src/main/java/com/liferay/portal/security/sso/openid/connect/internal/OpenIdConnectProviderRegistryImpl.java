@@ -156,7 +156,8 @@ public class OpenIdConnectProviderRegistryImpl
 							authorizationEndPoint(),
 						openIdConnectProviderConfiguration.tokenEndPoint(),
 						openIdConnectProviderConfiguration.userInfoEndPoint(),
-						openIdConnectProviderConfiguration.idTokenSigningAlgValues());
+						openIdConnectProviderConfiguration.
+							idTokenSigningAlgValues());
 			}
 		}
 		catch (Exception e) {

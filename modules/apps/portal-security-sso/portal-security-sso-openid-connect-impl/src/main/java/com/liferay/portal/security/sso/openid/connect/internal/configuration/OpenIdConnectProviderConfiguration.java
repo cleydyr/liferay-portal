@@ -94,7 +94,7 @@ public interface OpenIdConnectProviderConfiguration {
 
 	@Meta.AD(
 		deflt = "RS256", description = "id-token-signing-alg-values-help",
-		name = "id-token-signing-alg-values",	required = false
+		name = "id-token-signing-alg-values", required = false
 	)
 	public String[] idTokenSigningAlgValues();
 
