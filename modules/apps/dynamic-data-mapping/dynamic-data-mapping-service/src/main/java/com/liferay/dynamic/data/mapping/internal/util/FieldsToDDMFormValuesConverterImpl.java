@@ -91,6 +91,21 @@ public class FieldsToDDMFormValuesConverterImpl
 		Field ddmFieldsDisplayField = ddmFields.get(
 			DDMImpl.FIELDS_DISPLAY_NAME);
 
+		String[] values = splitFieldsDisplayValue(ddmFieldsDisplayField);
+
+		return countDDMFieldRepetitions(ddmFormFieldsMap, ddmFields, fieldName,
+				parentFieldName, parentOffset, values);
+	}
+
+	protected int countDDMFieldRepetitions(
+			Map<String, DDMFormField> ddmFormFieldsMap, Fields ddmFields,
+			String fieldName, String parentFieldName, int parentOffset,
+			String[] values)
+		throws PortalException {
+
+		Field ddmFieldsDisplayField = ddmFields.get(
+			DDMImpl.FIELDS_DISPLAY_NAME);
+
 		if (ddmFieldsDisplayField == null) {
 			if (ddmFields.contains(fieldName)) {
 				return 1;
@@ -100,7 +115,7 @@ public class FieldsToDDMFormValuesConverterImpl
 		}
 
 		String[] ddmFieldsDisplayValues = getDDMFieldsDisplayValues(
-			ddmFormFieldsMap, ddmFieldsDisplayField);
+			ddmFormFieldsMap, values);
 
 		int offset = -1;
 
@@ -188,7 +203,10 @@ public class FieldsToDDMFormValuesConverterImpl
 		}
 	}
 
-	protected String[] getDDMFieldsDisplayValues(Map<String, DDMFormField> ddmFormFieldsMap, String[] values) {
+	protected String[] getDDMFieldsDisplayValues(
+			Map<String, DDMFormField> ddmFormFieldsMap,
+			String[] values) {
+
 		List<String> fieldsDisplayValues = new ArrayList<>();
 
 		for (String value : values) {
