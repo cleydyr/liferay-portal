@@ -62,11 +62,13 @@ public class FieldsToDDMFormValuesConverterImpl
 
 		DDMFieldsCounter ddmFieldsCounter = new DDMFieldsCounter();
 
+		String[] values = getFieldsDisplayValue(fields);
+
 		for (String fieldName :
 				getDDMFormFieldNames(ddmForm.getDDMFormFields())) {
 
 			int repetitions = countDDMFieldRepetitions(
-				ddmFormFieldsMap, fields, fieldName, null, -1);
+				ddmFormFieldsMap, fields, fieldName, null, -1, values);
 
 			for (int i = 0; i < repetitions; i++) {
 				DDMFormFieldValue ddmFormFieldValue = createDDMFormFieldValue(
@@ -343,10 +345,12 @@ public class FieldsToDDMFormValuesConverterImpl
 		List<String> nestedFieldNames = getDDMFormFieldNames(
 			parentDDMFormField.getNestedDDMFormFields());
 
+		String[] values = getFieldsDisplayValue(ddmFields);
+
 		for (String nestedFieldName : nestedFieldNames) {
 			int repetitions = countDDMFieldRepetitions(
 				ddmFormFieldsMap, ddmFields, nestedFieldName, fieldName,
-				parentOffset);
+				parentOffset, values);
 
 			for (int i = 0; i < repetitions; i++) {
 				DDMFormFieldValue nestedDDMFormFieldValue =
@@ -360,6 +364,13 @@ public class FieldsToDDMFormValuesConverterImpl
 					nestedDDMFormFieldValue);
 			}
 		}
+	}
+
+	protected String[] getFieldsDisplayValue(Fields ddmFields) {
+		Field ddmFieldsDisplayField = ddmFields.get(
+				DDMImpl.FIELDS_DISPLAY_NAME);
+
+		return splitFieldsDisplayValue(ddmFieldsDisplayField);
 	}
 
 	protected String[] splitFieldsDisplayValue(Field fieldsDisplayField) {
