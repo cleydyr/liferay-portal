@@ -25,9 +25,9 @@ import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesToFieldsConverter;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
@@ -125,13 +125,23 @@ public class DDMFormValuesToFieldsConverterImpl
 	protected void addFieldDisplayValue(
 		Field ddmFieldsDisplayField, String fieldDisplayValue) {
 
-		String[] fieldsDisplayValues = StringUtil.split(
-			(String)ddmFieldsDisplayField.getValue());
+		StringBundler sb;
 
-		fieldsDisplayValues = ArrayUtil.append(
-			fieldsDisplayValues, fieldDisplayValue);
+		String ddmFieldValue = (String)ddmFieldsDisplayField.getValue();
 
-		ddmFieldsDisplayField.setValue(StringUtil.merge(fieldsDisplayValues));
+		if (Validator.isNotNull(ddmFieldValue)) {
+			sb = new StringBundler(3);
+
+			sb.append(ddmFieldValue);
+			sb.append(StringPool.COMMA);
+		}
+		else {
+			sb = new StringBundler(1);
+		}
+
+		sb.append(fieldDisplayValue);
+
+		ddmFieldsDisplayField.setValue(sb.toString());
 	}
 
 	protected Field createDDMField(
