@@ -179,25 +179,29 @@ public class FieldsToDDMFormValuesConverterImpl
 		throws PortalException {
 
 		try {
-			List<String> fieldsDisplayValues = new ArrayList<>();
-
 			String[] values = splitFieldsDisplayValue(ddmFieldsDisplayField);
 
-			for (String value : values) {
-				String fieldName = StringUtil.extractFirst(
-					value, DDMImpl.INSTANCE_SEPARATOR);
-
-				if (ddmFormFieldsMap.containsKey(fieldName)) {
-					fieldsDisplayValues.add(fieldName);
-				}
-			}
-
-			return fieldsDisplayValues.toArray(
-				new String[fieldsDisplayValues.size()]);
+			return getDDMFieldsDisplayValues(ddmFormFieldsMap, values);
 		}
 		catch (Exception e) {
 			throw new PortalException(e);
 		}
+	}
+
+	protected String[] getDDMFieldsDisplayValues(Map<String, DDMFormField> ddmFormFieldsMap, String[] values) {
+		List<String> fieldsDisplayValues = new ArrayList<>();
+
+		for (String value : values) {
+			String fieldName = StringUtil.extractFirst(
+				value, DDMImpl.INSTANCE_SEPARATOR);
+
+			if (ddmFormFieldsMap.containsKey(fieldName)) {
+				fieldsDisplayValues.add(fieldName);
+			}
+		}
+
+		return fieldsDisplayValues.toArray(
+			new String[fieldsDisplayValues.size()]);
 	}
 
 	protected String getDDMFieldValueString(
