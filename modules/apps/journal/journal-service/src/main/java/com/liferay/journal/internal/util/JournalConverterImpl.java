@@ -150,6 +150,8 @@ public class JournalConverterImpl implements JournalConverter {
 
 		DDMFieldsCounter ddmFieldsCounter = new DDMFieldsCounter();
 
+		String[] fieldsDisplayValues = getFieldsDisplayValues(ddmFields);
+
 		for (String fieldName : ddmStructure.getRootFieldNames()) {
 			int repetitions = countFieldRepetition(
 				ddmFields, fieldName, null, -1);
@@ -173,6 +175,12 @@ public class JournalConverterImpl implements JournalConverter {
 			throw new ArticleContentException(
 				"Unable to read content with an XML parser", e);
 		}
+	}
+
+	protected String[] getFieldsDisplayValues(Fields ddmFields) {
+		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
+
+		return StringUtil.split((String)fieldsDisplayField.getValue());
 	}
 
 	@Override
@@ -530,10 +538,7 @@ public class JournalConverterImpl implements JournalConverter {
 	protected String getFieldInstanceId(
 		Fields ddmFields, String fieldName, int index) {
 
-		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
-
-		String[] fieldsDisplayValues = StringUtil.split(
-			(String)fieldsDisplayField.getValue());
+		String[] fieldsDisplayValues = getFieldsDisplayValues(ddmFields);
 
 		return getFieldInstanceId(fieldName, fieldsDisplayValues, index);
 	}
@@ -744,37 +749,10 @@ public class JournalConverterImpl implements JournalConverter {
 			Fields ddmFields, DDMFieldsCounter ddmFieldsCounter)
 		throws Exception {
 
-		String fieldName = dynamicElementElement.attributeValue("name");
+		String[] fieldsDisplayValues = getFieldsDisplayValues(ddmFields);
 
-		for (String childFieldName :
-				ddmStructure.getChildrenFieldNames(fieldName)) {
-
-			int count = ddmFieldsCounter.get(fieldName);
-
-			int repetitions = countFieldRepetition(
-				ddmFields, childFieldName, fieldName, count);
-
-			for (int i = 0; i < repetitions; i++) {
-				Element childDynamicElementElement =
-					dynamicElementElement.addElement("dynamic-element");
-
-				childDynamicElementElement.addAttribute("name", childFieldName);
-
-				String instanceId = getFieldInstanceId(
-					ddmFields, fieldName, count + i);
-
-				childDynamicElementElement.addAttribute(
-					"instance-id", instanceId);
-
-				updateContentDynamicElement(
-					childDynamicElementElement, ddmStructure, ddmFields,
-					ddmFieldsCounter);
-			}
-		}
-
-		updateContentDynamicElement(
-			dynamicElementElement, ddmStructure, ddmFields, fieldName,
-			ddmFieldsCounter);
+		updateContentDynamicElement(dynamicElementElement, ddmStructure,
+				ddmFields, ddmFieldsCounter, fieldsDisplayValues);
 	}
 
 	protected void updateContentDynamicElement(
@@ -826,6 +804,45 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 
 		ddmFieldsCounter.incrementKey(fieldName);
+	}
+
+	protected void updateContentDynamicElement(
+			Element dynamicElementElement, DDMStructure ddmStructure,
+			Fields ddmFields, DDMFieldsCounter ddmFieldsCounter,
+			String[] fieldsDisplayValues)
+		throws Exception {
+
+		String fieldName = dynamicElementElement.attributeValue("name");
+
+		for (String childFieldName :
+				ddmStructure.getChildrenFieldNames(fieldName)) {
+
+			int count = ddmFieldsCounter.get(fieldName);
+
+			int repetitions = countFieldRepetition(
+				ddmFields, childFieldName, fieldName, count);
+
+			for (int i = 0; i < repetitions; i++) {
+				Element childDynamicElementElement =
+					dynamicElementElement.addElement("dynamic-element");
+
+				childDynamicElementElement.addAttribute("name", childFieldName);
+
+				String instanceId = getFieldInstanceId(fieldName,
+						fieldsDisplayValues, count + i);
+
+				childDynamicElementElement.addAttribute(
+					"instance-id", instanceId);
+
+				updateContentDynamicElement(
+					childDynamicElementElement, ddmStructure, ddmFields,
+					ddmFieldsCounter, fieldsDisplayValues);
+			}
+		}
+
+		updateContentDynamicElement(
+			dynamicElementElement, ddmStructure, ddmFields, fieldName,
+			ddmFieldsCounter);
 	}
 
 	protected void updateDDMXSDDynamicElement(
