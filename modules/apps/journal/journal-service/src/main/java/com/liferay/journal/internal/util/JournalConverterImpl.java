@@ -164,7 +164,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 				updateContentDynamicElement(
 					dynamicElementElement, ddmStructure, ddmFields,
-					ddmFieldsCounter);
+					ddmFieldsCounter, fieldsDisplayValues);
 			}
 		}
 
@@ -1041,13 +1041,15 @@ public class JournalConverterImpl implements JournalConverter {
 
 		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
 
-		String[] fieldsDisplayValues = StringUtil.split(
-			(String)fieldsDisplayField.getValue());
+		StringBundler sb = new StringBundler(3);
 
-		fieldsDisplayValues = ArrayUtil.append(
-			fieldsDisplayValues, fieldsDisplayValue);
+		sb.append(fieldsDisplayField.getValue());
 
-		fieldsDisplayField.setValue(StringUtil.merge(fieldsDisplayValues));
+		sb.append(StringPool.COMMA);
+
+		sb.append(fieldsDisplayValue);
+
+		fieldsDisplayField.setValue(sb.toString());
 	}
 
 	protected void updateJournalXSDDynamicElement(Element element) {
