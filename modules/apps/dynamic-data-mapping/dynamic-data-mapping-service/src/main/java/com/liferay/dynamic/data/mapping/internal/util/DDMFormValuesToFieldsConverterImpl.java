@@ -129,6 +129,7 @@ public class DDMFormValuesToFieldsConverterImpl
 		sb.append(ddmFieldsDisplayField.getValue());
 		sb.append(StringPool.COMMA);
 		sb.append(fieldDisplayValue);
+
 		ddmFieldsDisplayField.setValue(sb.toString());
 	}
 
