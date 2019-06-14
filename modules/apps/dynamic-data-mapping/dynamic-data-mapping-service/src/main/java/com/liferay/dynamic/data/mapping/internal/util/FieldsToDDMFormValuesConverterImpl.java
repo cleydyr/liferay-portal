@@ -95,8 +95,9 @@ public class FieldsToDDMFormValuesConverterImpl
 
 		String[] values = splitFieldsDisplayValue(ddmFieldsDisplayField);
 
-		return countDDMFieldRepetitions(ddmFormFieldsMap, ddmFields, fieldName,
-				parentFieldName, parentOffset, values);
+		return countDDMFieldRepetitions(
+			ddmFormFieldsMap, ddmFields, fieldName, parentFieldName,
+			parentOffset, values);
 	}
 
 	protected int countDDMFieldRepetitions(
@@ -206,8 +207,7 @@ public class FieldsToDDMFormValuesConverterImpl
 	}
 
 	protected String[] getDDMFieldsDisplayValues(
-			Map<String, DDMFormField> ddmFormFieldsMap,
-			String[] values) {
+		Map<String, DDMFormField> ddmFormFieldsMap, String[] values) {
 
 		List<String> fieldsDisplayValues = new ArrayList<>();
 
@@ -248,6 +248,13 @@ public class FieldsToDDMFormValuesConverterImpl
 		}
 
 		return fieldNames;
+	}
+
+	protected String[] getFieldsDisplayValue(Fields ddmFields) {
+		Field ddmFieldsDisplayField = ddmFields.get(
+			DDMImpl.FIELDS_DISPLAY_NAME);
+
+		return splitFieldsDisplayValue(ddmFieldsDisplayField);
 	}
 
 	protected void setDDMFormFieldValueInstanceId(
@@ -364,13 +371,6 @@ public class FieldsToDDMFormValuesConverterImpl
 					nestedDDMFormFieldValue);
 			}
 		}
-	}
-
-	protected String[] getFieldsDisplayValue(Fields ddmFields) {
-		Field ddmFieldsDisplayField = ddmFields.get(
-				DDMImpl.FIELDS_DISPLAY_NAME);
-
-		return splitFieldsDisplayValue(ddmFieldsDisplayField);
 	}
 
 	protected String[] splitFieldsDisplayValue(Field fieldsDisplayField) {
