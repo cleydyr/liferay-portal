@@ -177,12 +177,6 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 	}
 
-	protected String[] getFieldsDisplayValues(Fields ddmFields) {
-		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
-
-		return StringUtil.split((String)fieldsDisplayField.getValue());
-	}
-
 	@Override
 	public Fields getDDMFields(DDMStructure ddmStructure, Document document)
 		throws PortalException {
@@ -543,8 +537,8 @@ public class JournalConverterImpl implements JournalConverter {
 		return getFieldInstanceId(fieldName, fieldsDisplayValues, index);
 	}
 
-	protected String getFieldInstanceId(String fieldName,
-			String[] fieldsDisplayValues, int index) {
+	protected String getFieldInstanceId(
+		String fieldName, String[] fieldsDisplayValues, int index) {
 
 		String prefix = fieldName.concat(DDM.INSTANCE_SEPARATOR);
 
@@ -560,6 +554,12 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 
 		return null;
+	}
+
+	protected String[] getFieldsDisplayValues(Fields ddmFields) {
+		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
+
+		return StringUtil.split((String)fieldsDisplayField.getValue());
 	}
 
 	protected Serializable getFieldValue(
@@ -751,8 +751,48 @@ public class JournalConverterImpl implements JournalConverter {
 
 		String[] fieldsDisplayValues = getFieldsDisplayValues(ddmFields);
 
-		updateContentDynamicElement(dynamicElementElement, ddmStructure,
-				ddmFields, ddmFieldsCounter, fieldsDisplayValues);
+		updateContentDynamicElement(
+			dynamicElementElement, ddmStructure, ddmFields, ddmFieldsCounter,
+			fieldsDisplayValues);
+	}
+
+	protected void updateContentDynamicElement(
+			Element dynamicElementElement, DDMStructure ddmStructure,
+			Fields ddmFields, DDMFieldsCounter ddmFieldsCounter,
+			String[] fieldsDisplayValues)
+		throws Exception {
+
+		String fieldName = dynamicElementElement.attributeValue("name");
+
+		for (String childFieldName :
+				ddmStructure.getChildrenFieldNames(fieldName)) {
+
+			int count = ddmFieldsCounter.get(fieldName);
+
+			int repetitions = countFieldRepetition(
+				ddmFields, childFieldName, fieldName, count);
+
+			for (int i = 0; i < repetitions; i++) {
+				Element childDynamicElementElement =
+					dynamicElementElement.addElement("dynamic-element");
+
+				childDynamicElementElement.addAttribute("name", childFieldName);
+
+				String instanceId = getFieldInstanceId(
+					fieldName, fieldsDisplayValues, count + i);
+
+				childDynamicElementElement.addAttribute(
+					"instance-id", instanceId);
+
+				updateContentDynamicElement(
+					childDynamicElementElement, ddmStructure, ddmFields,
+					ddmFieldsCounter, fieldsDisplayValues);
+			}
+		}
+
+		updateContentDynamicElement(
+			dynamicElementElement, ddmStructure, ddmFields, fieldName,
+			ddmFieldsCounter);
 	}
 
 	protected void updateContentDynamicElement(
@@ -804,45 +844,6 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 
 		ddmFieldsCounter.incrementKey(fieldName);
-	}
-
-	protected void updateContentDynamicElement(
-			Element dynamicElementElement, DDMStructure ddmStructure,
-			Fields ddmFields, DDMFieldsCounter ddmFieldsCounter,
-			String[] fieldsDisplayValues)
-		throws Exception {
-
-		String fieldName = dynamicElementElement.attributeValue("name");
-
-		for (String childFieldName :
-				ddmStructure.getChildrenFieldNames(fieldName)) {
-
-			int count = ddmFieldsCounter.get(fieldName);
-
-			int repetitions = countFieldRepetition(
-				ddmFields, childFieldName, fieldName, count);
-
-			for (int i = 0; i < repetitions; i++) {
-				Element childDynamicElementElement =
-					dynamicElementElement.addElement("dynamic-element");
-
-				childDynamicElementElement.addAttribute("name", childFieldName);
-
-				String instanceId = getFieldInstanceId(fieldName,
-						fieldsDisplayValues, count + i);
-
-				childDynamicElementElement.addAttribute(
-					"instance-id", instanceId);
-
-				updateContentDynamicElement(
-					childDynamicElementElement, ddmStructure, ddmFields,
-					ddmFieldsCounter, fieldsDisplayValues);
-			}
-		}
-
-		updateContentDynamicElement(
-			dynamicElementElement, ddmStructure, ddmFields, fieldName,
-			ddmFieldsCounter);
 	}
 
 	protected void updateDDMXSDDynamicElement(
