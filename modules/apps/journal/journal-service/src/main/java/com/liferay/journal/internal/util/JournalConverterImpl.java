@@ -532,10 +532,16 @@ public class JournalConverterImpl implements JournalConverter {
 
 		Field fieldsDisplayField = ddmFields.get(DDM.FIELDS_DISPLAY_NAME);
 
-		String prefix = fieldName.concat(DDM.INSTANCE_SEPARATOR);
-
 		String[] fieldsDisplayValues = StringUtil.split(
 			(String)fieldsDisplayField.getValue());
+
+		return getFieldInstanceId(fieldName, fieldsDisplayValues, index);
+	}
+
+	protected String getFieldInstanceId(String fieldName,
+			String[] fieldsDisplayValues, int index) {
+
+		String prefix = fieldName.concat(DDM.INSTANCE_SEPARATOR);
 
 		for (String fieldsDisplayValue : fieldsDisplayValues) {
 			if (fieldsDisplayValue.startsWith(prefix)) {
