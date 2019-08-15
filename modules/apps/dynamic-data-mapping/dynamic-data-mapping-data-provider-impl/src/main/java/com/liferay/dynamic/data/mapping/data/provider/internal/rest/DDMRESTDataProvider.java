@@ -90,6 +90,10 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 			Throwable cause = he.getCause();
 
 			if (cause instanceof ConnectException) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(cause);
+				}
+
 				DDMDataProviderResponse.Builder builder =
 					DDMDataProviderResponse.Builder.newBuilder();
 
