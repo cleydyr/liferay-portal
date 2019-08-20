@@ -140,7 +140,7 @@ public class CallFunction
 			parameterValue = getDDMFormFieldValue(parameterValue);
 		}
 
-		parameters.put(parameterName, HtmlUtil.escapeURL(parameterValue));
+		parameters.put(parameterName, parameterValue);
 	}
 
 	protected Map<String, String> extractParameters(String expression) {
