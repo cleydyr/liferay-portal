@@ -517,7 +517,7 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 		DDMRESTDataProvider.class);
 
 	private static final Pattern _pathParameterPattern = Pattern.compile(
-		"\\{(.*)\\}");
+		"\\{(.+?)\\}");
 
 	private PortalCache<String, DDMDataProviderResponse> _portalCache;
 
