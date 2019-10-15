@@ -1,0 +1,19 @@
+import com.liferay.gradle.plugins.patcher.PatchTask
+
+apply plugin: "com.liferay.patcher"
+
+task patch(type: PatchTask)
+
+dependencies {
+    compile group: "com.nimbusds", name: "nimbus-jose-jwt", version: "6.7"
+}
+
+patch {
+    ext {
+        autoClean = false
+    }
+
+    fileNames "com/nimbusds/jose/jwk/source/RemoteJWKSet.java"
+
+    originalLibModuleName = "nimbus-jose-jwt"
+}
