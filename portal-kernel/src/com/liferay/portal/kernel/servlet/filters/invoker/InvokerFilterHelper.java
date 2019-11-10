@@ -484,6 +484,10 @@ public class InvokerFilterHelper {
 			ServletContext servletContext = ServletContextPool.get(
 				servletContextName);
 
+			if (servletContext == null) {
+				servletContext = ServletContextPool.get(PortalUtil.getServletContextName());
+			}
+
 			FilterConfig filterConfig = new InvokerFilterConfig(
 				servletContext, servletFilterName, initParameterMap);
 
