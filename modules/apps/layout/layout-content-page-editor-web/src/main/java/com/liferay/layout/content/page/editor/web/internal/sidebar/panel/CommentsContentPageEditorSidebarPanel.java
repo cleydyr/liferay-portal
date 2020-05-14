@@ -15,6 +15,9 @@
 package com.liferay.layout.content.page.editor.web.internal.sidebar.panel;
 
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
+import com.liferay.layout.content.page.editor.web.internal.security.permission.resource.LayoutPageTemplateEntryPermission;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -27,6 +30,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -67,8 +71,18 @@ public class CommentsContentPageEditorSidebarPanel
 		boolean pageIsDisplayPage) {
 
 		try {
-			if (LayoutPermissionUtil.contains(
-					permissionChecker, plid, ActionKeys.UPDATE)) {
+			if (pageIsDisplayPage) {
+				LayoutPageTemplateEntry layoutPageTemplateEntry =
+					_layoutPageTemplateEntryLocalService.
+						fetchLayoutPageTemplateEntryByPlid(plid);
+
+				return LayoutPageTemplateEntryPermission.contains(
+					permissionChecker,
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE);
+			}
+			else if (LayoutPermissionUtil.contains(
+						permissionChecker, plid, ActionKeys.UPDATE)) {
 
 				return true;
 			}
@@ -84,5 +98,9 @@ public class CommentsContentPageEditorSidebarPanel
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommentsContentPageEditorSidebarPanel.class);
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 }

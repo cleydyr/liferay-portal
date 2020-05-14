@@ -16,6 +16,9 @@ package com.liferay.layout.content.page.editor.web.internal.sidebar.panel;
 
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
+import com.liferay.layout.content.page.editor.web.internal.security.permission.resource.LayoutPageTemplateEntryPermission;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -117,8 +120,18 @@ public class LookAndFeelContentPageEditorSidebarPanel
 		boolean pageIsDisplayPage) {
 
 		try {
-			if (LayoutPermissionUtil.contains(
-					permissionChecker, plid, ActionKeys.UPDATE)) {
+			if (pageIsDisplayPage) {
+				LayoutPageTemplateEntry layoutPageTemplateEntry =
+					_layoutPageTemplateEntryLocalService.
+						fetchLayoutPageTemplateEntryByPlid(plid);
+
+				return LayoutPageTemplateEntryPermission.contains(
+					permissionChecker,
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE);
+			}
+			else if (LayoutPermissionUtil.contains(
+						permissionChecker, plid, ActionKeys.UPDATE)) {
 
 				return true;
 			}
@@ -134,6 +147,10 @@ public class LookAndFeelContentPageEditorSidebarPanel
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		LookAndFeelContentPageEditorSidebarPanel.class);
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private Portal _portal;

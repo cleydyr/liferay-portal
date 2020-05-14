@@ -14,7 +14,9 @@
 
 package com.liferay.layout.page.template.service.impl;
 
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.base.LayoutPageTemplateStructureServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -51,21 +53,35 @@ public class LayoutPageTemplateStructureServiceImpl
 
 		layout = _getPublishedLayout(layout);
 
+		String className = _portal.getClassName(classNameId);
+		long classPK1 = layout.getPlid();
+
+		if (layout.isTypeAssetDisplay()) {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				_getLayoutPageTemplateEntry(layout);
+
+			className = LayoutPageTemplateEntry.class.getName();
+			classPK1 = layoutPageTemplateEntry.getLayoutPageTemplateEntryId();
+		}
+
 		Boolean containsPermission =
 			BaseModelPermissionCheckerUtil.containsBaseModelPermission(
-				getPermissionChecker(), groupId,
-				_portal.getClassName(classNameId), layout.getPlid(),
+				getPermissionChecker(), groupId, className, classPK1,
 				ActionKeys.UPDATE);
 
 		if (!containsPermission) {
 			throw new PrincipalException.MustHavePermission(
-				getUserId(), _portal.getClassName(classNameId),
-				layout.getPlid(), ActionKeys.UPDATE);
+				getUserId(), className, classPK1, ActionKeys.UPDATE);
 		}
 
 		return layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructure(
 				groupId, classNameId, classPK, segmentsExperienceId, data);
+	}
+
+	private LayoutPageTemplateEntry _getLayoutPageTemplateEntry(Layout layout) {
+		return _layoutPageTemplateEntryLocalService.
+			fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
 	}
 
 	private Layout _getPublishedLayout(Layout layout) {
@@ -80,6 +96,10 @@ public class LayoutPageTemplateStructureServiceImpl
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private Portal _portal;

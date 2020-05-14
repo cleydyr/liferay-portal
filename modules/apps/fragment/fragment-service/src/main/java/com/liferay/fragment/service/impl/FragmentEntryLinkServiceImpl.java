@@ -16,6 +16,8 @@ package com.liferay.fragment.service.impl;
 
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.base.FragmentEntryLinkServiceBaseImpl;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
@@ -175,25 +177,41 @@ public class FragmentEntryLinkServiceImpl
 
 		layout = _getPublishedLayout(layout);
 
+		String className1 = className;
+		long classPK1 = layout.getPlid();
+
+		if (layout.isTypeAssetDisplay()) {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				_getLayoutPageTemplateEntry(layout);
+
+			className1 = LayoutPageTemplateEntry.class.getName();
+			classPK1 = layoutPageTemplateEntry.getLayoutPageTemplateEntryId();
+		}
+
 		Boolean containsPermission = Boolean.valueOf(
 			BaseModelPermissionCheckerUtil.containsBaseModelPermission(
-				getPermissionChecker(), groupId, className, layout.getPlid(),
+				getPermissionChecker(), groupId, className1, classPK1,
 				ActionKeys.UPDATE));
 
 		if (checkUpdateLayoutContentPermission &&
-			Objects.equals(className, Layout.class.getName())) {
+			Objects.equals(className1, Layout.class.getName())) {
 
 			containsPermission =
 				containsPermission ||
 				LayoutPermissionUtil.contains(
-					getPermissionChecker(), layout.getPlid(),
+					getPermissionChecker(), classPK1,
 					ActionKeys.UPDATE_LAYOUT_CONTENT);
 		}
 
 		if ((containsPermission == null) || !containsPermission) {
 			throw new PrincipalException.MustHavePermission(
-				getUserId(), className, layout.getPlid(), ActionKeys.UPDATE);
+				getUserId(), className1, classPK1, ActionKeys.UPDATE);
 		}
+	}
+
+	private LayoutPageTemplateEntry _getLayoutPageTemplateEntry(Layout layout) {
+		return _layoutPageTemplateEntryLocalService.
+			fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
 	}
 
 	private Layout _getPublishedLayout(Layout layout) {
@@ -208,6 +226,10 @@ public class FragmentEntryLinkServiceImpl
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private Portal _portal;

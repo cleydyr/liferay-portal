@@ -23,6 +23,7 @@ import com.liferay.layout.content.page.editor.constants.ContentPageEditorWebKeys
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.type.controller.BaseLayoutTypeControllerImpl;
+import com.liferay.layout.type.controller.display.page.internal.security.permission.resource.LayoutPageTemplateEntryPermission;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -311,9 +312,14 @@ public class DisplayPageLayoutTypeController
 	private boolean _hasUpdatePermissions(
 		PermissionChecker permissionChecker, Layout layout) {
 
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_fetchLayoutPageTemplateEntry(layout);
+
 		try {
-			if (LayoutPermissionUtil.contains(
-					permissionChecker, layout, ActionKeys.UPDATE) ||
+			if (LayoutPageTemplateEntryPermission.contains(
+					permissionChecker,
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE) ||
 				LayoutPermissionUtil.contains(
 					permissionChecker, layout,
 					ActionKeys.UPDATE_LAYOUT_CONTENT)) {

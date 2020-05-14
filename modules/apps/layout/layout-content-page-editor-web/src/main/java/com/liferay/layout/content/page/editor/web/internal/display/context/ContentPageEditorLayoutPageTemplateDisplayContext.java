@@ -27,12 +27,16 @@ import com.liferay.info.display.contributor.InfoDisplayContributorTracker;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
 import com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration;
+import com.liferay.layout.content.page.editor.web.internal.security.permission.resource.LayoutPageTemplateEntryPermission;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -110,6 +114,56 @@ public class ContentPageEditorLayoutPageTemplateDisplayContext
 
 	@Override
 	public boolean isWorkflowEnabled() {
+		return false;
+	}
+
+	protected boolean hasUpdateContentPermissions() {
+		try {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				_getLayoutPageTemplateEntry();
+
+			if (_pageIsDisplayPage &&
+				LayoutPageTemplateEntryPermission.contains(
+					themeDisplay.getPermissionChecker(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE)) {
+
+				return true;
+			}
+
+			return super.hasUpdateContentPermissions();
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
+		}
+
+		return false;
+	}
+
+	protected boolean hasUpdatePermissions() {
+		try {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				_getLayoutPageTemplateEntry();
+
+			if (_pageIsDisplayPage &&
+				LayoutPageTemplateEntryPermission.contains(
+					themeDisplay.getPermissionChecker(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE)) {
+
+				return true;
+			}
+
+			return super.hasUpdatePermissions();
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
+		}
+
 		return false;
 	}
 
@@ -199,6 +253,9 @@ public class ContentPageEditorLayoutPageTemplateDisplayContext
 			}
 		).build();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ContentPageEditorLayoutPageTemplateDisplayContext.class);
 
 	private LayoutPageTemplateEntry _layoutPageTemplateEntry;
 	private final boolean _pageIsDisplayPage;
