@@ -85,14 +85,13 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			HttpServletResponse httpServletResponse, Layout layout)
 		throws Exception {
 
+		Layout curLayout = _layoutLocalService.fetchLayout(layout.getClassPK());
+
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
 		if (layout.getClassNameId() == _portal.getClassNameId(Layout.class)) {
-			Layout curLayout = _layoutLocalService.fetchLayout(
-				layout.getClassPK());
-
 			if (curLayout.isPending()) {
 				curLayout = layout;
 			}
@@ -111,7 +110,7 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 		if (layoutMode.equals(Constants.EDIT) &&
 			!_hasUpdatePermissions(
-				themeDisplay.getPermissionChecker(), layout)) {
+				themeDisplay.getPermissionChecker(), curLayout)) {
 
 			layoutMode = Constants.VIEW;
 		}

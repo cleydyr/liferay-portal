@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.BaseModelPermissionCheckerUtil;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -170,9 +171,13 @@ public class FragmentEntryLinkServiceImpl
 			boolean checkUpdateLayoutContentPermission)
 		throws PortalException {
 
+		Layout layout = _layoutLocalService.getLayout(classPK);
+
+		layout = _getPublishedLayout(layout);
+
 		Boolean containsPermission = Boolean.valueOf(
 			BaseModelPermissionCheckerUtil.containsBaseModelPermission(
-				getPermissionChecker(), groupId, className, classPK,
+				getPermissionChecker(), groupId, className, layout.getPlid(),
 				ActionKeys.UPDATE));
 
 		if (checkUpdateLayoutContentPermission &&
@@ -181,15 +186,28 @@ public class FragmentEntryLinkServiceImpl
 			containsPermission =
 				containsPermission ||
 				LayoutPermissionUtil.contains(
-					getPermissionChecker(), classPK,
+					getPermissionChecker(), layout.getPlid(),
 					ActionKeys.UPDATE_LAYOUT_CONTENT);
 		}
 
 		if ((containsPermission == null) || !containsPermission) {
 			throw new PrincipalException.MustHavePermission(
-				getUserId(), className, classPK, ActionKeys.UPDATE);
+				getUserId(), className, layout.getPlid(), ActionKeys.UPDATE);
 		}
 	}
+
+	private Layout _getPublishedLayout(Layout layout) {
+		long classPK = layout.getClassPK();
+
+		if (classPK != 0) {
+			return _layoutLocalService.fetchLayout(classPK);
+		}
+
+		return layout;
+	}
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private Portal _portal;
