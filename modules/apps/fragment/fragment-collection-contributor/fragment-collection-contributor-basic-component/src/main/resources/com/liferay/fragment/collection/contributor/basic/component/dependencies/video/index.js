@@ -104,8 +104,9 @@ const youtubeProvider = {
 				playerVars: {
 					autoplay: configuration.autoPlay,
 					controls: configuration.hideControls ? 0 : 1,
-					loop: configuration.loop ? 0 : 1,
-					start: !parameters.start ? 0 : parameters.start
+					loop: configuration.loop ? 1 : 0,
+					start: !parameters.start ? 0 : parameters.start,
+					playlist: configuration.loop ? parameters.videoId : undefined,
 				},
 				events: {
 					onReady: function() {
