@@ -198,7 +198,7 @@ request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 							<li class="sidebar-dt"><liferay-ui:message key="description" /></li>
 
 							<li class="sidebar-dd">
-								<%= HtmlUtil.escape(group.getDescription()) %>
+								<%= HtmlUtil.escape(group.getDescription(locale)) %>
 							</li>
 						</c:if>
 
