@@ -319,7 +319,7 @@ const Trigger = forwardRef(
 		ref
 	) => {
 		return (
-			<>
+			<React.Fragment key={ Math.random() }>
 				{!readOnly && (
 					<HiddenSelectInput value={value} {...otherProps} />
 				)}
@@ -332,7 +332,7 @@ const Trigger = forwardRef(
 					value={value}
 					{...otherProps}
 				/>
-			</>
+			</React.Fragment>
 		);
 	}
 );

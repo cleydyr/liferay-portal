@@ -114,7 +114,7 @@ const VisibleSelectInput = forwardRef(
 							);
 
 							return (
-								<>
+								<React.Fragment key={ Math.random() }>
 									{option && (
 										<LabelOptionListItem
 											key={`${option.value}-${option.label}`}
@@ -124,7 +124,7 @@ const VisibleSelectInput = forwardRef(
 											option={option}
 										/>
 									)}
-								</>
+								</React.Fragment>
 							);
 						})
 					)}
