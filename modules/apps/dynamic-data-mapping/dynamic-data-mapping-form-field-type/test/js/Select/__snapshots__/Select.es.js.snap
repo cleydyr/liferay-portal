@@ -22,7 +22,6 @@ exports[`Select calls onChange callback when an item is selected using multisele
     </select>
     <div
       class="form-builder-select-field input-group-container"
-      style=""
     >
       <div
         class="form-control results-chosen select-field-trigger multiple-label-list"
