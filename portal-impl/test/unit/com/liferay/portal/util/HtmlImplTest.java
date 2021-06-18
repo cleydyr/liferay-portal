@@ -191,6 +191,9 @@ public class HtmlImplTest {
 		Assert.assertEquals(
 			"http://localhost:8080",
 			_htmlImpl.escapeJSLink("http://localhost:8080"));
+		Assert.assertEquals(
+			"javascript%3a//localhost:800/123%0aalert(document.domain)",
+			_htmlImpl.escapeJSLink("\tjavascript://localhost:800/123%0aalert(document.domain)"));
 	}
 
 	@Test
