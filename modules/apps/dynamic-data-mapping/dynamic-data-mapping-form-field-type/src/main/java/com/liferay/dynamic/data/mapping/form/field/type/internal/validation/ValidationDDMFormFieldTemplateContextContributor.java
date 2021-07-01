@@ -56,12 +56,12 @@ public class ValidationDDMFormFieldTemplateContextContributor
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
 		return HashMapBuilder.<String, Object>put(
+			"dataType", getDataType(ddmFormField, ddmFormFieldRenderingContext)
+		).put(
 			"ffCustomDDMValidationEnabled",
 			_ffCustomDDMValidationConfiguration.enabled()
 		).put(
 			"value", getValue(ddmFormFieldRenderingContext)
-		).put(
-			"dataType", getDataType(ddmFormField, ddmFormFieldRenderingContext)
 		).build();
 	}
 
@@ -81,7 +81,8 @@ public class ValidationDDMFormFieldTemplateContextContributor
 				"changedProperties");
 
 		if (MapUtil.isNotEmpty(changedProperties)) {
-			String validationDataType = (String)changedProperties.get("validationDataType");
+			String validationDataType = (String)changedProperties.get(
+				"validationDataType");
 
 			if (validationDataType != null) {
 				return validationDataType;
