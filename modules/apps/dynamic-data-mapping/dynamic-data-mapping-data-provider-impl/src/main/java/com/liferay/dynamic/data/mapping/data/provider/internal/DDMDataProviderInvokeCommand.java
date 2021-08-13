@@ -26,6 +26,8 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.strategy.HystrixPlugins;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
 
 /**
  * @author Marcellus Tavares
@@ -85,6 +87,22 @@ public class DDMDataProviderInvokeCommand
 	private static final HystrixCommandGroupKey _hystrixCommandGroupKey =
 		HystrixCommandGroupKey.Factory.asKey(
 			"DDMDataProviderInvokeCommandGroup");
+
+	static {
+		HystrixPlugins histrixPlugins = HystrixPlugins.getInstance();
+
+		histrixPlugins.registerPropertiesStrategy(
+			new HystrixPropertiesStrategy() {
+
+				public String getCommandPropertiesCacheKey(
+					HystrixCommandKey commandKey,
+					HystrixCommandProperties.Setter builder) {
+
+					return null;
+				}
+
+			});
+	}
 
 	private final DDMDataProvider _ddmDataProvider;
 	private final DDMDataProviderRequest _ddmDataProviderRequest;
