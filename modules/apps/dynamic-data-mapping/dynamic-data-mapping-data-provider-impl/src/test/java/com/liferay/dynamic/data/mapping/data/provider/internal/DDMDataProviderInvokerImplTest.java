@@ -21,33 +21,60 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseSta
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderTracker;
 import com.liferay.dynamic.data.mapping.data.provider.internal.rest.DDMRESTDataProviderSettings;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
+import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
+import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
+import com.liferay.dynamic.data.mapping.util.DDMFormInstanceFactory;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
+import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import com.netflix.hystrix.strategy.properties.HystrixProperty;
 
+import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Leonardo Barros
  */
+@PrepareForTest(ResourceBundleUtil.class)
+@RunWith(PowerMockRunner.class)
 public class DDMDataProviderInvokerImplTest extends PowerMockito {
 
 	@ClassRule
 	@Rule
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
+
+	@Before
+	public void setUp() {
+		setUpLanguageUtil();
+		setUpPortalUtil();
+		setUpResourceBundleUtil();
+	}
 
 	@Test
 	public void testDDMDataProviderInvokeCommand() throws Exception {
@@ -459,6 +486,42 @@ public class DDMDataProviderInvokerImplTest extends PowerMockito {
 	}
 
 	@Test
+	public void testTimeOutChange() {
+		DDMDataProvider ddmDataProvider = mock(DDMDataProvider.class);
+
+		DDMDataProviderRequest.Builder builder =
+			DDMDataProviderRequest.Builder.newBuilder();
+
+		DDMDataProviderRequest ddmDataProviderRequest = builder.build();
+
+		int timeout1 = 10000;
+
+		DDMDataProviderInvokeCommand command1 =
+			new DDMDataProviderInvokeCommand(
+				"ddmDataProviderInstanceName", ddmDataProvider,
+				ddmDataProviderRequest,
+				_createDDMRESTDataProviderSettingsWithTimeout(timeout1));
+
+		int executionTimeoutInMilliseconds1 =
+			_getExecutionTimeoutInMilliseconds(command1);
+
+		Assert.assertEquals(timeout1, executionTimeoutInMilliseconds1);
+
+		int timeout2 = 15000;
+
+		DDMDataProviderInvokeCommand command2 =
+			new DDMDataProviderInvokeCommand(
+				"ddmDataProviderInstanceName", ddmDataProvider,
+				ddmDataProviderRequest,
+				_createDDMRESTDataProviderSettingsWithTimeout(timeout2));
+
+		int executionTimeoutInMilliseconds2 =
+			_getExecutionTimeoutInMilliseconds(command2);
+
+		Assert.assertEquals(timeout2, executionTimeoutInMilliseconds2);
+	}
+
+	@Test
 	public void testTimeOutException() {
 		DDMDataProviderInvokerImpl ddmDataProviderInvokerImpl = mock(
 			DDMDataProviderInvokerImpl.class);
@@ -485,6 +548,67 @@ public class DDMDataProviderInvokerImplTest extends PowerMockito {
 		Assert.assertEquals(
 			DDMDataProviderResponseStatus.TIMEOUT,
 			ddmDataProviderResponse.getStatus());
+	}
+
+	protected void setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(PowerMockito.mock(Language.class));
+	}
+
+	protected void setUpPortalUtil() {
+		PortalUtil portalUtil = new PortalUtil();
+
+		Portal portal = PowerMockito.mock(Portal.class);
+		ResourceBundle resourceBundle = PowerMockito.mock(ResourceBundle.class);
+
+		PowerMockito.when(
+			portal.getResourceBundle(Matchers.any(Locale.class))
+		).thenReturn(
+			resourceBundle
+		);
+
+		portalUtil.setPortal(portal);
+	}
+
+	protected void setUpResourceBundleUtil() {
+		PowerMockito.mockStatic(ResourceBundleUtil.class);
+
+		PowerMockito.when(
+			ResourceBundleUtil.getBundle(
+				Matchers.anyString(), Matchers.any(Locale.class),
+				Matchers.any(ClassLoader.class))
+		).thenReturn(
+			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE
+		);
+	}
+
+	private DDMRESTDataProviderSettings
+		_createDDMRESTDataProviderSettingsWithTimeout(int timeout) {
+
+		DDMForm ddmForm = DDMFormFactory.create(
+			DDMRESTDataProviderSettings.class);
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"timeout", String.valueOf(timeout)));
+
+		return DDMFormInstanceFactory.create(
+			DDMRESTDataProviderSettings.class, ddmFormValues);
+	}
+
+	private int _getExecutionTimeoutInMilliseconds(
+		DDMDataProviderInvokeCommand command1) {
+
+		HystrixCommandProperties properties = command1.getProperties();
+
+		HystrixProperty<Integer> executionTimeoutInMilliseconds =
+			properties.executionTimeoutInMilliseconds();
+
+		return executionTimeoutInMilliseconds.get();
 	}
 
 }
