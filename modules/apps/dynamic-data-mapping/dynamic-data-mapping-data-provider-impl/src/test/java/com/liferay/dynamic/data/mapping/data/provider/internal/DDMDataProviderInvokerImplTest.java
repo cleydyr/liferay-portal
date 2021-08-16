@@ -494,31 +494,29 @@ public class DDMDataProviderInvokerImplTest extends PowerMockito {
 
 		DDMDataProviderRequest ddmDataProviderRequest = builder.build();
 
-		int timeout1 = 10000;
+		int timeout = 10000;
 
-		DDMDataProviderInvokeCommand command1 =
-			new DDMDataProviderInvokeCommand(
-				"ddmDataProviderInstanceName", ddmDataProvider,
-				ddmDataProviderRequest,
-				_createDDMRESTDataProviderSettingsWithTimeout(timeout1));
+		DDMDataProviderInvokeCommand command = new DDMDataProviderInvokeCommand(
+			"ddmDataProviderInstanceName", ddmDataProvider,
+			ddmDataProviderRequest,
+			_createDDMRESTDataProviderSettingsWithTimeout(timeout));
 
-		int executionTimeoutInMilliseconds1 =
-			_getExecutionTimeoutInMilliseconds(command1);
+		int executionTimeoutInMilliseconds = _getExecutionTimeoutInMilliseconds(
+			command);
 
-		Assert.assertEquals(timeout1, executionTimeoutInMilliseconds1);
+		Assert.assertEquals(timeout, executionTimeoutInMilliseconds);
 
-		int timeout2 = 15000;
+		timeout = 15000;
 
-		DDMDataProviderInvokeCommand command2 =
-			new DDMDataProviderInvokeCommand(
-				"ddmDataProviderInstanceName", ddmDataProvider,
-				ddmDataProviderRequest,
-				_createDDMRESTDataProviderSettingsWithTimeout(timeout2));
+		command = new DDMDataProviderInvokeCommand(
+			"ddmDataProviderInstanceName", ddmDataProvider,
+			ddmDataProviderRequest,
+			_createDDMRESTDataProviderSettingsWithTimeout(timeout));
 
-		int executionTimeoutInMilliseconds2 =
-			_getExecutionTimeoutInMilliseconds(command2);
+		executionTimeoutInMilliseconds = _getExecutionTimeoutInMilliseconds(
+			command);
 
-		Assert.assertEquals(timeout2, executionTimeoutInMilliseconds2);
+		Assert.assertEquals(timeout, executionTimeoutInMilliseconds);
 	}
 
 	@Test
