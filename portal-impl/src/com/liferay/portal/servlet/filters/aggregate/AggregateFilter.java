@@ -37,6 +37,8 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -142,6 +144,17 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 						importX + _CSS_IMPORT_BEGIN.length(), importY);
 				}
 
+				if (!importFileName.isEmpty()) {
+					char firstCharacter = importFileName.charAt(0);
+
+					if ((firstCharacter == CharPool.APOSTROPHE) ||
+						(firstCharacter == CharPool.QUOTE)) {
+
+						importFileName = importFileName.substring(
+							1, importFileName.length() - 1);
+					}
+				}
+
 				String importContent = null;
 
 				if (Validator.isUrl(importFileName)) {
@@ -149,6 +162,10 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 						importFileName);
 
 					importContent = downServletPaths.getContent();
+
+					if (importContent == null) {
+						importContent = _sendRequest(importFileName);
+					}
 				}
 				else {
 					int queryPos = importFileName.indexOf(CharPool.QUESTION);
@@ -716,6 +733,16 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 		}
 	}
 
+	private static String _sendRequest(String url) throws IOException {
+		Http.Options options = new Http.Options();
+
+		options.addHeader(HttpHeaders.USER_AGENT, _EDGE_USER_AGENT);
+
+		options.setLocation(url);
+
+		return HttpUtil.URLtoString(options);
+	}
+
 	private String _readResource(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, String resourcePath)
@@ -750,6 +777,11 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 	private static final String _CSS_IMPORT_END = ");";
 
 	private static final String _CSS_MEDIA_QUERY = "@media";
+
+	private static final String _EDGE_USER_AGENT =
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+			"(KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 " +
+				"Edg/92.0.902.78";
 
 	private static final String _JAVASCRIPT_EXTENSION = ".js";
 
