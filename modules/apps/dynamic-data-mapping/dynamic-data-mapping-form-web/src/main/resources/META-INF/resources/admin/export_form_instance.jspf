@@ -45,6 +45,11 @@ boolean csvExportDisabled = StringUtil.equals("disabled", csvExport);
 			displayType="warning"
 			message="the-total-number-of-characters-that-a-cell-can-contain-is-32767-characters"
 		/>
+
+		<clay:alert
+			displayType="warning"
+			message="the-total-number-of-columns-that-a-worksheet-can-contain-is-256-columns"
+		/>
 	</div>
 
 	<aui:select label="file-extension" name="fileExtension">
