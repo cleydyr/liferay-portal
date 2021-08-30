@@ -2,6 +2,8 @@
 
 <Configuration strict="true">
 	<Loggers>
+		<Logger level="WARN" name="com.liferay.dynamic.data.mapping.internal.io.exporter.DDMFormInstanceRecordXLSWriter" />
+
 		<Logger level="WARN" name="com.liferay.dynamic.data.mapping.internal.storage.JSONDDMStorageAdapter" />
 
 		<Logger level="WARN" name="com.liferay.dynamic.data.mapping.internal.storage.JSONStorageAdapter" />
