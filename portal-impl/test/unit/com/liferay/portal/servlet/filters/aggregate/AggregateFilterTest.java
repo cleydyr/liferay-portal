@@ -59,7 +59,7 @@ public class AggregateFilterTest extends PowerMockito {
 	}
 
 	@Test
-	public void testAggregateCss() throws IOException {
+	public void testAggregateWithImports() throws IOException {
 		String cssFileName = "./my-styles.css";
 
 		String validCss = "body {color: black;}";
