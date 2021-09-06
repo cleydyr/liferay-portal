@@ -53,8 +53,7 @@ public class DDMFormTemplateContextFactoryHelper {
 			ddmFormRules = ddmForm.getDDMFormRules();
 		}
 
-		expressionParameters.addAll(
-			getParametersByDDMFormRules(ddmFormRules));
+		expressionParameters.addAll(getParametersByDDMFormRules(ddmFormRules));
 
 		for (DDMFormField ddmFormField : ddmFormFieldsMap.values()) {
 			if (isDDMFormFieldEvaluable(ddmFormField)) {
@@ -78,21 +77,17 @@ public class DDMFormTemplateContextFactoryHelper {
 
 		for (DDMFormRule ddmFormRule : ddmFormRules) {
 			parameters.addAll(
-				getParametersByExpression(
-					ddmFormRule.getCondition()));
+				getParametersByExpression(ddmFormRule.getCondition()));
 
 			for (String action : ddmFormRule.getActions()) {
-				parameters.addAll(
-					getParametersByExpression(action));
+				parameters.addAll(getParametersByExpression(action));
 			}
 		}
 
 		return parameters;
 	}
 
-	protected Set<String> getParametersByExpression(
-		String expression) {
-
+	protected Set<String> getParametersByExpression(String expression) {
 		if (Validator.isNull(expression)) {
 			return Collections.emptySet();
 		}
