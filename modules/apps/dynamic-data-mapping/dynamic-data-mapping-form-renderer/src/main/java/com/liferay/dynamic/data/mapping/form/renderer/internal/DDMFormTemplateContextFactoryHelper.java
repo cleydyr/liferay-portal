@@ -54,8 +54,7 @@ public class DDMFormTemplateContextFactoryHelper {
 		}
 
 		evaluableDDMFormFieldNames.addAll(
-			getReferencedFieldNamesByDDMFormRules(
-				ddmFormRules, ddmFormFieldNames));
+			getReferencedFieldNamesByDDMFormRules(ddmFormRules));
 
 		for (DDMFormField ddmFormField : ddmFormFieldsMap.values()) {
 			if (isDDMFormFieldEvaluable(ddmFormField)) {
@@ -64,26 +63,27 @@ public class DDMFormTemplateContextFactoryHelper {
 
 			evaluableDDMFormFieldNames.addAll(
 				getReferencedFieldNamesByExpression(
-					ddmFormField.getVisibilityExpression(), ddmFormFieldNames));
+					ddmFormField.getVisibilityExpression()));
 		}
 
-		return evaluableDDMFormFieldNames;
+		ddmFormFieldNames.retainAll(evaluableDDMFormFieldNames);
+
+		return ddmFormFieldNames;
 	}
 
 	protected Set<String> getReferencedFieldNamesByDDMFormRules(
-		List<DDMFormRule> ddmFormRules, Set<String> ddmFormFieldNames) {
+		List<DDMFormRule> ddmFormRules) {
 
 		Set<String> referencedFieldNames = new HashSet<>();
 
 		for (DDMFormRule ddmFormRule : ddmFormRules) {
 			referencedFieldNames.addAll(
 				getReferencedFieldNamesByExpression(
-					ddmFormRule.getCondition(), ddmFormFieldNames));
+					ddmFormRule.getCondition()));
 
 			for (String action : ddmFormRule.getActions()) {
 				referencedFieldNames.addAll(
-					getReferencedFieldNamesByExpression(
-						action, ddmFormFieldNames));
+					getReferencedFieldNamesByExpression(action));
 			}
 		}
 
@@ -91,7 +91,7 @@ public class DDMFormTemplateContextFactoryHelper {
 	}
 
 	protected Set<String> getReferencedFieldNamesByExpression(
-		String expression, Set<String> ddmFormFieldNames) {
+		String expression) {
 
 		if (Validator.isNull(expression)) {
 			return Collections.emptySet();
@@ -99,15 +99,10 @@ public class DDMFormTemplateContextFactoryHelper {
 
 		Set<String> referencedFieldNames = new HashSet<>();
 
-		for (String ddmFormFieldName : ddmFormFieldNames) {
-			Pattern pattern = Pattern.compile(
-				String.format(".*('?%s'?).*", ddmFormFieldName));
+		Matcher matcher = _functionParametersPattern.matcher(expression);
 
-			Matcher matcher = pattern.matcher(expression);
-
-			if (matcher.find()) {
-				referencedFieldNames.add(ddmFormFieldName);
-			}
+		while (matcher.find()) {
+			referencedFieldNames.add(matcher.group(1));
 		}
 
 		return referencedFieldNames;
@@ -134,5 +129,8 @@ public class DDMFormTemplateContextFactoryHelper {
 
 		return false;
 	}
+
+	private static final Pattern _functionParametersPattern = Pattern.compile(
+		"'?([\\w]+)'?\\s*[,\\)]\\s*");
 
 }
