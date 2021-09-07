@@ -326,51 +326,6 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 	}
 
 	@Test
-	public void testListOutputWithNonStringTypes() {
-		DocumentContext documentContext = _mockDocumentContext(
-			new ArrayList() {
-				{
-					add("5");
-					add("6");
-					add("7");
-				}
-			},
-			new ArrayList() {
-				{
-					add("Moreno");
-					add(42);
-					add(3.14);
-				}
-			});
-
-		DDMDataProviderRequest.Builder builder =
-			DDMDataProviderRequest.Builder.newBuilder();
-
-		String outputParameterId = StringUtil.randomString();
-
-		DDMDataProviderResponse ddmDataProviderResponse =
-			_ddmRESTDataProvider.createDDMDataProviderResponse(
-				documentContext, builder.build(),
-				_createSettingsWithOutputParameter(
-					outputParameterId, "list output", false, "value;key",
-					"list"));
-
-		Optional<List<KeyValuePair>> optional =
-			ddmDataProviderResponse.getOutputOptional(
-				outputParameterId, List.class);
-
-		Assert.assertEquals(
-			new ArrayList<KeyValuePair>() {
-				{
-					add(new KeyValuePair("5", "Moreno"));
-					add(new KeyValuePair("6", "42"));
-					add(new KeyValuePair("7", "3.14"));
-				}
-			},
-			optional.get());
-	}
-
-	@Test
 	public void testListOutputWithoutPagination() {
 		DocumentContext documentContext = _mockDocumentContext(
 			new ArrayList() {
@@ -468,6 +423,51 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 					add(new KeyValuePair("1", "Pernambuco"));
 					add(new KeyValuePair("2", "Paraiba"));
 					add(new KeyValuePair("3", "Ceara"));
+				}
+			},
+			optional.get());
+	}
+
+	@Test
+	public void testListOutputWithVariousTypes() {
+		DocumentContext documentContext = _mockDocumentContext(
+			new ArrayList() {
+				{
+					add("5");
+					add("6");
+					add("7");
+				}
+			},
+			new ArrayList() {
+				{
+					add("Moreno");
+					add(42);
+					add(3.14);
+				}
+			});
+
+		DDMDataProviderRequest.Builder builder =
+			DDMDataProviderRequest.Builder.newBuilder();
+
+		String outputParameterId = StringUtil.randomString();
+
+		DDMDataProviderResponse ddmDataProviderResponse =
+			_ddmRESTDataProvider.createDDMDataProviderResponse(
+				documentContext, builder.build(),
+				_createSettingsWithOutputParameter(
+					outputParameterId, "list output", false, "value;key",
+					"list"));
+
+		Optional<List<KeyValuePair>> optional =
+			ddmDataProviderResponse.getOutputOptional(
+				outputParameterId, List.class);
+
+		Assert.assertEquals(
+			new ArrayList<KeyValuePair>() {
+				{
+					add(new KeyValuePair("5", "Moreno"));
+					add(new KeyValuePair("6", "42"));
+					add(new KeyValuePair("7", "3.14"));
 				}
 			},
 			optional.get());
