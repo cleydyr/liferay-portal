@@ -178,14 +178,14 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 
 				String normalizedKeyPath = normalizedValuePath;
 
-				List<String> values = documentContext.read(
+				List<?> values = documentContext.read(
 					normalizedValuePath, List.class);
 
 				if (values == null) {
 					continue;
 				}
 
-				List<String> keys = new ArrayList<>(values);
+				List<?> keys = new ArrayList<>(values);
 
 				if (paths.length >= 2) {
 					normalizedKeyPath = normalizePath(paths[1]);
@@ -197,7 +197,13 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 
 				for (int i = 0; i < values.size(); i++) {
 					keyValuePairs.add(
-						new KeyValuePair(keys.get(i), values.get(i)));
+						new KeyValuePair(
+							keys.get(
+								i
+							).toString(),
+							values.get(
+								i
+							).toString()));
 				}
 
 				if (ddmRESTDataProviderSettings.pagination()) {
