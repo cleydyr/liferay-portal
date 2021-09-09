@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -53,43 +51,73 @@ public class AggregateFilterTest extends PowerMockito {
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 
-		setUpPortalUtil();
-
-		setUpServiceProxyFactory();
+		_setUpPortalUtil();
+		_setUpServiceProxyFactory();
 	}
 
 	@Test
-	public void testAggregateWithImports() throws IOException {
-		String cssFileName = "./my-styles.css";
+	public void testAggregateWithImports() throws Exception {
+		String fileName = "./my-styles.css";
+		String css = "body {color: black;}";
 
-		String validCss = "body {color: black;}";
+		ServletPaths servletPaths = _createMockServletPaths(fileName, css);
 
-		ServletPaths servletPaths = _createMockServletPaths(
-			cssFileName, validCss);
+		_testAggregateWithImports(
+			servletPaths, css, _wrap(fileName, StringPool.QUOTE));
 
-		String httpURL = "https://example.com/";
+		String url = "https://example.com";
 
-		String[] contents = {
-			_wrapInImport(cssFileName, StringPool.QUOTE),
-			_wrapInImport(httpURL, StringPool.APOSTROPHE),
-			_wrapInImport(httpURL, StringPool.QUOTE),
-			_wrapInImport(httpURL, StringPool.BLANK)
-		};
-
-		String[] expected = {
-			validCss, _wrapInImport(httpURL, StringPool.APOSTROPHE),
-			_wrapInImport(httpURL, StringPool.QUOTE),
-			_wrapInImport(httpURL, StringPool.BLANK)
-		};
-
-		for (int i = 0; i < contents.length; i++) {
-			Assert.assertEquals(
-				expected[i],
-				AggregateFilter.aggregateCss(servletPaths, contents[i]));
-		}
+		_testAggregateWithImports(
+			servletPaths, _wrap(url, StringPool.APOSTROPHE));
+		_testAggregateWithImports(servletPaths, _wrap(url, StringPool.BLANK));
+		_testAggregateWithImports(servletPaths, _wrap(url, StringPool.QUOTE));
 	}
 
-	protected void setUpPortalUtil() {
+	private ServletPaths _createMockServletPaths(String fileName, String css) {
+		ServletPaths servletPaths = mock(ServletPaths.class);
+
+		when(
+			servletPaths.down(Mockito.anyString())
+		).thenReturn(
+			servletPaths
+		);
+
+		ServletPaths cssServletPaths = mock(ServletPaths.class);
+
+		when(
+			cssServletPaths.getContent()
+		).thenReturn(
+			css
+		);
+
+		when(
+			cssServletPaths.getResourcePath()
+		).thenReturn(
+			StringPool.BLANK
+		);
+
+		when(
+			servletPaths.down(StringPool.QUOTE + fileName + StringPool.QUOTE)
+		).thenReturn(
+			cssServletPaths
+		);
+
+		when(
+			servletPaths.getContent()
+		).thenReturn(
+			null
+		);
+
+		when(
+			servletPaths.getResourcePath()
+		).thenReturn(
+			StringPool.BLANK
+		);
+
+		return servletPaths;
+	}
+
+	private void _setUpPortalUtil() {
 		mockStatic(PortalUtil.class);
 
 		PowerMockito.when(
@@ -99,7 +127,7 @@ public class AggregateFilterTest extends PowerMockito {
 		);
 	}
 
-	protected void setUpServiceProxyFactory() {
+	private void _setUpServiceProxyFactory() {
 		mockStatic(ServiceProxyFactory.class);
 
 		when(
@@ -111,53 +139,22 @@ public class AggregateFilterTest extends PowerMockito {
 		);
 	}
 
-	private ServletPaths _createMockServletPaths(
-		String cssFileName, String validCss) {
+	private void _testAggregateWithImports(
+			ServletPaths servletPaths, String expected)
+		throws Exception {
 
-		ServletPaths servletPaths = mock(ServletPaths.class);
-
-		ServletPaths validCSSServletPath = mock(ServletPaths.class);
-
-		when(
-			validCSSServletPath.getContent()
-		).thenReturn(
-			validCss
-		);
-
-		when(
-			validCSSServletPath.getResourcePath()
-		).thenReturn(
-			StringPool.BLANK
-		);
-
-		when(
-			servletPaths.getResourcePath()
-		).thenReturn(
-			StringPool.BLANK
-		);
-
-		when(
-			servletPaths.getContent()
-		).thenReturn(
-			null
-		);
-
-		when(
-			servletPaths.down(Mockito.anyString())
-		).thenReturn(
-			servletPaths
-		);
-
-		when(
-			servletPaths.down(StringPool.QUOTE + cssFileName + StringPool.QUOTE)
-		).thenReturn(
-			validCSSServletPath
-		);
-
-		return servletPaths;
+		_testAggregateWithImports(servletPaths, expected, expected);
 	}
 
-	private String _wrapInImport(String url, String delimiter) {
+	private void _testAggregateWithImports(
+			ServletPaths servletPaths, String expected, String content)
+		throws Exception {
+
+		Assert.assertEquals(
+			expected, AggregateFilter.aggregateCss(servletPaths, content));
+	}
+
+	private String _wrap(String url, String delimiter) {
 		return StringBundler.concat(
 			"@import url(", delimiter, url, delimiter, ");");
 	}
