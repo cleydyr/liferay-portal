@@ -196,12 +196,10 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 				List<KeyValuePair> keyValuePairs = new ArrayList<>();
 
 				for (int i = 0; i < values.size(); i++) {
-					Object key = keys.get(i);
-
-					Object value = values.get(i);
-
 					keyValuePairs.add(
-						new KeyValuePair(key.toString(), value.toString()));
+						new KeyValuePair(
+							String.valueOf(keys.get(i)),
+							String.valueOf(values.get(i))));
 				}
 
 				if (ddmRESTDataProviderSettings.pagination()) {
