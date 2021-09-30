@@ -41,7 +41,7 @@ public class DDMFormTemplateContextFactoryHelper {
 	public Set<String> getEvaluableDDMFormFieldNames(
 		DDMForm ddmForm, DDMFormLayout ddmFormLayout) {
 
-		Set<String> evaluableDDMFormFieldNames = new HashSet<>();
+		Set<String> expressionParameters = new HashSet<>();
 
 		Map<String, DDMFormField> ddmFormFieldsMap =
 			ddmForm.getDDMFormFieldsMap(true);
@@ -54,64 +54,54 @@ public class DDMFormTemplateContextFactoryHelper {
 			ddmFormRules = ddmForm.getDDMFormRules();
 		}
 
-		evaluableDDMFormFieldNames.addAll(
-			getReferencedFieldNamesByDDMFormRules(
-				ddmFormRules, ddmFormFieldNames));
+		expressionParameters.addAll(getParametersByDDMFormRules(ddmFormRules));
 
 		for (DDMFormField ddmFormField : ddmFormFieldsMap.values()) {
 			if (isDDMFormFieldEvaluable(ddmFormField)) {
-				evaluableDDMFormFieldNames.add(ddmFormField.getName());
+				expressionParameters.add(ddmFormField.getName());
 			}
 
-			evaluableDDMFormFieldNames.addAll(
-				getReferencedFieldNamesByExpression(
-					ddmFormField.getVisibilityExpression(), ddmFormFieldNames));
+			expressionParameters.addAll(
+				getParametersByExpression(
+					ddmFormField.getVisibilityExpression()));
 		}
 
-		return evaluableDDMFormFieldNames;
+		ddmFormFieldNames.retainAll(expressionParameters);
+
+		return ddmFormFieldNames;
 	}
 
-	protected Set<String> getReferencedFieldNamesByDDMFormRules(
-		List<DDMFormRule> ddmFormRules, Set<String> ddmFormFieldNames) {
+	protected Set<String> getParametersByDDMFormRules(
+		List<DDMFormRule> ddmFormRules) {
 
-		Set<String> referencedFieldNames = new HashSet<>();
+		Set<String> parameters = new HashSet<>();
 
 		for (DDMFormRule ddmFormRule : ddmFormRules) {
-			referencedFieldNames.addAll(
-				getReferencedFieldNamesByExpression(
-					ddmFormRule.getCondition(), ddmFormFieldNames));
+			parameters.addAll(
+				getParametersByExpression(ddmFormRule.getCondition()));
 
 			for (String action : ddmFormRule.getActions()) {
-				referencedFieldNames.addAll(
-					getReferencedFieldNamesByExpression(
-						action, ddmFormFieldNames));
+				parameters.addAll(getParametersByExpression(action));
 			}
 		}
 
-		return referencedFieldNames;
+		return parameters;
 	}
 
-	protected Set<String> getReferencedFieldNamesByExpression(
-		String expression, Set<String> ddmFormFieldNames) {
-
+	protected Set<String> getParametersByExpression(String expression) {
 		if (Validator.isNull(expression)) {
 			return Collections.emptySet();
 		}
 
-		Set<String> referencedFieldNames = new HashSet<>();
+		Set<String> parameters = new HashSet<>();
 
-		for (String ddmFormFieldName : ddmFormFieldNames) {
-			Pattern pattern = Pattern.compile(
-				String.format(".*('?%s'?).*", ddmFormFieldName));
+		Matcher matcher = _functionParametersPattern.matcher(expression);
 
-			Matcher matcher = pattern.matcher(expression);
-
-			if (matcher.find()) {
-				referencedFieldNames.add(ddmFormFieldName);
-			}
+		while (matcher.find()) {
+			parameters.add(matcher.group(1));
 		}
 
-		return referencedFieldNames;
+		return parameters;
 	}
 
 	protected boolean isDDMFormFieldEvaluable(DDMFormField ddmFormField) {
@@ -136,5 +126,8 @@ public class DDMFormTemplateContextFactoryHelper {
 
 		return false;
 	}
+
+	private static final Pattern _functionParametersPattern = Pattern.compile(
+		"'?([\\w]+)'?\\s*[,\\)]\\s*");
 
 }
