@@ -769,16 +769,16 @@ public class PortletDataContextImpl implements PortletDataContext {
 		if (classedModel instanceof StagedModel) {
 			StagedModel stagedModel = (StagedModel)classedModel;
 
-			String path = ExportImportPathUtil.getModelPath(stagedModel);
-
-			element = getDataElement(groupElement, "path", path);
+			element = getDataElement(
+				groupElement, "uuid", stagedModel.getUuid());
 
 			if (element != null) {
 				return element;
 			}
 
-			element = getDataElement(
-				groupElement, "uuid", stagedModel.getUuid());
+			String path = ExportImportPathUtil.getModelPath(stagedModel);
+
+			element = getDataElement(groupElement, "path", path);
 
 			if (element != null) {
 				return element;
