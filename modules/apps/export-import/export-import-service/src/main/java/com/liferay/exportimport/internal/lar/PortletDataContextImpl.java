@@ -769,8 +769,7 @@ public class PortletDataContextImpl implements PortletDataContext {
 		if (classedModel instanceof StagedModel) {
 			StagedModel stagedModel = (StagedModel)classedModel;
 
-			element = getDataElement(
-				groupElement, "uuid", stagedModel.getUuid());
+			element = _elementByUUIDCache.get(stagedModel.getUuid());
 
 			if (element != null) {
 				return element;
@@ -797,6 +796,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 			StagedModel stagedModel = (StagedModel)classedModel;
 
 			element.addAttribute("uuid", stagedModel.getUuid());
+
+			_elementByUUIDCache.put(stagedModel.getUuid(), element);
 		}
 
 		return element;
@@ -2781,6 +2782,7 @@ public class PortletDataContextImpl implements PortletDataContext {
 	private String _dataStrategy;
 	private final Set<StagedModelType> _deletionSystemEventModelTypes =
 		new HashSet<>();
+	private final Map<String, Element> _elementByUUIDCache = new HashMap<>();
 	private Date _endDate;
 	private final Map<String, List<ExpandoColumn>> _expandoColumnsMap =
 		new HashMap<>();
