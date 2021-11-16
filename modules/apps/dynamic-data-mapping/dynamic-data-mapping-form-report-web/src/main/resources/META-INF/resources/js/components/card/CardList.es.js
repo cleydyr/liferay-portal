@@ -14,8 +14,6 @@
 
 import React from 'react';
 
-import toDataArray, {sumTotalEntries, toArray} from '../../utils/data.es';
-import fieldTypes from '../../utils/fieldTypes.es';
 import MultiBarChart from '../chart/bar/MultiBarChart.es';
 import SimpleBarChart from '../chart/bar/SimpleBarChart.es';
 import PieChart from '../chart/pie/PieChart.es';
@@ -30,105 +28,6 @@ const chartComponents = {
 	SimpleBarChart,
 };
 
-const chartFactory = ({
-	field,
-	structure,
-	sumTotalValues,
-	summary,
-	totalEntries,
-	values,
-}) => {
-	const {options, type} = field;
-
-	switch (type) {
-		case 'address':
-		case 'city':
-		case 'color':
-		case 'country':
-		case 'date':
-		case 'place':
-		case 'postal-code':
-		case 'state':
-		case 'text': {
-			if (Array.isArray(values)) {
-				return (
-					<List
-						data={toArray(values)}
-						field={field}
-						totalEntries={totalEntries}
-						type={type}
-					/>
-				);
-			}
-			else {
-				return '';
-			}
-		}
-		case 'checkbox': {
-			const newValues = {};
-			for (const [key, value] of Object.entries(values)) {
-				const newKey =
-					key === 'true'
-						? Liferay.Language.get('true')
-						: Liferay.Language.get('false');
-				newValues[newKey] = value;
-			}
-
-			return (
-				<PieChart
-					data={toDataArray(options, newValues)}
-					totalEntries={sumTotalValues}
-				/>
-			);
-		}
-		case 'checkbox_multiple': {
-			return (
-				<SimpleBarChart
-					data={toDataArray(options, values)}
-					totalEntries={totalEntries}
-				/>
-			);
-		}
-		case 'grid': {
-			return (
-				<MultiBarChart
-					data={values}
-					field={field}
-					structure={structure}
-					totalEntries={sumTotalValues}
-				/>
-			);
-		}
-		case 'numeric': {
-			if (Array.isArray(values)) {
-				return (
-					<List
-						data={toArray(values)}
-						field={field}
-						summary={summary}
-						totalEntries={totalEntries}
-					/>
-				);
-			}
-			else {
-				return '';
-			}
-		}
-		case 'object-relationship':
-		case 'radio':
-		case 'select': {
-			return (
-				<PieChart
-					data={toDataArray(options, values)}
-					totalEntries={sumTotalValues}
-				/>
-			);
-		}
-		default:
-			return null;
-	}
-};
-
 export default ({data, fields}) => {
 	let hasCards = false;
 
@@ -136,18 +35,22 @@ export default ({data, fields}) => {
 		const newData =
 			data[field.parentFieldName]?.[field.name] ?? data[field.name] ?? {};
 		const {
-			chartComponentName = {},
+			chartComponentName = '',
 			chartComponentProps = {},
+			icon = '',
+			title = '',
 			summary = {},
-			totalEntries,
-			values = {},
 		} = newData;
 
-		const sumTotalValues = sumTotalEntries(values);
+		const {
+			totalEntries,
+			sumTotalValues,
+		} = chartComponentProps;
 
 		field = {
 			...field,
-			...fieldTypes[field.type],
+			icon,
+			title,
 		};
 
 		const ChartComponent = chartComponents[chartComponentName];
