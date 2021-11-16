@@ -23,6 +23,13 @@ import EmptyState from '../empty-state/EmptyState.es';
 import List from '../list/List.es';
 import Card from './Card.es';
 
+const chartComponents = {
+	List,
+	MultiBarChart,
+	PieChart,
+	SimpleBarChart,
+};
+
 const chartFactory = ({
 	field,
 	structure,
@@ -129,11 +136,13 @@ export default ({data, fields}) => {
 		const newData =
 			data[field.parentFieldName]?.[field.name] ?? data[field.name] ?? {};
 		const {
-			values = {},
-			structure = {},
+			chartComponentName = {},
+			chartComponentProps = {},
 			summary = {},
 			totalEntries,
+			values = {},
 		} = newData;
+
 		const sumTotalValues = sumTotalEntries(values);
 
 		field = {
@@ -141,16 +150,9 @@ export default ({data, fields}) => {
 			...fieldTypes[field.type],
 		};
 
-		const chartContent = {
-			field,
-			structure,
-			sumTotalValues,
-			summary,
-			totalEntries,
-			values,
-		};
+		const ChartComponent = chartComponents[chartComponentName];
 
-		const chart = chartFactory(chartContent);
+		const chart = <ChartComponent {...chartComponentProps} />;
 
 		if (chart === null) {
 			return null;

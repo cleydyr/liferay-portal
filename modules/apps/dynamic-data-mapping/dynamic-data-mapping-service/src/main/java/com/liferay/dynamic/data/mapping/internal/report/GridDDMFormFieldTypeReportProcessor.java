@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
+import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -42,10 +44,10 @@ import org.osgi.service.component.annotations.Reference;
 	service = DDMFormFieldTypeReportProcessor.class
 )
 public class GridDDMFormFieldTypeReportProcessor
-	implements DDMFormFieldTypeReportProcessor {
+	extends BaseDDMFormFieldTypeReportProcessor {
 
 	@Override
-	public JSONObject process(
+	public JSONObject doProcess(
 			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
 			long formInstanceRecordId, String ddmFormInstanceReportEvent)
 		throws Exception {
@@ -105,6 +107,28 @@ public class GridDDMFormFieldTypeReportProcessor
 			));
 
 		return fieldJSONObject;
+	}
+
+	@Override
+	protected String getChartComponentName() {
+		return DDMFormFieldTypeReportProcessorConstants.
+			MULTI_BAR_CHART_COMPONENT_NAME;
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject,
+		Map<String, Object> ddmFormFieldTypeProperties) {
+
+		return JSONUtil.put(
+			"data", fieldJSONObject.getJSONArray("values")
+		).put(
+			"field", fieldJSONObject
+		).put(
+			"structure", fieldJSONObject.get("structure")
+		).put(
+			"totalEntries", fieldJSONObject.get("totalEntries")
+		);
 	}
 
 	@Reference

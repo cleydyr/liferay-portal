@@ -14,17 +14,35 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
+import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
 import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
+import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
+import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Marcos Martins
@@ -32,52 +50,12 @@ import org.osgi.service.component.annotations.Component;
 @Component(
 	immediate = true,
 	property = {
-		"ddm.form.field.type.name=object-relationship",
-		"ddm.form.field.type.name=radio"
+		"ddm.form.field.type.name=dniFormField"
 	},
 	service = DDMFormFieldTypeReportProcessor.class
 )
-public class RadioDDMFormFieldTypeReportProcessor
-	extends BaseDDMFormFieldTypeReportProcessor {
+public class DNIDDMFormFieldTypeReportProcessor
+	extends TextDDMFormFieldTypeReportProcessor {
 
-	@Override
-	public JSONObject doProcess(
-			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
-			long formInstanceRecordId, String ddmFormInstanceReportEvent)
-		throws Exception {
-
-		Value value = ddmFormFieldValue.getValue();
-
-		String valueString = value.getString(value.getDefaultLocale());
-
-		if (Validator.isNotNull(valueString)) {
-			updateData(
-				ddmFormInstanceReportEvent,
-				fieldJSONObject.getJSONObject("values"), valueString);
-		}
-
-		return fieldJSONObject;
-	}
-
-	@Override
-	protected String getChartComponentName() {
-		return DDMFormFieldTypeReportProcessorConstants.
-			PIE_CHART_COMPONENT_NAME;
-	}
-
-	@Override
-	protected JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
-
-		return JSONUtil.put(
-			"data",
-			toDataArray(
-				fieldJSONObject.getJSONObject("options"),
-				fieldJSONObject.getJSONObject("values"))
-		).put(
-			"totalEntries", fieldJSONObject.get("totalEntries")
-		);
-	}
 
 }

@@ -14,11 +14,19 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
+import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -30,10 +38,10 @@ import org.osgi.service.component.annotations.Component;
 	service = DDMFormFieldTypeReportProcessor.class
 )
 public class CheckboxDDMFormFieldTypeReportProcessor
-	implements DDMFormFieldTypeReportProcessor {
+	extends BaseDDMFormFieldTypeReportProcessor {
 
 	@Override
-	public JSONObject process(
+	public JSONObject doProcess(
 			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
 			long formInstanceRecordId, String ddmFormInstanceReportEvent)
 		throws Exception {
@@ -49,6 +57,52 @@ public class CheckboxDDMFormFieldTypeReportProcessor
 		}
 
 		return fieldJSONObject;
+	}
+
+	@Override
+	protected String getChartComponentName() {
+		return DDMFormFieldTypeReportProcessorConstants.
+			SIMPLE_BAR_CHART_COMPONENT_NAME;
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject,
+		Map<String, Object> ddmFormFieldTypeProperties) {
+
+		return JSONUtil.put(
+			"data",
+			toDataArray(
+				fieldJSONObject.getJSONObject("options"),
+				_getNewValuesJSONObject(fieldJSONObject))
+		).put(
+			"totalEntries", fieldJSONObject.get("totalEntries")
+		);
+	}
+
+	private JSONObject _getNewValuesJSONObject(JSONObject fieldJSONObject) {
+		JSONObject newValuesJSONObject = JSONFactoryUtil.createJSONObject();
+
+		JSONObject valuesJSONObject = fieldJSONObject.getJSONObject("values");
+
+		valuesJSONObject.keySet(
+		).forEach(
+			key -> {
+				String newKey = LanguageUtil.get(
+					LocaleThreadLocal.getThemeDisplayLocale(),
+					StringPool.FALSE);
+
+				if (key == StringPool.TRUE) {
+					newKey = LanguageUtil.get(
+						LocaleThreadLocal.getThemeDisplayLocale(),
+						StringPool.FALSE);
+				}
+
+				newValuesJSONObject.put(newKey, valuesJSONObject.get(newKey));
+			}
+		);
+
+		return newValuesJSONObject;
 	}
 
 }
