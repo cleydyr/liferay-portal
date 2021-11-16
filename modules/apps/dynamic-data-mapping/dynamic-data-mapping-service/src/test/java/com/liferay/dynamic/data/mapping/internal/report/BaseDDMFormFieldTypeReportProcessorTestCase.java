@@ -70,10 +70,18 @@ public abstract class BaseDDMFormFieldTypeReportProcessorTestCase
 
 	protected void mockDDMFormField(DDMFormFieldValue ddmFormFieldValue) {
 		DDMFormField ddmFormField = mock(DDMFormField.class);
-	
-		when(ddmFormField.getDDMFormFieldOptions()).thenReturn(null);
-	
-		when(ddmFormFieldValue.getDDMFormField()).thenReturn(ddmFormField);
+
+		when(
+			ddmFormField.getDDMFormFieldOptions()
+		).thenReturn(
+			null
+		);
+
+		when(
+			ddmFormFieldValue.getDDMFormField()
+		).thenReturn(
+			ddmFormField
+		);
 	}
 
 }

@@ -216,15 +216,14 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 		Assert.assertEquals(1, valuesJSONObject.getLong("option2"));
 	}
 
-	private final CheckboxMultipleDDMFormFieldTypeReportProcessor
-		_checkboxMultipleDDMFormFieldTypeReportProcessor =
-			new CheckboxMultipleDDMFormFieldTypeReportProcessor();
+	@Override
+	protected void doSetUp() throws Exception {
+	}
 
 	@Override
-	protected void doSetUp() throws Exception {}
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
 
-	@Override
-	protected BaseDDMFormFieldTypeReportProcessor getBaseDDMFormFieldTypeReportProcessor() {
 		return _checkboxMultipleDDMFormFieldTypeReportProcessor;
 	}
 
@@ -242,5 +241,9 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 	protected String getFieldTypeName() {
 		return DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE;
 	}
+
+	private final CheckboxMultipleDDMFormFieldTypeReportProcessor
+		_checkboxMultipleDDMFormFieldTypeReportProcessor =
+			new CheckboxMultipleDDMFormFieldTypeReportProcessor();
 
 }

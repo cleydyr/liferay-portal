@@ -32,8 +32,10 @@ import java.util.Locale;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.mockito.Mock;
 import org.mockito.Mockito;
+
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -49,15 +51,6 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest
 	public void doSetUp() throws Exception {
 		_setUpJSONFactoryUtil();
 		_setUpLanguageUtil();
-	}
-
-	private void _setUpLanguageUtil() {
-		when(_language.get(Mockito.any(Locale.class), Mockito.eq(StringPool.FALSE))).thenReturn("False");
-		when(_language.get(Mockito.any(Locale.class), Mockito.eq(StringPool.TRUE))).thenReturn("True");
-	
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		languageUtil.setLanguage(_language);
 	}
 
 	@Test
@@ -187,10 +180,30 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest
 		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
 	}
 
+	private void _setUpLanguageUtil() {
+		when(
+			_language.get(
+				Mockito.any(Locale.class), Mockito.eq(StringPool.FALSE))
+		).thenReturn(
+			"False"
+		);
+		when(
+			_language.get(
+				Mockito.any(Locale.class), Mockito.eq(StringPool.TRUE))
+		).thenReturn(
+			"True"
+		);
+
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(_language);
+	}
+
 	private final CheckboxDDMFormFieldTypeReportProcessor
 		_checkboxDDMFormFieldTypeReportProcessor =
 			new CheckboxDDMFormFieldTypeReportProcessor();
 
 	@Mock
 	private Language _language;
+
 }
