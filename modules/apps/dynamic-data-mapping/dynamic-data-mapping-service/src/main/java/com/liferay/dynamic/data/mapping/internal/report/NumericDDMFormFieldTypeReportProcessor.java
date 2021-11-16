@@ -24,8 +24,10 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -217,6 +219,30 @@ public class NumericDDMFormFieldTypeReportProcessor
 		}
 
 		return sb.toString();
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		try {
+			return JSONUtil.put(
+				"data",
+				mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+			).put(
+				"field",
+				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
+			).put(
+				"summary", fieldJSONObject.get("summary")
+			).put(
+				"totalEntries", fieldJSONObject.get("totalEntries")
+			);
+		}
+		catch (JSONException jsonException) {
+			_log.error(jsonException.getMessage(), jsonException);
+
+			return JSONFactoryUtil.createJSONObject();
+		}
 	}
 
 	protected BigDecimal getValueBigDecimal(

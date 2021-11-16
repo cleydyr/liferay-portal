@@ -14,12 +14,15 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
+import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 
 import java.util.Iterator;
 
@@ -37,10 +40,10 @@ import org.osgi.service.component.annotations.Component;
 	service = DDMFormFieldTypeReportProcessor.class
 )
 public class CheckboxMultipleDDMFormFieldTypeReportProcessor
-	implements DDMFormFieldTypeReportProcessor {
+	extends BaseDDMFormFieldTypeReportProcessor {
 
 	@Override
-	public JSONObject process(
+	public JSONObject doProcess(
 			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
 			long formInstanceRecordId, String ddmFormInstanceReportEvent)
 		throws Exception {
@@ -70,6 +73,28 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessor
 		}
 
 		return fieldJSONObject;
+	}
+
+	@Override
+	protected String getChartComponentName() {
+		return DDMFormFieldTypeReportProcessorConstants.
+			SIMPLE_BAR_CHART_COMPONENT_NAME;
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		DDMFormField ddmFormField = ddmFormFieldValue.getDDMFormField();
+
+		return JSONUtil.put(
+			"data",
+			toDataArray(
+				ddmFormField.getDDMFormFieldOptions(),
+				fieldJSONObject.getJSONObject("values"))
+		).put(
+			"totalEntries", fieldJSONObject.get("totalEntries")
+		);
 	}
 
 }

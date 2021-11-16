@@ -14,10 +14,13 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
+import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import org.osgi.service.component.annotations.Component;
@@ -29,15 +32,16 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"ddm.form.field.type.name=object-relationship",
-		"ddm.form.field.type.name=radio"
+		"ddm.form.field.type.name=object-relationship",
+		"ddm.form.field.type.name=radio", "ddm.form.field.type.name=select"
 	},
 	service = DDMFormFieldTypeReportProcessor.class
 )
 public class RadioDDMFormFieldTypeReportProcessor
-	implements DDMFormFieldTypeReportProcessor {
+	extends BaseDDMFormFieldTypeReportProcessor {
 
 	@Override
-	public JSONObject process(
+	public JSONObject doProcess(
 			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
 			long formInstanceRecordId, String ddmFormInstanceReportEvent)
 		throws Exception {
@@ -53,6 +57,29 @@ public class RadioDDMFormFieldTypeReportProcessor
 		}
 
 		return fieldJSONObject;
+	}
+
+	@Override
+	protected String getChartComponentName() {
+		return DDMFormFieldTypeReportProcessorConstants.
+			PIE_CHART_COMPONENT_NAME;
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		DDMFormField ddmFormField = ddmFormFieldValue.getDDMFormField();
+
+		return JSONUtil.put(
+			"data",
+			toDataArray(
+				ddmFormField.getDDMFormFieldOptions(),
+				fieldJSONObject.getJSONObject("values"))
+		).put(
+			"totalEntries",
+			sumTotalValues(fieldJSONObject.getJSONObject("values"))
+		);
 	}
 
 }
