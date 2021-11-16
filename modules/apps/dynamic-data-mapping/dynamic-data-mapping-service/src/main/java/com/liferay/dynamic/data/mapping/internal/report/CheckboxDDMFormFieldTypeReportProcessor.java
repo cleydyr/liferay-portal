@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
@@ -25,8 +26,6 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.Validator;
-
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -62,21 +61,23 @@ public class CheckboxDDMFormFieldTypeReportProcessor
 	@Override
 	protected String getChartComponentName() {
 		return DDMFormFieldTypeReportProcessorConstants.
-			SIMPLE_BAR_CHART_COMPONENT_NAME;
+			PIE_CHART_COMPONENT_NAME;
 	}
 
 	@Override
 	protected JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		DDMFormField ddmFormField = ddmFormFieldValue.getDDMFormField();
 
 		return JSONUtil.put(
 			"data",
 			toDataArray(
-				fieldJSONObject.getJSONObject("options"),
+				ddmFormField.getDDMFormFieldOptions(),
 				_getNewValuesJSONObject(fieldJSONObject))
 		).put(
-			"totalEntries", fieldJSONObject.get("totalEntries")
+			"totalEntries",
+			sumTotalValues(fieldJSONObject.getJSONObject("values"))
 		);
 	}
 

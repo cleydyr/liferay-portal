@@ -15,6 +15,8 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
+import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -23,7 +25,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Reference;
@@ -53,8 +54,7 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 			"chartComponentName", getChartComponentName()
 		).put(
 			"chartComponentProps",
-			getChartComponentPropsJSONObject(
-				fieldJSONObject, ddmFormFieldTypeProperties)
+			getChartComponentPropsJSONObject(fieldJSONObject, ddmFormFieldValue)
 		);
 
 		return fieldJSONObject;
@@ -68,8 +68,32 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 	protected abstract String getChartComponentName();
 
 	protected abstract JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties);
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue);
+
+	protected JSONObject getDDMFormFieldOptionLabelsJSONObject(
+		DDMFormFieldOptions ddmFormFieldOptions) {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		int index = 0;
+
+		for (String optionValue : ddmFormFieldOptions.getOptionsValues()) {
+			jsonObject.put(
+				optionValue,
+				JSONUtil.put(
+					"index", index++
+				).put(
+					"value",
+					getValue(ddmFormFieldOptions.getOptionLabels(optionValue))
+				));
+		}
+
+		return jsonObject;
+	}
+
+	protected String getValue(Value value) {
+		return value.getString(value.getDefaultLocale());
+	}
 
 	protected JSONArray mapToValueProperty(JSONArray jsonArray) {
 		JSONArray valuesJSONArray = JSONFactoryUtil.createJSONArray();
@@ -94,35 +118,61 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 		);
 	}
 
+	protected int sumTotalValues(JSONObject valuesJSONObject) {
+		Stream<String> stream = valuesJSONObject.keySet(
+		).stream();
+
+		return stream.map(
+			key -> valuesJSONObject.getInt(key)
+		).reduce(
+			Integer::sum
+		).orElse(
+			0
+		);
+	}
+
 	protected JSONArray toDataArray(
-		JSONObject optionsJSONObject, JSONObject valuesJSONObject) {
+		DDMFormFieldOptions ddmFormFieldOptions, JSONObject valuesJSONObject) {
+
+		JSONArray dataJSONArray = JSONFactoryUtil.createJSONArray();
+
+		if (ddmFormFieldOptions == null) {
+			return dataJSONArray;
+		}
+
+		JSONObject optionsJSONObject = getDDMFormFieldOptionLabelsJSONObject(
+			ddmFormFieldOptions);
 
 		Stream<String> stream = valuesJSONObject.keySet(
 		).stream();
 
-		return JSONFactoryUtil.createJSONArray(
-			stream.map(
-				name -> {
-					int count = valuesJSONObject.getInt("count");
+		stream.map(
+			name -> {
+				int count = valuesJSONObject.getInt(name);
 
-					String label = optionsJSONObject.getString(name);
+				JSONObject optionDataJSONObject =
+					optionsJSONObject.getJSONObject(name);
 
-					if (label == null) {
-						label = name;
-					}
+				String label = optionDataJSONObject.getString("value");
 
-					return JSONUtil.put(
-						"count", count
-					).put(
-						"label", label
-					);
+				if (label == null) {
+					label = name;
 				}
-			).sorted(
-				(jsonObject1, jsonObject2) ->
-					jsonObject2.getInt("count") - jsonObject1.getInt("count")
-			).collect(
-				Collectors.toList()
-			));
+
+				return JSONUtil.put(
+					"count", count
+				).put(
+					"label", label
+				);
+			}
+		).sorted(
+			(jsonObject1, jsonObject2) ->
+				jsonObject2.getInt("count") - jsonObject1.getInt("count")
+		).forEachOrdered(
+			dataJSONArray::put
+		);
+
+		return dataJSONArray;
 	}
 
 	@Reference

@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -117,8 +116,7 @@ public class GridDDMFormFieldTypeReportProcessor
 
 	@Override
 	protected JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
 		return JSONUtil.put(
 			"data", fieldJSONObject.getJSONArray("values")
@@ -127,7 +125,7 @@ public class GridDDMFormFieldTypeReportProcessor
 		).put(
 			"structure", fieldJSONObject.get("structure")
 		).put(
-			"totalEntries", fieldJSONObject.get("totalEntries")
+			"totalEntries", sumTotalValues(fieldJSONObject)
 		);
 	}
 

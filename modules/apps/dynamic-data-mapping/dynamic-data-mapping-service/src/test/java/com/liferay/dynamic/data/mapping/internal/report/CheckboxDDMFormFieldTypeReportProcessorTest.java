@@ -25,21 +25,20 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Rodrigo Paulino
  */
 @RunWith(PowerMockRunner.class)
-public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
+public class CheckboxDDMFormFieldTypeReportProcessorTest
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
-	@Before
-	public void setUp() throws Exception {
+	@Override
+	public void doSetUp() throws Exception {
 		_setUpJSONFactoryUtil();
 	}
 
@@ -109,6 +108,28 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 			"values");
 
 		Assert.assertEquals(1, valuesJSONObject.getLong("true"));
+	}
+
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _checkboxDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "check";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "boolean";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.CHECKBOX;
 	}
 
 	private DDMFormFieldValue _mockDDMFormFieldValue(String value) {

@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
@@ -38,7 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,21 +48,20 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Marcos Martins
  */
 @RunWith(MockitoJUnitRunner.class)
-public class TextDDMFormFieldTypeReportProcessorTest extends PowerMockito {
+public class TextDDMFormFieldTypeReportProcessorTest
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
 	@ClassRule
 	@Rule
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
-	@Before
-	public void setUp() {
+	@Override
+	public void doSetUp() {
 		_textDDMFormFieldTypeReportProcessor.ddmFormInstanceRecordLocalService =
 			_ddmFormInstanceRecordLocalService;
 	}
@@ -493,6 +492,28 @@ public class TextDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 		jsonObject = valuesJSONArray.getJSONObject(4);
 
 		Assert.assertEquals("text 2", jsonObject.getString("value"));
+	}
+
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _textDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "text";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "text-field-type-label";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.TEXT;
 	}
 
 	private DDMFormInstanceRecord _createFormInstanceRecord(String valueString)

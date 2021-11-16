@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
@@ -34,7 +35,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,21 +43,20 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Marcos Martins
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GridDDMFormFieldTypeReportProcessorTest extends PowerMockito {
+public class GridDDMFormFieldTypeReportProcessorTest
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
 	@ClassRule
 	@Rule
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
-	@Before
-	public void setUp() throws Exception {
+	@Override
+	public void doSetUp() throws Exception {
 		_gridDDMFormFieldTypeReportProcessor.ddmFormInstanceRecordLocalService =
 			_ddmFormInstanceRecordLocalService;
 
@@ -196,6 +195,28 @@ public class GridDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 			"structure");
 
 		_assertStructure(structureJSONObject);
+	}
+
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _gridDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "table2";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "grid-form-field-label";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.GRID;
 	}
 
 	private void _assertStructure(JSONObject structureJSONObject) {

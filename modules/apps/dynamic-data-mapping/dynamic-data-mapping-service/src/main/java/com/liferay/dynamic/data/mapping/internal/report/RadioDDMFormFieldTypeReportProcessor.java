@@ -15,14 +15,13 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.Validator;
-
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -33,7 +32,8 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"ddm.form.field.type.name=object-relationship",
-		"ddm.form.field.type.name=radio"
+		"ddm.form.field.type.name=object-relationship",
+		"ddm.form.field.type.name=radio", "ddm.form.field.type.name=select"
 	},
 	service = DDMFormFieldTypeReportProcessor.class
 )
@@ -67,16 +67,17 @@ public class RadioDDMFormFieldTypeReportProcessor
 
 	@Override
 	protected JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		DDMFormField ddmFormField = ddmFormFieldValue.getDDMFormField();
 
 		return JSONUtil.put(
 			"data",
 			toDataArray(
-				fieldJSONObject.getJSONObject("options"),
+				ddmFormField.getDDMFormFieldOptions(),
 				fieldJSONObject.getJSONObject("values"))
 		).put(
-			"totalEntries", fieldJSONObject.get("totalEntries")
+			"totalEntries", sumTotalValues(fieldJSONObject)
 		);
 	}
 

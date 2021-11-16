@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
@@ -33,13 +34,12 @@ import org.junit.runner.RunWith;
 
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Marcos Martins
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RadioDDMFormFieldTypeReportProcessorTest extends PowerMockito {
+public class RadioDDMFormFieldTypeReportProcessorTest
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
 	@ClassRule
 	@Rule
@@ -61,7 +61,7 @@ public class RadioDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 		when(
 			ddmFormFieldValue.getType()
 		).thenReturn(
-			DDMFormFieldType.RADIO
+			DDMFormFieldTypeConstants.RADIO
 		);
 
 		Value value = new LocalizedValue();
@@ -230,6 +230,32 @@ public class RadioDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 			"values");
 
 		Assert.assertEquals(2, valuesJSONObject.getLong("option1"));
+	}
+
+	@Override
+	protected void doSetUp() throws Exception {
+	}
+
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _radioDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "radio-button";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "radio-field-type-name";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.RADIO;
 	}
 
 	private final RadioDDMFormFieldTypeReportProcessor

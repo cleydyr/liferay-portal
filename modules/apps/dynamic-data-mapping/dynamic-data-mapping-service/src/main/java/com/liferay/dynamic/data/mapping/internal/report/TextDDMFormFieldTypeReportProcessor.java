@@ -184,21 +184,28 @@ public class TextDDMFormFieldTypeReportProcessor
 
 	@Override
 	protected JSONObject getChartComponentPropsJSONObject(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		Map<String, Object> ddmFormFieldTypeProperties =
+			ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
+				ddmFormFieldValue.getType());
 
 		try {
 			return JSONUtil.put(
-				"data", mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+				"data",
+				mapToValueProperty(fieldJSONObject.getJSONArray("values"))
 			).put(
-				"field", JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
+				"field",
+				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
 			).put(
 				"totalEntries", fieldJSONObject.get("totalEntries")
 			).put(
-				"type", ddmFormFieldTypeProperties.get("ddm.form.field.type.name")
+				"type",
+				ddmFormFieldTypeProperties.get("ddm.form.field.type.name")
 			);
-		} catch (JSONException e) {
-			_log.error(e.getMessage(), e);
+		}
+		catch (JSONException jsonException) {
+			_log.error(jsonException.getMessage(), jsonException);
 
 			return JSONFactoryUtil.createJSONObject();
 		}
