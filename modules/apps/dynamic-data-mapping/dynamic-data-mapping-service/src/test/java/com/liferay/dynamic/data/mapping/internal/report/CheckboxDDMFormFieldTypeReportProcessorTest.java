@@ -18,29 +18,39 @@ import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
+import java.util.Locale;
+
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Rodrigo Paulino
  */
+@PrepareForTest(LanguageUtil.class)
 @RunWith(PowerMockRunner.class)
-public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
+public class CheckboxDDMFormFieldTypeReportProcessorTest
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
-	@Before
-	public void setUp() throws Exception {
+	@Override
+	public void doSetUp() throws Exception {
 		_setUpJSONFactoryUtil();
+		_setUpLanguageUtil();
 	}
 
 	@Test
@@ -111,6 +121,28 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 		Assert.assertEquals(1, valuesJSONObject.getLong("true"));
 	}
 
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _checkboxDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "check";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "boolean";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.CHECKBOX;
+	}
+
 	private DDMFormFieldValue _mockDDMFormFieldValue(String value) {
 		DDMFormFieldValue ddmFormFieldValue = mock(DDMFormFieldValue.class);
 
@@ -137,6 +169,8 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 			localizedValue
 		);
 
+		mockDDMFormField(ddmFormFieldValue);
+
 		return ddmFormFieldValue;
 	}
 
@@ -146,8 +180,30 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest extends PowerMockito {
 		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
 	}
 
+	private void _setUpLanguageUtil() {
+		when(
+			_language.get(
+				Mockito.any(Locale.class), Mockito.eq(StringPool.FALSE))
+		).thenReturn(
+			"False"
+		);
+		when(
+			_language.get(
+				Mockito.any(Locale.class), Mockito.eq(StringPool.TRUE))
+		).thenReturn(
+			"True"
+		);
+
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(_language);
+	}
+
 	private final CheckboxDDMFormFieldTypeReportProcessor
 		_checkboxDDMFormFieldTypeReportProcessor =
 			new CheckboxDDMFormFieldTypeReportProcessor();
+
+	@Mock
+	private Language _language;
 
 }

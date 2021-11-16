@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
@@ -33,14 +34,12 @@ import org.junit.runner.RunWith;
 
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Marcos Martins
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
-	extends PowerMockito {
+	extends BaseDDMFormFieldTypeReportProcessorTestCase {
 
 	@ClassRule
 	@Rule
@@ -79,6 +78,8 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 		).thenReturn(
 			value
 		);
+
+		mockDDMFormField(ddmFormFieldValue);
 
 		JSONObject processedFieldJSONObject =
 			_checkboxMultipleDDMFormFieldTypeReportProcessor.process(
@@ -132,6 +133,8 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 		).thenReturn(
 			value
 		);
+
+		mockDDMFormField(ddmFormFieldValue);
 
 		JSONObject processedFieldJSONObject =
 			_checkboxMultipleDDMFormFieldTypeReportProcessor.process(
@@ -190,6 +193,8 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 			value
 		);
 
+		mockDDMFormField(ddmFormFieldValue);
+
 		JSONObject processedFieldJSONObject =
 			_checkboxMultipleDDMFormFieldTypeReportProcessor.process(
 				ddmFormFieldValue,
@@ -209,6 +214,32 @@ public class CheckboxMultipleDDMFormFieldTypeReportProcessorTest
 
 		Assert.assertEquals(2, valuesJSONObject.getLong("option1"));
 		Assert.assertEquals(1, valuesJSONObject.getLong("option2"));
+	}
+
+	@Override
+	protected void doSetUp() throws Exception {
+	}
+
+	@Override
+	protected BaseDDMFormFieldTypeReportProcessor
+		getBaseDDMFormFieldTypeReportProcessor() {
+
+		return _checkboxMultipleDDMFormFieldTypeReportProcessor;
+	}
+
+	@Override
+	protected String getFieldTypeIcon() {
+		return "check-circle-full";
+	}
+
+	@Override
+	protected String getFieldTypeLabel() {
+		return "checkbox-multiple-field-type-label";
+	}
+
+	@Override
+	protected String getFieldTypeName() {
+		return DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE;
 	}
 
 	private final CheckboxMultipleDDMFormFieldTypeReportProcessor
