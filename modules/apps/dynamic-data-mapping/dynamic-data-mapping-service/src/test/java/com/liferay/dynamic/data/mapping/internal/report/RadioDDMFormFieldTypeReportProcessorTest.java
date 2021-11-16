@@ -64,7 +64,7 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 			DDMFormFieldTypeConstants.RADIO
 		);
 
-		Value value = new LocalizedValue();
+		LocalizedValue value = new LocalizedValue();
 
 		value.addString(value.getDefaultLocale(), "option1");
 		value.setDefaultLocale(LocaleUtil.US);
@@ -74,6 +74,8 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 		).thenReturn(
 			value
 		);
+
+		mockDDMFormField(ddmFormFieldValue);
 
 		JSONObject processedFieldJSONObject =
 			_radioDDMFormFieldTypeReportProcessor.process(
@@ -119,6 +121,8 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 		).thenReturn(
 			value
 		);
+
+		mockDDMFormField(ddmFormFieldValue);
 
 		JSONObject processedFieldJSONObject =
 			_radioDDMFormFieldTypeReportProcessor.process(
@@ -168,6 +172,8 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 			value
 		);
 
+		mockDDMFormField(ddmFormFieldValue);
+
 		JSONObject processedFieldJSONObject =
 			_radioDDMFormFieldTypeReportProcessor.process(
 				ddmFormFieldValue,
@@ -215,6 +221,8 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 		).thenReturn(
 			value
 		);
+
+		mockDDMFormField(ddmFormFieldValue);
 
 		JSONObject processedFieldJSONObject =
 			_radioDDMFormFieldTypeReportProcessor.process(

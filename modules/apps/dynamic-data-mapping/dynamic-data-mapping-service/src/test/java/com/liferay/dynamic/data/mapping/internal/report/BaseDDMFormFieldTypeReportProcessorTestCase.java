@@ -15,6 +15,8 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import org.junit.Before;
@@ -65,5 +67,13 @@ public abstract class BaseDDMFormFieldTypeReportProcessorTestCase
 	protected abstract String getFieldTypeLabel();
 
 	protected abstract String getFieldTypeName();
+
+	protected void mockDDMFormField(DDMFormFieldValue ddmFormFieldValue) {
+		DDMFormField ddmFormField = mock(DDMFormField.class);
+	
+		when(ddmFormField.getDDMFormFieldOptions()).thenReturn(null);
+	
+		when(ddmFormFieldValue.getDDMFormField()).thenReturn(ddmFormField);
+	}
 
 }

@@ -18,21 +18,29 @@ import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+
+import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Rodrigo Paulino
  */
+@PrepareForTest(LanguageUtil.class)
 @RunWith(PowerMockRunner.class)
 public class CheckboxDDMFormFieldTypeReportProcessorTest
 	extends BaseDDMFormFieldTypeReportProcessorTestCase {
@@ -40,6 +48,16 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest
 	@Override
 	public void doSetUp() throws Exception {
 		_setUpJSONFactoryUtil();
+		_setUpLanguageUtil();
+	}
+
+	private void _setUpLanguageUtil() {
+		when(_language.get(Mockito.any(Locale.class), Mockito.eq(StringPool.FALSE))).thenReturn("False");
+		when(_language.get(Mockito.any(Locale.class), Mockito.eq(StringPool.TRUE))).thenReturn("True");
+	
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(_language);
 	}
 
 	@Test
@@ -158,6 +176,8 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest
 			localizedValue
 		);
 
+		mockDDMFormField(ddmFormFieldValue);
+
 		return ddmFormFieldValue;
 	}
 
@@ -171,4 +191,6 @@ public class CheckboxDDMFormFieldTypeReportProcessorTest
 		_checkboxDDMFormFieldTypeReportProcessor =
 			new CheckboxDDMFormFieldTypeReportProcessor();
 
+	@Mock
+	private Language _language;
 }
