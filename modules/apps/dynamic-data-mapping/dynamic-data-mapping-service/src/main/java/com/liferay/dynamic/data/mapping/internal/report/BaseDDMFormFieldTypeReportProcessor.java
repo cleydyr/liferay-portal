@@ -150,13 +150,13 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 			name -> {
 				int count = valuesJSONObject.getInt(name);
 
+				String label = name;
+
 				JSONObject optionDataJSONObject =
 					optionsJSONObject.getJSONObject(name);
 
-				String label = optionDataJSONObject.getString("value");
-
-				if (label == null) {
-					label = name;
+				if (optionDataJSONObject != null) {
+					label = optionDataJSONObject.getString("value");
 				}
 
 				return JSONUtil.put(

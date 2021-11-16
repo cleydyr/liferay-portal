@@ -93,13 +93,13 @@ public class CheckboxDDMFormFieldTypeReportProcessor
 					LocaleThreadLocal.getThemeDisplayLocale(),
 					StringPool.FALSE);
 
-				if (key == StringPool.TRUE) {
+				if (StringPool.TRUE.equals(key)) {
 					newKey = LanguageUtil.get(
 						LocaleThreadLocal.getThemeDisplayLocale(),
-						StringPool.FALSE);
+						StringPool.TRUE);
 				}
 
-				newValuesJSONObject.put(newKey, valuesJSONObject.get(newKey));
+				newValuesJSONObject.put(newKey, valuesJSONObject.get(key));
 			}
 		);
 
