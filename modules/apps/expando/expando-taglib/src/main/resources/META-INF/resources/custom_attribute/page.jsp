@@ -647,6 +647,7 @@ ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.
 							<liferay-ui:input-localized
 								availableLocales="<%= availableLocales %>"
 								cssClass="lfr-input-text"
+								defaultLanguageId="<%= LocaleUtil.toLanguageId(locale) %>"
 								id="<%= randomNamespace + name %>"
 								name='<%= "ExpandoAttribute--" + name + "--" %>'
 								type='<%= (propertyHeight > 0) ? "textarea" : "input" %>'
