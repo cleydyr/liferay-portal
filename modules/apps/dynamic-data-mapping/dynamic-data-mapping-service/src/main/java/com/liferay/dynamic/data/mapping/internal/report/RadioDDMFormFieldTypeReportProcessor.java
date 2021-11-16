@@ -77,7 +77,8 @@ public class RadioDDMFormFieldTypeReportProcessor
 				ddmFormField.getDDMFormFieldOptions(),
 				fieldJSONObject.getJSONObject("values"))
 		).put(
-			"totalEntries", sumTotalValues(fieldJSONObject.getJSONObject("values"))
+			"totalEntries",
+			sumTotalValues(fieldJSONObject.getJSONObject("values"))
 		);
 	}
 

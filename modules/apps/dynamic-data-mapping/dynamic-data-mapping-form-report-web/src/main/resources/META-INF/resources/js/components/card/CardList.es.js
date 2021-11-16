@@ -42,10 +42,7 @@ export default ({data, fields}) => {
 			summary = {},
 		} = newData;
 
-		const {
-			totalEntries,
-			sumTotalValues,
-		} = chartComponentProps;
+		const {sumTotalValues, totalEntries} = chartComponentProps;
 
 		field = {
 			...field,

@@ -125,7 +125,8 @@ public class GridDDMFormFieldTypeReportProcessor
 		).put(
 			"structure", fieldJSONObject.get("structure")
 		).put(
-			"totalEntries", sumTotalValues(fieldJSONObject.getJSONObject("values"))
+			"totalEntries",
+			sumTotalValues(fieldJSONObject.getJSONObject("values"))
 		);
 	}
 
