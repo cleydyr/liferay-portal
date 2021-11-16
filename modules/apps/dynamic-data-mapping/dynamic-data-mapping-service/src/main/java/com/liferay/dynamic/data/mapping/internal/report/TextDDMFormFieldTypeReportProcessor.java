@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.report;
 
 import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
+import com.liferay.dynamic.data.mapping.internal.report.constants.DDMFormFieldTypeReportProcessorConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
 import com.liferay.dynamic.data.mapping.model.Value;
@@ -24,6 +25,7 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -56,10 +58,10 @@ import org.osgi.service.component.annotations.Reference;
 	service = DDMFormFieldTypeReportProcessor.class
 )
 public class TextDDMFormFieldTypeReportProcessor
-	implements DDMFormFieldTypeReportProcessor {
+	extends BaseDDMFormFieldTypeReportProcessor {
 
 	@Override
-	public JSONObject process(
+	public JSONObject doProcess(
 			DDMFormFieldValue ddmFormFieldValue, JSONObject fieldJSONObject,
 			long formInstanceRecordId, String ddmFormInstanceReportEvent)
 		throws Exception {
@@ -173,6 +175,40 @@ public class TextDDMFormFieldTypeReportProcessor
 		);
 
 		return fieldJSONObject;
+	}
+
+	@Override
+	protected String getChartComponentName() {
+		return DDMFormFieldTypeReportProcessorConstants.LIST_COMPONENT_NAME;
+	}
+
+	@Override
+	protected JSONObject getChartComponentPropsJSONObject(
+		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
+
+		Map<String, Object> ddmFormFieldTypeProperties =
+			ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
+				ddmFormFieldValue.getType());
+
+		try {
+			return JSONUtil.put(
+				"data",
+				mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+			).put(
+				"field",
+				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
+			).put(
+				"totalEntries", fieldJSONObject.get("totalEntries")
+			).put(
+				"type",
+				ddmFormFieldTypeProperties.get("ddm.form.field.type.name")
+			);
+		}
+		catch (JSONException jsonException) {
+			_log.error(jsonException.getMessage(), jsonException);
+
+			return JSONFactoryUtil.createJSONObject();
+		}
 	}
 
 	protected String getValue(DDMFormFieldValue ddmFormFieldValue) {
