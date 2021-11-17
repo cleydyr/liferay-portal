@@ -35,12 +35,16 @@ export default ({data, fields}) => {
 		const newData =
 			data[field.parentFieldName]?.[field.name] ?? data[field.name] ?? {};
 		const {
-			chartComponentName = '',
+			chartComponentName,
 			chartComponentProps = {},
 			icon = '',
 			title = '',
 			summary = {},
 		} = newData;
+
+		if (!chartComponentName) {
+			return null;
+		}
 
 		const {sumTotalValues, totalEntries} = chartComponentProps;
 
