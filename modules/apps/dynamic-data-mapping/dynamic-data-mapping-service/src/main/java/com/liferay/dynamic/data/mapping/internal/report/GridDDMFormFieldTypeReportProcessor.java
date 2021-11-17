@@ -25,9 +25,12 @@ import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -118,16 +121,24 @@ public class GridDDMFormFieldTypeReportProcessor
 	protected JSONObject getChartComponentPropsJSONObject(
 		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
-		return JSONUtil.put(
-			"data", fieldJSONObject.getJSONArray("values")
-		).put(
-			"field", fieldJSONObject
-		).put(
-			"structure", fieldJSONObject.get("structure")
-		).put(
-			"totalEntries",
-			sumTotalValues(fieldJSONObject.getJSONObject("values"))
-		);
+		try {
+			return JSONUtil.put(
+				"data", fieldJSONObject.getJSONArray("values")
+			).put(
+				"field",
+				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
+			).put(
+				"structure", fieldJSONObject.get("structure")
+			).put(
+				"totalEntries",
+				sumTotalValues(fieldJSONObject.getJSONObject("values"))
+			);
+		}
+		catch (JSONException jsonException) {
+			_log.error(jsonException.getMessage(), jsonException);
+
+			return JSONFactoryUtil.createJSONObject();
+		}
 	}
 
 	@Reference
@@ -150,5 +161,8 @@ public class GridDDMFormFieldTypeReportProcessor
 
 		return jsonArray;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		GridDDMFormFieldTypeReportProcessor.class);
 
 }

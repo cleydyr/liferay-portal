@@ -98,6 +98,10 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 	protected JSONArray mapToValueProperty(JSONArray jsonArray) {
 		JSONArray valuesJSONArray = JSONFactoryUtil.createJSONArray();
 
+		if (jsonArray == null) {
+			return valuesJSONArray;
+		}
+
 		for (Object object : jsonArray) {
 			JSONObject valueJSONObject = (JSONObject)object;
 
