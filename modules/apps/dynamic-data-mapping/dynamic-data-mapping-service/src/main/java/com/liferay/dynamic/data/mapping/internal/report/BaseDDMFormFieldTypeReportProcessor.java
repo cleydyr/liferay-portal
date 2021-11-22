@@ -48,9 +48,11 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 			ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
 				ddmFormFieldValue.getType());
 
-		setIconAndLabelProperties(fieldJSONObject, ddmFormFieldTypeProperties);
-
 		fieldJSONObject.put(
+			"icon", ddmFormFieldTypeProperties.get("ddm.form.field.type.icon")
+		).put(
+			"title", ddmFormFieldTypeProperties.get("ddm.form.field.type.label")
+		).put(
 			"chartComponentName", getChartComponentName()
 		).put(
 			"chartComponentProps",
@@ -109,17 +111,6 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 		}
 
 		return valuesJSONArray;
-	}
-
-	protected void setIconAndLabelProperties(
-		JSONObject fieldJSONObject,
-		Map<String, Object> ddmFormFieldTypeProperties) {
-
-		fieldJSONObject.put(
-			"icon", ddmFormFieldTypeProperties.get("ddm.form.field.type.icon")
-		).put(
-			"title", ddmFormFieldTypeProperties.get("ddm.form.field.type.label")
-		);
 	}
 
 	protected int sumTotalValues(JSONObject valuesJSONObject) {
