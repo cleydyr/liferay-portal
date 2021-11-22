@@ -64,15 +64,15 @@ public class RadioDDMFormFieldTypeReportProcessorTest
 			DDMFormFieldTypeConstants.RADIO
 		);
 
-		LocalizedValue value = new LocalizedValue();
+		LocalizedValue localizedValue = new LocalizedValue();
 
-		value.addString(value.getDefaultLocale(), "option1");
-		value.setDefaultLocale(LocaleUtil.US);
+		localizedValue.addString(localizedValue.getDefaultLocale(), "option1");
+		localizedValue.setDefaultLocale(LocaleUtil.US);
 
 		when(
 			ddmFormFieldValue.getValue()
 		).thenReturn(
-			value
+			localizedValue
 		);
 
 		mockDDMFormField(ddmFormFieldValue);
