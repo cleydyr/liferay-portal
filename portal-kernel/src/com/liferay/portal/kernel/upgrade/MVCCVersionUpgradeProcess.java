@@ -19,21 +19,15 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
-
-import java.io.InputStream;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 
-import java.util.List;
-
 /**
  * @author Shuyang Zhou
  */
-public class MVCCVersionUpgradeProcess extends UpgradeProcess {
+public abstract class MVCCVersionUpgradeProcess extends UpgradeProcess {
 
 	public void upgradeMVCCVersion(
 			DatabaseMetaData databaseMetaData, String tableName)
@@ -83,23 +77,7 @@ public class MVCCVersionUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeClassElementMVCCVersions();
 		upgradeModuleTableMVCCVersions();
-	}
-
-	protected List<Element> getClassElements() throws Exception {
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader classLoader = currentThread.getContextClassLoader();
-
-		InputStream inputStream = classLoader.getResourceAsStream(
-			"META-INF/portal-hbm.xml");
-
-		Document document = UnsecureSAXReaderUtil.read(inputStream);
-
-		Element rootElement = document.getRootElement();
-
-		return rootElement.elements("class");
 	}
 
 	protected String[] getExcludedTableNames() {
@@ -108,22 +86,6 @@ public class MVCCVersionUpgradeProcess extends UpgradeProcess {
 
 	protected String[] getModuleTableNames() {
 		return new String[] {"BackgroundTask", "Lock_"};
-	}
-
-	protected void upgradeClassElementMVCCVersions() throws Exception {
-		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-
-			List<Element> classElements = getClassElements();
-
-			for (Element classElement : classElements) {
-				if (classElement.element("version") == null) {
-					continue;
-				}
-
-				upgradeMVCCVersion(databaseMetaData, classElement);
-			}
-		}
 	}
 
 	protected void upgradeModuleTableMVCCVersions() throws Exception {
