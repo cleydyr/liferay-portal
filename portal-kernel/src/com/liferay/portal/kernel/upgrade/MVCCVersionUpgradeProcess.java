@@ -27,7 +27,7 @@ import java.sql.ResultSet;
 /**
  * @author Shuyang Zhou
  */
-public abstract class MVCCVersionUpgradeProcess extends UpgradeProcess {
+public class MVCCVersionUpgradeProcess extends UpgradeProcess {
 
 	public void upgradeMVCCVersion(
 			DatabaseMetaData databaseMetaData, String tableName)
