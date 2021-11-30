@@ -225,24 +225,14 @@ public class NumericDDMFormFieldTypeReportProcessor
 	protected JSONObject getChartComponentPropsJSONObject(
 		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
-		try {
-			return JSONUtil.put(
-				"data",
-				mapToValueProperty(fieldJSONObject.getJSONArray("values"))
-			).put(
-				"field",
-				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
-			).put(
-				"summary", fieldJSONObject.get("summary")
-			).put(
-				"totalEntries", fieldJSONObject.get("totalEntries")
-			);
-		}
-		catch (JSONException jsonException) {
-			_log.error(jsonException.getMessage(), jsonException);
-
-			return JSONFactoryUtil.createJSONObject();
-		}
+		return JSONUtil.put(
+			"data",
+			mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+		).put(
+			"summary", fieldJSONObject.get("summary")
+		).put(
+			"totalEntries", fieldJSONObject.get("totalEntries")
+		);
 	}
 
 	protected BigDecimal getValueBigDecimal(
