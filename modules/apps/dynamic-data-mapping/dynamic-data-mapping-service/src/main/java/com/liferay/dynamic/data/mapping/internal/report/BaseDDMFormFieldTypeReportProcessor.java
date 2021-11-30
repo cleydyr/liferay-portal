@@ -49,14 +49,14 @@ public abstract class BaseDDMFormFieldTypeReportProcessor
 				ddmFormFieldValue.getType());
 
 		fieldJSONObject.put(
-			"icon", ddmFormFieldTypeProperties.get("ddm.form.field.type.icon")
-		).put(
-			"title", ddmFormFieldTypeProperties.get("ddm.form.field.type.label")
-		).put(
 			"chartComponentName", getChartComponentName()
 		).put(
 			"chartComponentProps",
 			getChartComponentPropsJSONObject(fieldJSONObject, ddmFormFieldValue)
+		).put(
+			"icon", ddmFormFieldTypeProperties.get("ddm.form.field.type.icon")
+		).put(
+			"title", ddmFormFieldTypeProperties.get("ddm.form.field.type.label")
 		);
 
 		return fieldJSONObject;

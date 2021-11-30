@@ -24,7 +24,6 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -226,8 +225,7 @@ public class NumericDDMFormFieldTypeReportProcessor
 		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
 		return JSONUtil.put(
-			"data",
-			mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+			"data", mapToValueProperty(fieldJSONObject.getJSONArray("values"))
 		).put(
 			"summary", fieldJSONObject.get("summary")
 		).put(
