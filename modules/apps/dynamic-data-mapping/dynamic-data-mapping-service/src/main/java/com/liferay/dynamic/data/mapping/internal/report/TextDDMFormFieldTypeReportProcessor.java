@@ -190,25 +190,15 @@ public class TextDDMFormFieldTypeReportProcessor
 			ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
 				ddmFormFieldValue.getType());
 
-		try {
-			return JSONUtil.put(
-				"data",
-				mapToValueProperty(fieldJSONObject.getJSONArray("values"))
-			).put(
-				"field",
-				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
-			).put(
-				"totalEntries", fieldJSONObject.get("totalEntries")
-			).put(
-				"type",
-				ddmFormFieldTypeProperties.get("ddm.form.field.type.name")
-			);
-		}
-		catch (JSONException jsonException) {
-			_log.error(jsonException.getMessage(), jsonException);
-
-			return JSONFactoryUtil.createJSONObject();
-		}
+		return JSONUtil.put(
+			"data",
+			mapToValueProperty(fieldJSONObject.getJSONArray("values"))
+		).put(
+			"totalEntries", fieldJSONObject.get("totalEntries")
+		).put(
+			"type",
+			ddmFormFieldTypeProperties.get("ddm.form.field.type.name")
+		);
 	}
 
 	protected String getValue(DDMFormFieldValue ddmFormFieldValue) {

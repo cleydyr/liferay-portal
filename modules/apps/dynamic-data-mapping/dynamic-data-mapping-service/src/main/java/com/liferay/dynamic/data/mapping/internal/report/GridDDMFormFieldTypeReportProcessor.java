@@ -121,24 +121,14 @@ public class GridDDMFormFieldTypeReportProcessor
 	protected JSONObject getChartComponentPropsJSONObject(
 		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
-		try {
-			return JSONUtil.put(
-				"data", fieldJSONObject.getJSONArray("values")
-			).put(
-				"field",
-				JSONFactoryUtil.createJSONObject(fieldJSONObject.toJSONString())
-			).put(
-				"structure", fieldJSONObject.get("structure")
-			).put(
-				"totalEntries",
-				sumTotalValues(fieldJSONObject.getJSONObject("values"))
-			);
-		}
-		catch (JSONException jsonException) {
-			_log.error(jsonException.getMessage(), jsonException);
-
-			return JSONFactoryUtil.createJSONObject();
-		}
+		return JSONUtil.put(
+			"data", fieldJSONObject.getJSONArray("values")
+		).put(
+			"structure", fieldJSONObject.get("structure")
+		).put(
+			"totalEntries",
+			sumTotalValues(fieldJSONObject.getJSONObject("values"))
+		);
 	}
 
 	@Reference

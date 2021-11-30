@@ -46,6 +46,8 @@ export default ({data, fields}) => {
 			return null;
 		}
 
+		chartComponentProps.field = field;
+
 		const {sumTotalValues, totalEntries} = chartComponentProps;
 
 		field = {
