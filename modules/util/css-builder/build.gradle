@@ -35,6 +35,7 @@ copyPortalCommonCSSJar {
 }
 
 dependencies {
+	compile project(":util:sass-compiler-dart")
 	compile group: "com.liferay", name: "com.liferay.sass.compiler.jni", version: "2.0.9"
 	compile group: "com.liferay", name: "com.liferay.sass.compiler.ruby", version: "2.0.6"
 	compile group: "org.codehaus.plexus", name: "plexus-utils", transitive: false, version: "3.0.15"
