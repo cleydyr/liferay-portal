@@ -1,13 +1,20 @@
+import {useQuery} from '@apollo/client';
 import ClayForm, {ClayInput} from '@clayui/form';
 import {useFormikContext} from 'formik';
 import {useContext} from 'react';
 import BaseButton from '../../../../common/components/BaseButton';
 import Input from '../../../../common/components/Input';
 import Select from '../../../../common/components/Select';
+import {LiferayTheme} from '../../../../common/services/liferay';
+import {getAccountSubscriptionGroups} from '../../../../common/services/liferay/graphql/queries';
+import {PARAMS_KEYS} from '../../../../common/services/liferay/search-params';
+import {API_BASE_URL} from '../../../../common/utils';
 import Layout from '../../components/Layout';
 import {AppContext} from '../../context';
 import {actionTypes} from '../../context/reducer';
 import {getInitialInvite, getRoles, steps} from '../../utils/constants';
+
+const ACCOUNT_SUBSCRIPTION_GROUP_NAME = 'DXP Cloud';
 
 const HorizontalInputs = ({id}) => {
 	return (
@@ -17,7 +24,7 @@ const HorizontalInputs = ({id}) => {
 					groupStyle="m-0"
 					label="Email"
 					name={`invites[${id}].email`}
-					placeholder="username@superbank.com"
+					placeholder="email@exemple.com"
 					type="email"
 				/>
 			</ClayInput.GroupItem>
@@ -38,19 +45,42 @@ const HorizontalInputs = ({id}) => {
 };
 
 const Invites = () => {
-	const [, dispatch] = useContext(AppContext);
+	const [{project}, dispatch] = useContext(AppContext);
 	const {setFieldValue, values} = useFormikContext();
+
+	const {data} = useQuery(getAccountSubscriptionGroups, {
+		variables: {
+			filter: `(accountKey eq '${project.accountKey}') and (name eq '${ACCOUNT_SUBSCRIPTION_GROUP_NAME}')`,
+		},
+	});
+
+	const hasSubscriptionsDXPCloud = !!data?.c?.accountSubscriptionGroups?.items
+		?.length;
+
+	const nextStep = hasSubscriptionsDXPCloud
+		? steps.dxpCloud
+		: steps.successDxpCloud;
+
+	const handleSkip = () => {
+		window.location.href = `${API_BASE_URL}${LiferayTheme.getLiferaySiteName()}/overview?${
+			PARAMS_KEYS.PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE
+		}=${project.accountKey}`;
+	};
 
 	return (
 		<Layout
 			footerProps={{
-				leftButton: <BaseButton borderless>Skip for now</BaseButton>,
+				leftButton: (
+					<BaseButton borderless onClick={handleSkip}>
+						Skip for now
+					</BaseButton>
+				),
 				middleButton: (
 					<BaseButton
 						displayType="primary"
 						onClick={() =>
 							dispatch({
-								payload: steps.dxp,
+								payload: nextStep,
 								type: actionTypes.CHANGE_STEP,
 							})
 						}

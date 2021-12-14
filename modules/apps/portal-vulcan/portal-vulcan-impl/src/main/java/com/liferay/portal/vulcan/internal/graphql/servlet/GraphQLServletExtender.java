@@ -1326,16 +1326,18 @@ public class GraphQLServletExtender {
 					field.setAccessible(true);
 
 					BiFunction<Object, List<String>, Aggregation>
-						aggregationBiFunction = (resource, aggregations) -> {
-							try {
-								return _getAggregation(
-									acceptLanguage, aggregations,
-									_getEntityModel(resource, parameterMap));
-							}
-							catch (Exception exception) {
-								throw new BadRequestException(exception);
-							}
-						};
+						aggregationBiFunction =
+							(resource, aggregationStrings) -> {
+								try {
+									return _getAggregation(
+										acceptLanguage, aggregationStrings,
+										_getEntityModel(
+											resource, parameterMap));
+								}
+								catch (Exception exception) {
+									throw new BadRequestException(exception);
+								}
+							};
 
 					field.set(instance, aggregationBiFunction);
 				}
@@ -1382,10 +1384,10 @@ public class GraphQLServletExtender {
 	}
 
 	private Aggregation _getAggregation(
-		AcceptLanguage acceptLanguage, List<String> aggregations,
+		AcceptLanguage acceptLanguage, List<String> aggregationStrings,
 		EntityModel entityModel) {
 
-		if (aggregations == null) {
+		if (aggregationStrings == null) {
 			return null;
 		}
 
@@ -1393,7 +1395,8 @@ public class GraphQLServletExtender {
 			new AggregationContextProvider(_language, _portal);
 
 		return aggregationContextProvider.createContext(
-			acceptLanguage, aggregations.toArray(new String[0]), entityModel);
+			acceptLanguage, aggregationStrings.toArray(new String[0]),
+			entityModel);
 	}
 
 	private String _getBasePath(
@@ -1845,6 +1848,8 @@ public class GraphQLServletExtender {
 			graphQLCodeRegistryBuilder.dataFetcher(
 				FieldCoordinates.coordinates(namespace, listName),
 				(DataFetcher<Object>)dataFetchingEnvironment -> {
+					Aggregation aggregation = null;
+
 					GraphQLContext graphQLContext =
 						dataFetchingEnvironment.getContext();
 
@@ -1855,15 +1860,12 @@ public class GraphQLServletExtender {
 						httpServletRequestOptional.orElse(null), _language,
 						_portal);
 
-					String aggregationString =
+					List<String> aggregationStrings =
 						dataFetchingEnvironment.getArgument("aggregation");
 
-					Aggregation aggregation = null;
-
-					if (aggregationString != null) {
+					if (aggregationStrings != null) {
 						aggregation = _getAggregation(
-							acceptLanguage,
-							Arrays.asList(aggregationString.split(",")),
+							acceptLanguage, aggregationStrings,
 							graphQLDTOContributor.getEntityModel());
 					}
 

@@ -635,6 +635,14 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 	private void _initThemeDisplay(CommerceOrder commerceOrder)
 		throws Exception {
 
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)contextHttpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay != null) {
+			return;
+		}
+
 		ServicePreAction servicePreAction = new ServicePreAction();
 
 		HttpServletResponse httpServletResponse =
@@ -649,9 +657,8 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		themeServicePreAction.run(
 			contextHttpServletRequest, httpServletResponse);
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)contextHttpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+		themeDisplay = (ThemeDisplay)contextHttpServletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		CommerceChannel commerceChannel =
 			_commerceChannelLocalService.getCommerceChannelByOrderGroupId(

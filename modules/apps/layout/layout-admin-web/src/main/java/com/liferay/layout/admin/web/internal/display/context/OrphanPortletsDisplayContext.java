@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.model.PortletPreferences;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
@@ -90,8 +91,9 @@ public class OrphanPortletsDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_liferayPortletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES,
+			"orphan-order-by-type", "asc");
 
 		return _orderByType;
 	}
@@ -153,12 +155,11 @@ public class OrphanPortletsDisplayContext {
 			orderByAsc = true;
 		}
 
-		PortletTitleComparator portletTitleComparator =
+		return ListUtil.sort(
+			orphanPortlets,
 			new PortletTitleComparator(
 				httpServletRequest.getServletContext(),
-				themeDisplay.getLocale(), orderByAsc);
-
-		return ListUtil.sort(orphanPortlets, portletTitleComparator);
+				themeDisplay.getLocale(), orderByAsc));
 	}
 
 	public SearchContainer<Portlet> getOrphanPortletsSearchContainer() {
@@ -175,6 +176,13 @@ public class OrphanPortletsDisplayContext {
 		orphanPortletsSearchContainer.setOrderByCol("name");
 		orphanPortletsSearchContainer.setOrderByType(getOrderByType());
 
+		List<Portlet> portlets = getOrphanPortlets();
+
+		orphanPortletsSearchContainer.setResults(
+			ListUtil.subList(
+				portlets, orphanPortletsSearchContainer.getStart(),
+				orphanPortletsSearchContainer.getEnd()));
+
 		Layout selLayout = getSelLayout();
 
 		if (!selLayout.isLayoutPrototypeLinkActive()) {
@@ -182,12 +190,6 @@ public class OrphanPortletsDisplayContext {
 				new EmptyOnClickRowChecker(_liferayPortletResponse));
 		}
 
-		List<Portlet> portlets = getOrphanPortlets();
-
-		orphanPortletsSearchContainer.setResults(
-			ListUtil.subList(
-				portlets, orphanPortletsSearchContainer.getStart(),
-				orphanPortletsSearchContainer.getEnd()));
 		orphanPortletsSearchContainer.setTotal(portlets.size());
 
 		_orphanPortletsSearchContainer = orphanPortletsSearchContainer;

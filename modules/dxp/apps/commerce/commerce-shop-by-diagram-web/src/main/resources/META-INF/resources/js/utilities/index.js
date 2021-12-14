@@ -109,27 +109,50 @@ export function formatLabel(label) {
 	return label;
 }
 
+export function formatInitialQuantities(mappedProducts) {
+	return mappedProducts.map((mappedProduct) => {
+		let initialQuantity;
+
+		if (mappedProduct.productConfiguration?.allowedOrderQuantities.length) {
+			initialQuantity =
+				mappedProduct.productConfiguration.allowedOrderQuantities[0];
+		}
+		else {
+			initialQuantity = Math.max(
+				mappedProduct.productConfiguration?.minOrderQuantity,
+				mappedProduct.quantity
+			);
+		}
+
+		return {
+			...mappedProduct,
+			initialQuantity,
+		};
+	});
+}
+
 export function formatProductOptions(skuOptions, productOptions) {
 	const optionsData = Object.entries(skuOptions);
 
-	if (!optionsData.length) {
-		return 'null';
-	}
+	return optionsData.reduce((formattedOptions, optionData) => {
+		const [optionId, optionValueId] = optionData;
 
-	const [optionId, optionValueId] = optionsData[0];
-
-	const option = productOptions.find(
-		(productOption) => String(productOption.id) === String(optionId)
-	);
-
-	const optionValue =
-		option &&
-		option.productOptionValues.find(
-			(productOptionValue) =>
-				String(productOptionValue.id) === String(optionValueId)
+		const option = productOptions.find(
+			(productOption) => String(productOption.id) === String(optionId)
 		);
 
-	return JSON.stringify([{key: option.key, value: [optionValue.key]}]);
+		const optionValue =
+			option &&
+			option.productOptionValues.find(
+				(productOptionValue) =>
+					String(productOptionValue.id) === String(optionValueId)
+			);
+
+		return [
+			...formattedOptions,
+			{key: option.key, value: [optionValue.key]},
+		];
+	}, []);
 }
 
 export function getProductURL(productBaseURL, productURLs) {
@@ -138,4 +161,11 @@ export function getProductURL(productBaseURL, productURLs) {
 		productURLs[Liferay.ThemeDisplay.getDefaultLanguageId()];
 
 	return productBaseURL + productShortLink;
+}
+
+export function getProductName(product) {
+	return (
+		product.productName[Liferay.ThemeDisplay.getLanguageId()] ||
+		product.productName[Liferay.ThemeDisplay.getDefaultLanguageId()]
+	);
 }

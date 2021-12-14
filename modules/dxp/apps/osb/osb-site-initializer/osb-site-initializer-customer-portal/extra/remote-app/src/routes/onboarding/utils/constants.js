@@ -35,8 +35,9 @@ const roles = {
 };
 
 const steps = {
-	dxp: 2,
+	dxpCloud: 2,
 	invites: 1,
+	successDxpCloud: 3,
 	welcome: 0,
 };
 

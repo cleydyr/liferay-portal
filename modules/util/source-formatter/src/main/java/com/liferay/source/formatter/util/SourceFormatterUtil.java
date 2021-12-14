@@ -36,6 +36,7 @@ import com.liferay.source.formatter.SourceFormatterExcludes;
 import com.liferay.source.formatter.checks.util.SourceUtil;
 import com.liferay.source.formatter.parser.JavaClass;
 import com.liferay.source.formatter.parser.JavaClassParser;
+import com.liferay.source.formatter.parser.JavaConstructor;
 import com.liferay.source.formatter.parser.JavaMethod;
 import com.liferay.source.formatter.parser.JavaParameter;
 import com.liferay.source.formatter.parser.JavaSignature;
@@ -320,7 +321,7 @@ public class SourceFormatterUtil {
 			int maxLineLength)
 		throws Exception {
 
-		ExecutorService executorService = Executors.newFixedThreadPool(1);
+		ExecutorService executorService = Executors.newFixedThreadPool(10);
 
 		List<Future<Tuple>> futures = new ArrayList<>();
 
@@ -329,20 +330,28 @@ public class SourceFormatterUtil {
 
 		List<String> fileNames = scanForFiles(
 			dirName, new String[0],
-			new String[] {"**/*.dtd", "**/*.java", "**/*.tld"},
+			new String[] {
+				"**/*.dtd", "**/*.java", "**/resources/META-INF/*.tld",
+				"**/resources/META-INF/**/*.tld", "**/src/META-INF/*.tld",
+				"**/src/META-INF/**/*.tld"
+			},
 			sourceFormatterExcludes, true);
 
 		for (String fileName : fileNames) {
-			if (fileName.endsWith(".dtd")) {
+			String normalizedFileName = StringUtil.replace(
+				fileName, CharPool.BACK_SLASH, CharPool.SLASH);
+
+			if (normalizedFileName.endsWith(".dtd")) {
 				xmlDefinitionsJSONObject = _addXMLdefinition(
-					xmlDefinitionsJSONObject, fileName);
+					xmlDefinitionsJSONObject, normalizedFileName);
 			}
 
-			if (fileName.endsWith(".tld")) {
-				taglibsJSONObject = _addTaglib(taglibsJSONObject, fileName);
+			if (normalizedFileName.endsWith(".tld")) {
+				taglibsJSONObject = _addTaglib(
+					taglibsJSONObject, normalizedFileName);
 			}
 
-			if (!fileName.contains("/com/liferay/")) {
+			if (!normalizedFileName.contains("/com/liferay/")) {
 				continue;
 			}
 
@@ -351,7 +360,8 @@ public class SourceFormatterUtil {
 
 					@Override
 					public Tuple call() throws Exception {
-						return _getClassTuple(fileName, maxLineLength);
+						return _getClassTuple(
+							normalizedFileName, maxLineLength);
 					}
 
 				});
@@ -363,13 +373,8 @@ public class SourceFormatterUtil {
 
 		for (Future<Tuple> future : futures) {
 			try {
-				Tuple tuple = future.get(1, TimeUnit.MINUTES);
-
-				if (tuple != null) {
-					javaClassesJSONObject.put(
-						(String)tuple.getObject(0),
-						(JSONObject)tuple.getObject(1));
-				}
+				javaClassesJSONObject = _addJavaClassJSONObject(
+					javaClassesJSONObject, future.get(1, TimeUnit.MINUTES));
 			}
 			catch (Exception exception) {
 				future.cancel(true);
@@ -389,7 +394,14 @@ public class SourceFormatterUtil {
 		);
 	}
 
-	public static JSONObject getPortalJSONObjectByVersion(String version) {
+	public static JSONObject getPortalJSONObjectByVersion(String version)
+		throws Exception {
+
+		File file = new File("/Users/hugohuijser/JSON/" + version + ".json");
+
+		if (file.exists()) {
+			return new JSONObjectImpl(FileUtil.read(file));
+		}
 
 		// TODO: Grab from URL (need to figure out what that URL is first)
 
@@ -503,6 +515,27 @@ public class SourceFormatterUtil {
 		}
 
 		return elementJSONArray;
+	}
+
+	private static synchronized JSONObject _addJavaClassJSONObject(
+		JSONObject javaClassesJSONObject, Tuple tuple) {
+
+		String className = (String)tuple.getObject(0);
+
+		JSONObject classJSONObject = (JSONObject)tuple.getObject(1);
+
+		if (!javaClassesJSONObject.has(className)) {
+			javaClassesJSONObject.put(className, classJSONObject);
+		}
+		else {
+			javaClassesJSONObject.put(
+				className,
+				_mergeClassJSONObjects(
+					classJSONObject,
+					javaClassesJSONObject.getJSONObject(className)));
+		}
+
+		return javaClassesJSONObject;
 	}
 
 	private static JSONObject _addTaglib(
@@ -818,6 +851,12 @@ public class SourceFormatterUtil {
 
 		JSONObject classJSONObject = new JSONObjectImpl();
 
+		JSONArray constructorsJSONArray = _getConstructorsJSONArray(javaClass);
+
+		if (constructorsJSONArray.length() > 0) {
+			classJSONObject.put("constructors", constructorsJSONArray);
+		}
+
 		if (javaClass.hasAnnotation("Deprecated")) {
 			classJSONObject.put("deprecated", true);
 		}
@@ -828,8 +867,6 @@ public class SourceFormatterUtil {
 		if (extendedClassesJSONArray.length() > 0) {
 			classJSONObject.put("extendedClassNames", extendedClassesJSONArray);
 		}
-
-		classJSONObject.put("fileName", fileName);
 
 		JSONArray implementedClassesJSONArray = _getImplementedClassesJSONArray(
 			javaClass);
@@ -852,6 +889,61 @@ public class SourceFormatterUtil {
 		}
 
 		return new Tuple(javaClass.getName(true), classJSONObject);
+	}
+
+	private static JSONArray _getConstructorsJSONArray(JavaClass javaClass) {
+		JSONArray constructorsJSONArray = new JSONArrayImpl();
+
+		for (JavaTerm childJavaTerm : javaClass.getChildJavaTerms()) {
+			if (!childJavaTerm.isJavaConstructor() ||
+				childJavaTerm.isPrivate()) {
+
+				continue;
+			}
+
+			JavaConstructor javaConstructor = (JavaConstructor)childJavaTerm;
+
+			JSONObject constructorJSONObject = new JSONObjectImpl();
+
+			constructorJSONObject.put(
+				"accessModifier", javaConstructor.getAccessModifier());
+
+			if (javaConstructor.hasAnnotation("Deprecated")) {
+				constructorJSONObject.put("deprecated", true);
+			}
+
+			constructorJSONObject.put("name", javaConstructor.getName());
+
+			if (javaConstructor.hasAnnotation("Override")) {
+				constructorJSONObject.put("override", true);
+			}
+
+			JavaSignature javaSignature = null;
+
+			try {
+				javaSignature = javaConstructor.getSignature();
+			}
+			catch (Exception exception) {
+				continue;
+			}
+
+			List<JavaParameter> parameters = javaSignature.getParameters();
+
+			if (!parameters.isEmpty()) {
+				JSONArray parametersJSONArray = new JSONArrayImpl();
+
+				for (JavaParameter javaParameter : parameters) {
+					parametersJSONArray.put(
+						javaParameter.getParameterType(true));
+				}
+
+				constructorJSONObject.put("parameters", parametersJSONArray);
+			}
+
+			constructorsJSONArray.put(constructorJSONObject);
+		}
+
+		return constructorsJSONArray;
 	}
 
 	private static String _getDocumentationURLString(String checkName) {
@@ -1016,6 +1108,55 @@ public class SourceFormatterUtil {
 		}
 
 		return variablesJSONArray;
+	}
+
+	private static JSONObject _mergeClassJSONObjects(
+		JSONObject classJSONObject1, JSONObject classJSONObject2) {
+
+		JSONObject mergedJSONObject = _mergeJSONArrays(
+			new JSONObjectImpl(), "constructors", classJSONObject1,
+			classJSONObject2);
+
+		if (classJSONObject1.has("deprecated") ||
+			classJSONObject2.has("deprecated")) {
+
+			mergedJSONObject.put("deprecated", true);
+		}
+
+		mergedJSONObject = _mergeJSONArrays(
+			mergedJSONObject, "extendedClassNames", classJSONObject1,
+			classJSONObject2);
+		mergedJSONObject = _mergeJSONArrays(
+			mergedJSONObject, "implementedClassNames", classJSONObject1,
+			classJSONObject2);
+		mergedJSONObject = _mergeJSONArrays(
+			mergedJSONObject, "methods", classJSONObject1, classJSONObject2);
+		mergedJSONObject = _mergeJSONArrays(
+			mergedJSONObject, "variables", classJSONObject1, classJSONObject2);
+
+		return mergedJSONObject;
+	}
+
+	private static JSONObject _mergeJSONArrays(
+		JSONObject mergedJSONObject, String name, JSONObject classJSONObject1,
+		JSONObject classJSONObject2) {
+
+		JSONArray jsonArray1 = classJSONObject1.getJSONArray(name);
+		JSONArray jsonArray2 = classJSONObject2.getJSONArray(name);
+
+		if ((jsonArray1 == null) && (jsonArray2 == null)) {
+			return mergedJSONObject;
+		}
+
+		if ((jsonArray1 == null) || (jsonArray2 == null)) {
+			return mergedJSONObject.put(name, jsonArray2);
+		}
+
+		for (int i = 0; i < jsonArray2.length(); i++) {
+			jsonArray1.put(jsonArray2.get(i));
+		}
+
+		return mergedJSONObject.put(name, jsonArray1);
 	}
 
 	private static List<String> _scanForFiles(

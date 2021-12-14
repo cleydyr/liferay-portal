@@ -82,7 +82,6 @@ definition {
 
 	@description = "This is a use case for LPS-126597. User can authorize external application multiple times with remember device option. After the first authorization flow login is not needed."
 	@priority = "5"
-	@uitest
 	test ApplicationCanBeAuthorizedWithRememberDeviceEnabled {
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAuthorizedAndRememberDeviceShouldBeEnabled";
 
@@ -322,7 +321,7 @@ definition {
 				applicationName = "Analytics Cloud",
 				checkGlobalScope = "Everything");
 
-			FileInstall.deployFileOnServer(liferayDependencyJars = "com.liferay.oauth2.provider.sample.jar");
+			FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.sample.jar");
 		}
 
 		task ("Verify everything.read is checked in sample-app resource panel") {
@@ -576,9 +575,7 @@ definition {
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "OAuth2#EditApplicationScopesAndViewLanguageKeys";
 
-		FileInstall.deployFileOnServer(
-			filePath = "coreinfrastructure/security/oauth2",
-			liferayDependencyJars = "com.liferay.oauth2.provider.scope.sample.qa.jar");
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
 
 		task ("Delete OSGi JAX-RS Default configuration") {
 			var baseURL = PropsUtil.get("portal.url");
@@ -856,7 +853,6 @@ definition {
 	}
 
 	@description = "This is a use case for LRQA-47381. User can authorize external applications."
-	@uitest
 	test ExternalApplicationCanBeAuthorized {
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAuthorized";
@@ -883,7 +879,6 @@ definition {
 
 	@description = "This is a use case for LPS-126596. User can authorize trusted external applications."
 	@priority = "3"
-	@uitest
 	test ExternalApplicationCanBeTrustedAndAuthorized {
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeTrustedAndAuthorized";
@@ -1164,7 +1159,6 @@ definition {
 
 	@description = "This is a use case for LRQA-57134. Refresh token can expire and can be renewed."
 	@priority = "4"
-	@uitest
 	test RefreshTokenTimeCanBeSetExpiredAndRenewed {
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
 		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.rest.internal.spi.bearer.token.provider.configuration.DefaultBearerTokenProviderConfiguration.config";
@@ -1201,7 +1195,6 @@ definition {
 
 	@description = "This is a use case for LPS-129395. Remember device option should be visible in OAuth 2 admin page if it was set in the application settings."
 	@priority = "5"
-	@uitest
 	test RememberDeviceExternalPropertyShouldBeVisible {
 		property test.name.skip.portal.instance = "OAuth2#RememberDeviceExternalPropertyShouldBeVisible";
 
@@ -1341,7 +1334,7 @@ definition {
 	test ScopeBundlePrefixesCanBeUpdated {
 		property test.name.skip.portal.instance = "OAuth2#ScopeBundlePrefixesCanBeUpdated";
 
-		FileInstall.deployFileOnServer(liferayDependencyJars = "com.liferay.oauth2.provider.scope.sample.qa.jar");
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
 
 		task ("Add OAuth 2 Application") {
 			var portalURL = PropsUtil.get("portal.url");
@@ -1417,7 +1410,7 @@ definition {
 		property osgi.module.configurations = "mapping=[&quot;example-scope-1,example-scope-2\=everything.read,everything.write&quot;]${line.separator}osgi.jaxrs.name=&quot;liferay-oauth2-scope-sample-qa-app&quot;${line.separator}passthrough=&quot;false&quot;";
 		property test.name.skip.portal.instance = "OAuth2#ScopeMappingsCanBeUpdated";
 
-		FileInstall.deployFileOnServer(liferayDependencyJars = "com.liferay.oauth2.provider.scope.sample.qa.jar");
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
 
 		task ("Delete OSGi JAX-RS Default configuration") {
 			var baseURL = PropsUtil.get("portal.url");

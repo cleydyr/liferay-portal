@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.KeyValuePair;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.trash.TrashHelper;
@@ -109,12 +110,6 @@ public class IGConfigurationDisplayContext {
 		return portletDisplay.getNamespace() + "folderSelected";
 	}
 
-	public long getRepositoryId() throws PortalException {
-		_initRepository();
-
-		return _repositoryId;
-	}
-
 	public long getRootFolderId() throws PortalException {
 		_initFolder();
 
@@ -125,6 +120,12 @@ public class IGConfigurationDisplayContext {
 		_initFolder();
 
 		return _folderName;
+	}
+
+	public long getSelectedRepositoryId() throws PortalException {
+		_initRepository();
+
+		return _selectedRepositoryId;
 	}
 
 	public PortletURL getSelectFolderURL() throws PortalException {
@@ -140,7 +141,8 @@ public class IGConfigurationDisplayContext {
 
 		folderItemSelectorCriterion.setIgnoreRootFolder(true);
 		folderItemSelectorCriterion.setSelectedFolderId(getRootFolderId());
-		folderItemSelectorCriterion.setSelectedRepositoryId(getRepositoryId());
+		folderItemSelectorCriterion.setSelectedRepositoryId(
+			getSelectedRepositoryId());
 		folderItemSelectorCriterion.setShowGroupSelector(true);
 
 		return _itemSelector.getItemSelectorURL(
@@ -225,6 +227,7 @@ public class IGConfigurationDisplayContext {
 		}
 
 		_folder = folder;
+		_folderName = folder.getName();
 
 		if (_folder.isRepositoryCapabilityProvided(TrashCapability.class)) {
 			TrashCapability trashCapability = _folder.getRepositoryCapability(
@@ -239,32 +242,38 @@ public class IGConfigurationDisplayContext {
 	}
 
 	private void _initRepository() {
-		if (_repositoryId != 0) {
+		if (_selectedRepositoryId != 0) {
 			return;
 		}
 
 		DLPortletInstanceSettings dlPortletInstanceSettings =
 			_igRequestHelper.getDLPortletInstanceSettings();
 
-		_repositoryId = dlPortletInstanceSettings.getRepositoryId();
+		_selectedRepositoryId =
+			dlPortletInstanceSettings.getSelectedRepositoryId();
 
-		if (_repositoryId != 0) {
+		if (_selectedRepositoryId != 0) {
 			return;
 		}
 
-		if (_folder == null) {
+		if ((_folder == null) && (_folderId != null) &&
+			(_folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+
 			_folder = _getFolder();
 		}
 
 		if (_folder != null) {
-			_repositoryId = _folder.getRepositoryId();
+			_selectedRepositoryId = _folder.getRepositoryId();
 		}
 		else {
-			_repositoryId = _themeDisplay.getScopeGroupId();
+			_selectedRepositoryId = ParamUtil.getLong(
+				_httpServletRequest, "repositoryId",
+				_themeDisplay.getScopeGroupId());
 		}
 
 		try {
-			_repository = _repositoryLocalService.getRepository(_repositoryId);
+			_repository = _repositoryLocalService.getRepository(
+				_selectedRepositoryId);
 
 			_repositoryNotFound = false;
 		}
@@ -290,9 +299,9 @@ public class IGConfigurationDisplayContext {
 		_portletPreferencesLocalService;
 	private final RenderRequest _renderRequest;
 	private Repository _repository;
-	private long _repositoryId;
 	private final RepositoryLocalService _repositoryLocalService;
 	private boolean _repositoryNotFound;
+	private long _selectedRepositoryId;
 	private final ThemeDisplay _themeDisplay;
 	private final TrashHelper _trashHelper;
 

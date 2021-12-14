@@ -1,10 +1,6 @@
 import {useQuery} from '@apollo/client';
 import {useContext, useEffect} from 'react';
-import {
-	onboardingPageGuard,
-	overviewPageGuard,
-	usePageGuard,
-} from '../../../../common/hooks/usePageGuard';
+import {usePageGuard} from '../../../../common/hooks/usePageGuard';
 import {getKoroneikiAccounts} from '../../../../common/services/liferay/graphql/queries';
 import {AppContext} from '../../context';
 import {actionTypes} from '../../context/reducer';
@@ -14,9 +10,8 @@ const Overview = ({userAccount}) => {
 	const [{project}, dispatch] = useContext(AppContext);
 	const {isLoading} = usePageGuard(
 		userAccount,
-		overviewPageGuard,
-		onboardingPageGuard,
-		project.accountKey
+		project.accountKey,
+		'overview'
 	);
 	const {data, isLoading: isLoadingKoroneiki} = useQuery(
 		getKoroneikiAccounts,
@@ -50,8 +45,6 @@ const Overview = ({userAccount}) => {
 	if (isLoading || isLoadingKoroneiki) {
 		return <div>Overview Skeleton</div>;
 	}
-
-	return <div>Overview Page</div>;
 };
 
 export default Overview;

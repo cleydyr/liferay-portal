@@ -286,6 +286,15 @@ definition {
 		SelectFrame(value1 = "relative=top");
 	}
 
+	macro addDescription {
+		CalendarNavigator.gotoEditEvent(eventTitle = "${eventTitle}");
+
+		Type(
+			key_fieldName = "${fieldName}",
+			locator1 = "CKEditor#BODY_FIELD_IFRAME",
+			value1 = "${fieldValue}");
+	}
+
 	macro addPGViaAP {
 		AssetPublisherPortlet.addAsset(assetType = "Calendar Event");
 
@@ -1418,6 +1427,18 @@ definition {
 		AssertElementNotPresent(locator1 = "CalendarViewEventDetails#CALENDAR_COMMENT_DEFAULT_MESSAGE");
 	}
 
+	macro viewCalendarRatingNotPresent {
+		AssertElementNotPresent(locator1 = "Ratings#YOUR_RATING_STAR");
+
+		AssertElementNotPresent(locator1 = "Ratings#AVERAGE_STAR");
+	}
+
+	macro viewCalendarRatingPresent {
+		AssertElementPresent(locator1 = "Ratings#YOUR_RATING_STAR");
+
+		AssertElementPresent(locator1 = "Ratings#AVERAGE_STAR");
+	}
+
 	macro viewComment {
 		CalendarEvent.viewDetails(
 			calendarName = "${calendarName}",
@@ -1452,6 +1473,13 @@ definition {
 		}
 
 		SelectFrame(value1 = "relative=top");
+	}
+
+	macro viewDescription {
+		AssertTextEquals(
+			key_eventDescription = "${eventDescription}",
+			locator1 = "CalendarViewEventDetails#EVENT_DESCRIPTION",
+			value1 = "${key_eventDescription}");
 	}
 
 	macro viewDetails {

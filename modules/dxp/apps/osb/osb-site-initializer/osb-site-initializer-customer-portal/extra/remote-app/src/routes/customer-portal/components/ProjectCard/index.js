@@ -1,6 +1,6 @@
 import ClayCard from '@clayui/card';
 import classNames from 'classnames';
-
+import {status as statusProject} from '../../utils/constants';
 import StatusTag from '../StatusTag';
 import ProjectCardSkeleton from './Skeleton';
 
@@ -14,6 +14,18 @@ const getCurrentEndDate = (currentEndDate) => {
 };
 
 const ProjectCard = ({code, isSmall, onClick, region, sla, status, title}) => {
+	const getStatusMessage = (currentStatus) => {
+		if (currentStatus === statusProject.active) {
+			return 'Ends on ';
+		}
+
+		if (currentStatus === statusProject.expired) {
+			return 'Ended on ';
+		}
+
+		return 'Starts on ';
+	};
+
 	return (
 		<ClayCard
 			className={classNames('m-0', {
@@ -66,7 +78,7 @@ const ProjectCard = ({code, isSmall, onClick, region, sla, status, title}) => {
 								}
 							)}
 						>
-							{'Ends on '}
+							{getStatusMessage(status)}
 
 							<span className="font-weight-bold text-paragraph">
 								{getCurrentEndDate(sla.currentEndDate)}

@@ -22,10 +22,12 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.portlet.PortletURL;
@@ -60,27 +62,24 @@ public class MDRActionDisplayContext {
 
 		ruleActionSearchContainer.setOrderByCol(getOrderByCol());
 
-		String orderByType = getOrderByType();
+		boolean orderByAsc = false;
 
-		boolean orderByAsc = orderByType.equals("asc");
+		if (Objects.equals(getOrderByType(), "asc")) {
+			orderByAsc = true;
+		}
 
-		OrderByComparator<MDRAction> orderByComparator =
-			new ActionCreateDateComparator(orderByAsc);
-
-		ruleActionSearchContainer.setOrderByComparator(orderByComparator);
-
-		ruleActionSearchContainer.setOrderByType(orderByType);
-
-		ruleActionSearchContainer.setRowChecker(
-			new EmptyOnClickRowChecker(_renderResponse));
-
-		ruleActionSearchContainer.setTotal(
-			MDRActionLocalServiceUtil.getActionsCount(ruleGroupInstanceId));
-
+		ruleActionSearchContainer.setOrderByComparator(
+			new ActionCreateDateComparator(orderByAsc));
+		ruleActionSearchContainer.setOrderByType(getOrderByType());
 		ruleActionSearchContainer.setResults(
 			MDRActionLocalServiceUtil.getActions(
 				ruleGroupInstanceId, ruleActionSearchContainer.getStart(),
-				ruleActionSearchContainer.getEnd(), orderByComparator));
+				ruleActionSearchContainer.getEnd(),
+				ruleActionSearchContainer.getOrderByComparator()));
+		ruleActionSearchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(_renderResponse));
+		ruleActionSearchContainer.setTotal(
+			MDRActionLocalServiceUtil.getActionsCount(ruleGroupInstanceId));
 
 		_ruleActionSearchContainer = ruleActionSearchContainer;
 
@@ -100,23 +99,23 @@ public class MDRActionDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "create-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, MDRPortletKeys.MOBILE_DEVICE_RULES, "create-date");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, MDRPortletKeys.MOBILE_DEVICE_RULES, "asc");
 
 		return _orderByType;
 	}

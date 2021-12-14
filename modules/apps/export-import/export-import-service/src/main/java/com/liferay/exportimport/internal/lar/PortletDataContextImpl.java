@@ -769,16 +769,15 @@ public class PortletDataContextImpl implements PortletDataContext {
 		if (classedModel instanceof StagedModel) {
 			StagedModel stagedModel = (StagedModel)classedModel;
 
-			String path = ExportImportPathUtil.getModelPath(stagedModel);
-
-			element = getDataElement(groupElement, "path", path);
+			element = _elementByUUIDCache.get(stagedModel.getUuid());
 
 			if (element != null) {
 				return element;
 			}
 
-			element = getDataElement(
-				groupElement, "uuid", stagedModel.getUuid());
+			String path = ExportImportPathUtil.getModelPath(stagedModel);
+
+			element = getDataElement(groupElement, "path", path);
 
 			if (element != null) {
 				return element;
@@ -797,6 +796,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 			StagedModel stagedModel = (StagedModel)classedModel;
 
 			element.addAttribute("uuid", stagedModel.getUuid());
+
+			_elementByUUIDCache.put(stagedModel.getUuid(), element);
 		}
 
 		return element;
@@ -1241,7 +1242,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 			return null;
 		}
 
-		return getZipReader().getEntryAsString(path);
+		return _zipEntriesCache.computeIfAbsent(
+			path, key -> getZipReader().getEntryAsString(path));
 	}
 
 	@Override
@@ -1911,16 +1913,19 @@ public class PortletDataContextImpl implements PortletDataContext {
 
 		// Permissions
 
-		String xml = getZipEntryAsString(
-			ExportImportPathUtil.getSourceRootPath(this) +
-				"/portlet-data-permissions.xml");
+		if (MapUtil.getBoolean(
+				_parameterMap, PortletDataHandlerKeys.PERMISSIONS)) {
 
-		if (!MapUtil.getBoolean(
-				_parameterMap, PortletDataHandlerKeys.PERMISSIONS) ||
-			Validator.isNull(xml)) {
+			String xml = getZipEntryAsString(
+				ExportImportPathUtil.getSourceRootPath(this) +
+					"/portlet-data-permissions.xml");
 
-			serviceContext.setAddGroupPermissions(true);
-			serviceContext.setAddGuestPermissions(true);
+			if (Validator.isNull(xml)) {
+				_setAddGroupAndGuestPermissions(serviceContext);
+			}
+		}
+		else {
+			_setAddGroupAndGuestPermissions(serviceContext);
 		}
 
 		// Asset
@@ -2748,6 +2753,13 @@ public class PortletDataContextImpl implements PortletDataContext {
 		return null;
 	}
 
+	private void _setAddGroupAndGuestPermissions(
+		ServiceContext serviceContext) {
+
+		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(true);
+	}
+
 	private static final Class<?>[] _XSTREAM_DEFAULT_ALLOWED_TYPES = {
 		boolean[].class, byte[].class, Date.class, Date[].class, double[].class,
 		float[].class, int[].class, Locale.class, long[].class, Number.class,
@@ -2770,6 +2782,7 @@ public class PortletDataContextImpl implements PortletDataContext {
 	private String _dataStrategy;
 	private final Set<StagedModelType> _deletionSystemEventModelTypes =
 		new HashSet<>();
+	private final Map<String, Element> _elementByUUIDCache = new HashMap<>();
 	private Date _endDate;
 	private final Map<String, List<ExpandoColumn>> _expandoColumnsMap =
 		new HashMap<>();
@@ -2810,6 +2823,7 @@ public class PortletDataContextImpl implements PortletDataContext {
 	private String _type;
 	private transient UserIdStrategy _userIdStrategy;
 	private long _userPersonalSiteGroupId;
+	private final Map<String, String> _zipEntriesCache = new HashMap<>();
 	private transient ZipReader _zipReader;
 	private transient ZipWriter _zipWriter;
 

@@ -297,7 +297,7 @@ definition {
 	}
 
 	@description = "This is a test for LPS-136821. It checks that a repository can be published."
-	@ignore = "true"
+	@ignore = "Test Stub"
 	@priority = "3"
 	test CanPublishRepository {
 		property portal.acceptance = "false";
@@ -481,13 +481,52 @@ definition {
 	}
 
 	@description = "This is a test for LPS-136831. It checks that a file can be replaced and republished."
-	@ignore = "true"
 	@priority = "3"
 	test CanReplaceFileAndRepublish {
-		property portal.acceptance = "false";
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site Name-staging",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpeg");
 
-		// TODO LPS-136831 CanReplaceFileAndRepublish pending implementation
+		Navigator.gotoStagedSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
 
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		DMNavigator.openToEntryInAdmin(
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name-staging");
+
+		DMDocument.editCP(
+			dmDocumentFileEdit = "Document_2.jpg",
+			dmDocumentFileNameEdit = "File Name Edit.jpg",
+			dmDocumentTitle = "DM Document Title",
+			dmDocumentTitleEdit = "DM Document Title Edit");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		DMNavigator.openToEntryInAdmin(
+			dmDocumentTitle = "DM Document Title Edit",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title Edit");
 	}
 
 	@description = "This is a use case for LPS-74621."

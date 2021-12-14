@@ -18,7 +18,8 @@ import reducer, {actionTypes} from './reducer';
 const initialForm = {
 	dxp: {
 		admins: [getInitialDxpAdmin()],
-		dataCenterRegion: '',
+		dataCenterRegion: {},
+		disasterDataCenterRegion: {},
 		projectId: '',
 	},
 	invites: [
@@ -33,10 +34,6 @@ const AppContext = createContext();
 const AppContextProvider = ({assetsPath, children}) => {
 	const [state, dispatch] = useReducer(reducer, {
 		assetsPath,
-		dxp: {
-			organization: 'SuperBank',
-			version: '7.3',
-		},
 		project: {},
 		step: steps.welcome,
 		userAccount: undefined,
@@ -45,8 +42,6 @@ const AppContextProvider = ({assetsPath, children}) => {
 	const {data} = useQuery(getUserAccount, {
 		variables: {id: LiferayTheme.getUserId()},
 	});
-
-	const userAccount = data?.userAccount;
 
 	useEffect(() => {
 		const projectExternalReferenceCode = SearchParams.get(
@@ -62,13 +57,13 @@ const AppContextProvider = ({assetsPath, children}) => {
 	}, []);
 
 	useEffect(() => {
-		if (userAccount) {
+		if (data) {
 			dispatch({
-				payload: userAccount,
+				payload: data.userAccount,
 				type: actionTypes.UPDATE_USER_ACCOUNT,
 			});
 		}
-	}, [userAccount]);
+	}, [data]);
 
 	return (
 		<AppContext.Provider value={[state, dispatch]}>

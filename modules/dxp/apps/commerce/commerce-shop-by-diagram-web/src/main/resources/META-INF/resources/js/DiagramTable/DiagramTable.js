@@ -9,40 +9,76 @@
  * distribution rights of the Software.
  */
 
-import ClayButton from '@clayui/button';
 import ClayEmptyState from '@clayui/empty-state';
-import {ClayCheckbox} from '@clayui/form';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayTable from '@clayui/table';
+import AddToCartButton from 'commerce-frontend-js/components/add_to_cart/AddToCartButton';
 import InfiniteScroller from 'commerce-frontend-js/components/infinite_scroller/InfiniteScroller';
+import {
+	useCommerceAccount,
+	useCommerceCart,
+} from 'commerce-frontend-js/utilities/hooks';
+import {openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
+import {DIAGRAM_EVENTS, DIAGRAM_TABLE_EVENTS} from '../utilities/constants';
+import {deleteMappedProduct, getMappedProducts} from '../utilities/data';
 import {
-	ADD_TO_CART_FROM_TABLE,
-	DIAGRAM_EVENTS,
-	DIAGRAM_TABLE_EVENTS,
-} from '../utilities/constants';
-import {getMappedProducts} from '../utilities/data';
-import {formatLabel} from '../utilities/index';
+	formatInitialQuantities,
+	formatProductOptions,
+} from '../utilities/index';
 import ManagementBar from './ManagementBar';
+import MappedProductRow from './MappedProductRow';
+import TableHead from './TableHead';
 
 const PAGE_SIZE = 15;
 
-function DiagramTable({isAdmin, productId}) {
+function formatCpInstances(skusId, products, quantities) {
+	return skusId.map((skuId) => {
+		const product = products.find((product) => product.skuId === skuId);
+
+		const options = formatProductOptions(
+			product.options,
+			product.productOptions
+		);
+
+		return {
+			inCart: false,
+			options,
+			quantity: quantities[skuId] || product.initialQuantity,
+			skuId,
+		};
+	});
+}
+
+function DiagramTable({
+	cartId: initialCartId,
+	channelGroupId,
+	channelId,
+	commerceAccountId: initialAccountId,
+	commerceCurrencyCode,
+	isAdmin,
+	orderUUID,
+	productId,
+}) {
 	const [currentPage, setCurrentPage] = useState(1);
-	const [loaderActive, setLoaderActive] = useState(false);
 	const [lastPage, setLastPage] = useState(null);
+	const [loaderActive, setLoaderActive] = useState(true);
+	const [mappedProducts, setMappedProducts] = useState(null);
+	const [newQuantities, setNewQuantities] = useState({});
 	const [query, setQuery] = useState('');
-	const [results, setResults] = useState(null);
 	const [refreshTrigger, setRefreshTrigger] = useState(false);
-	const [selectedProducts, setSelectedProducts] = useState([]);
+	const [selectedSkusId, setSelectedSkusId] = useState([]);
+	const commerceAccount = useCommerceAccount({id: initialAccountId});
+	const commerceCart = useCommerceCart({id: initialCartId});
 	const wrapperRef = useRef();
 
 	const handleDiagramUpdated = useCallback(
 		({diagramProductId}) => {
 			if (diagramProductId === productId) {
 				setRefreshTrigger((trigger) => !trigger);
+
 				setCurrentPage(1);
 			}
 		},
@@ -61,23 +97,43 @@ function DiagramTable({isAdmin, productId}) {
 	}, [handleDiagramUpdated]);
 
 	useEffect(() => {
-		getMappedProducts(productId, query, currentPage, PAGE_SIZE).then(
-			(data) => {
-				setLoaderActive(false);
+		getMappedProducts(
+			productId,
+			!isAdmin && channelId,
+			query,
+			currentPage,
+			PAGE_SIZE,
+			commerceAccount.id
+		).then((data) => {
+			setLoaderActive(false);
 
-				setResults((results) =>
-					results && currentPage > 1
-						? [...results, ...data.items]
-						: data.items
-				);
+			const fetchedProducts = formatInitialQuantities(data.items);
 
-				setLastPage(data.lastPage);
-			}
-		);
-	}, [productId, currentPage, query, refreshTrigger]);
+			setMappedProducts((mappedProducts) =>
+				mappedProducts && currentPage > 1
+					? [...mappedProducts, ...fetchedProducts]
+					: fetchedProducts
+			);
 
-	const selectableProduct = results?.filter(
-		(result) => result.type === 'sku'
+			setLastPage(data.lastPage);
+		});
+	}, [
+		channelId,
+		currentPage,
+		isAdmin,
+		productId,
+		query,
+		refreshTrigger,
+		commerceAccount,
+	]);
+
+	const selectableSkusId = (mappedProducts || []).reduce(
+		(skusId, product) =>
+			product.type === 'sku' &&
+			product.availability?.label === 'available'
+				? [...skusId, product.skuId]
+				: skusId,
+		[]
 	);
 
 	function handleTitleClicked(product) {
@@ -101,6 +157,75 @@ function DiagramTable({isAdmin, productId}) {
 		});
 	}
 
+	const handleMappedProductDelete = (mappedProductId) => {
+		deleteMappedProduct(mappedProductId).then(() => {
+			setMappedProducts((mappedProducts) =>
+				mappedProducts.filter(
+					(mappedProduct) => mappedProduct.id !== mappedProductId
+				)
+			);
+
+			Liferay.fire(DIAGRAM_TABLE_EVENTS.TABLE_UPDATED, {
+				diagramProductId: productId,
+			});
+		});
+	};
+
+	let content = <div className="full-height-content" />;
+
+	if (loaderActive) {
+		content = (
+			<div className="full-height-content">
+				<ClayLoadingIndicator />
+			</div>
+		);
+	}
+
+	if (!loaderActive && mappedProducts && !!mappedProducts.length) {
+		content = (
+			<InfiniteScroller
+				onBottomTouched={() => setCurrentPage(currentPage + 1)}
+				scrollCompleted={currentPage >= lastPage}
+			>
+				<ClayTable borderless>
+					<TableHead
+						isAdmin={isAdmin}
+						selectableSkusId={selectableSkusId}
+						selectedSkusId={selectedSkusId}
+						setSelectedSkusId={setSelectedSkusId}
+					/>
+
+					<ClayTable.Body>
+						{Boolean(mappedProducts?.length) &&
+							mappedProducts.map((product) => (
+								<MappedProductRow
+									handleMouseEnter={handleMouseEnter}
+									handleMouseLeave={handleMouseLeave}
+									handleTitleClicked={handleTitleClicked}
+									isAdmin={isAdmin}
+									key={product.id}
+									onDelete={handleMappedProductDelete}
+									product={product}
+									quantity={
+										newQuantities[product.skuId] ||
+										product.initialQuantity
+									}
+									selectedSkusId={selectedSkusId}
+									setNewQuantity={(newQuantity) => {
+										setNewQuantities({
+											...newQuantities,
+											[product.skuId]: newQuantity,
+										});
+									}}
+									setSelectedSkusId={setSelectedSkusId}
+								/>
+							))}
+					</ClayTable.Body>
+				</ClayTable>
+			</InfiniteScroller>
+		);
+	}
+
 	return (
 		<div className="shop-by-diagram-table" ref={wrapperRef}>
 			<ManagementBar
@@ -108,164 +233,74 @@ function DiagramTable({isAdmin, productId}) {
 					setCurrentPage(1);
 					setLoaderActive(true);
 					setQuery(query);
-					setResults(null);
+					setMappedProducts(null);
 				}}
 			/>
 
-			{results && !results.length && !loaderActive && (
+			{mappedProducts && !mappedProducts.length && !loaderActive && (
 				<ClayEmptyState
-					className="my-5 text-center"
+					className="full-height-content"
 					title={Liferay.Language.get('there-are-no-results')}
 				/>
 			)}
 
-			{loaderActive && <ClayLoadingIndicator className="my-5" />}
+			{content}
 
-			{!loaderActive && results && !!results.length && (
-				<InfiniteScroller
-					onBottomTouched={() => setCurrentPage(currentPage + 1)}
-					scrollCompleted={currentPage >= lastPage}
-				>
-					<ClayTable borderless>
-						<ClayTable.Head>
-							<ClayTable.Row>
-								{!isAdmin && ADD_TO_CART_FROM_TABLE && (
-									<ClayTable.Cell headingCell>
-										<ClayCheckbox
-											checked={
-												!!selectableProduct &&
-												selectedProducts.length ===
-													selectableProduct.length
-											}
-											indeterminate={
-												!!selectableProduct &&
-												!!selectedProducts.length &&
-												selectedProducts.length <
-													selectableProduct.length
-											}
-											onChange={() => {
-												if (
-													selectableProduct &&
-													selectedProducts.length !==
-														selectableProduct.length
-												) {
-													setSelectedProducts(
-														selectableProduct
-													);
-												}
-												else {
-													setSelectedProducts([]);
-												}
-											}}
-										/>
-									</ClayTable.Cell>
-								)}
+			{!isAdmin && (
+				<AddToCartButton
+					accountId={commerceAccount.id}
+					cartId={commerceCart.id}
+					cartUUID={orderUUID}
+					channel={{
+						currencyCode: commerceCurrencyCode,
+						groupId: channelGroupId,
+						id: channelId,
+					}}
+					cpInstances={formatCpInstances(
+						selectedSkusId,
+						mappedProducts,
+						newQuantities
+					)}
+					disabled={!commerceAccount.id || !selectedSkusId.length}
+					hideIcon={true}
+					onAdd={() => {
+						const message =
+							selectedSkusId.length === 1
+								? Liferay.Language.get(
+										'the-product-was-successfully-added-to-the-cart'
+								  )
+								: Liferay.Util.sub(
+										Liferay.Language.get(
+											'x-products-were-successfully-added-to-the-cart'
+										),
+										selectedSkusId.length
+								  );
 
-								<ClayTable.Cell headingCell>#</ClayTable.Cell>
-
-								<ClayTable.Cell
-									className="table-cell-expand-small"
-									headingCell
-								>
-									{Liferay.Language.get('sku-or-diagram')}
-								</ClayTable.Cell>
-
-								<ClayTable.Cell headingCell>
-									{Liferay.Language.get('quantity')}
-								</ClayTable.Cell>
-							</ClayTable.Row>
-						</ClayTable.Head>
-
-						<ClayTable.Body>
-							{Boolean(results?.length) &&
-								results.map((product) => (
-									<ClayTable.Row
-										key={product.id}
-										onMouseEnter={() =>
-											handleMouseEnter(product)
-										}
-										onMouseLeave={() =>
-											handleMouseLeave(product)
-										}
-									>
-										{!isAdmin && ADD_TO_CART_FROM_TABLE && (
-											<ClayTable.Cell>
-												<ClayCheckbox
-													checked={
-														!!selectedProducts.find(
-															(selected) =>
-																selected.id ===
-																product.id
-														)
-													}
-													disabled={
-														product.type !== 'sku'
-													}
-													onChange={(event) => {
-														if (
-															event.target.checked
-														) {
-															setSelectedProducts(
-																[
-																	...selectedProducts,
-																	product,
-																]
-															);
-														}
-														else {
-															setSelectedProducts(
-																selectedProducts.filter(
-																	(
-																		selectedProduct
-																	) =>
-																		selectedProduct.id !==
-																		product.id
-																)
-															);
-														}
-													}}
-												/>
-											</ClayTable.Cell>
-										)}
-
-										<ClayTable.Cell>
-											{formatLabel(product.sequence)}
-										</ClayTable.Cell>
-
-										<ClayTable.Cell>
-											<div className="table-list-title">
-												<ClayButton
-													displayType="unstyled"
-													onClick={() =>
-														handleTitleClicked(
-															product
-														)
-													}
-												>
-													{product.type === 'diagram'
-														? product.productName[
-																Liferay.ThemeDisplay.getLanguageId()
-														  ]
-														: product.sku}
-												</ClayButton>
-											</div>
-										</ClayTable.Cell>
-
-										<ClayTable.Cell>
-											{product.quantity || ''}
-										</ClayTable.Cell>
-									</ClayTable.Row>
-								))}
-						</ClayTable.Body>
-					</ClayTable>
-				</InfiniteScroller>
+						openToast({
+							message,
+							type: 'success',
+						});
+					}}
+					settings={{
+						alignment: 'full-width',
+						buttonText: Liferay.Language.get(
+							'add-selected-products-to-the-order'
+						),
+					}}
+				/>
 			)}
 		</div>
 	);
 }
 
 DiagramTable.propTypes = {
+	cartId: PropTypes.string,
+	channelGroupId: PropTypes.string,
+	channelId: PropTypes.string,
+	commerceAccountId: PropTypes.string,
+	commerceCurrencyCode: PropTypes.string,
 	isAdmin: PropTypes.bool,
+	orderUUID: PropTypes.string,
 	productId: PropTypes.string.isRequired,
 };
 

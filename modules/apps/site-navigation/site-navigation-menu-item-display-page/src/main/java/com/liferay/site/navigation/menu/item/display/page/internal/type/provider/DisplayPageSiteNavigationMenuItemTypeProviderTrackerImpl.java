@@ -16,23 +16,18 @@ package com.liferay.site.navigation.menu.item.display.page.internal.type.provide
 
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
-import com.liferay.info.item.InfoItemClassDetails;
 import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.item.capability.InfoItemCapability;
 import com.liferay.info.item.provider.InfoItemCapabilitiesProvider;
-import com.liferay.info.item.provider.InfoItemDetailsProvider;
-import com.liferay.info.item.provider.InfoItemFormProvider;
-import com.liferay.info.item.provider.InfoItemFormVariationsProvider;
 import com.liferay.item.selector.ItemSelector;
-import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProviderTracker;
 import com.liferay.layout.page.template.info.item.capability.DisplayPageInfoItemCapability;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.reflect.GenericUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.site.navigation.menu.item.display.page.internal.configuration.FFDisplayPageSiteNavigationMenuItemConfigurationUtil;
 import com.liferay.site.navigation.menu.item.display.page.internal.type.DisplayPageTypeContext;
 import com.liferay.site.navigation.menu.item.display.page.internal.type.DisplayPageTypeSiteNavigationMenuItemType;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemType;
@@ -66,9 +61,9 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 	protected void activate(BundleContext bundleContext) {
 		_serviceTracker = ServiceTrackerFactory.open(
 			bundleContext,
-			(Class<InfoItemFormProvider<?>>)
-				(Class<?>)InfoItemFormProvider.class,
-			new InfoItemFormProviderServiceTrackerCustomizer(
+			(Class<InfoItemCapabilitiesProvider<?>>)
+				(Class<?>)InfoItemCapabilitiesProvider.class,
+			new InfoItemCapabilitiesProviderServiceTrackerCustomizer(
 				bundleContext, _serviceRegistrations));
 	}
 
@@ -109,8 +104,9 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 
 	private final Map<String, ServiceRegistration<SiteNavigationMenuItemType>>
 		_serviceRegistrations = new ConcurrentHashMap<>();
-	private ServiceTracker<InfoItemFormProvider<?>, InfoItemFormProvider<?>>
-		_serviceTracker;
+	private ServiceTracker
+		<InfoItemCapabilitiesProvider<?>, InfoItemCapabilitiesProvider<?>>
+			_serviceTracker;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.site.navigation.menu.item.display.page)",
@@ -118,11 +114,11 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 	)
 	private ServletContext _servletContext;
 
-	private class InfoItemFormProviderServiceTrackerCustomizer
+	private class InfoItemCapabilitiesProviderServiceTrackerCustomizer
 		implements ServiceTrackerCustomizer
-			<InfoItemFormProvider<?>, InfoItemFormProvider<?>> {
+			<InfoItemCapabilitiesProvider<?>, InfoItemCapabilitiesProvider<?>> {
 
-		public InfoItemFormProviderServiceTrackerCustomizer(
+		public InfoItemCapabilitiesProviderServiceTrackerCustomizer(
 			BundleContext bundleContext,
 			Map<String, ServiceRegistration<SiteNavigationMenuItemType>>
 				serviceRegistrations) {
@@ -133,45 +129,33 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 		}
 
 		@Override
-		public InfoItemFormProvider<?> addingService(
-			ServiceReference<InfoItemFormProvider<?>> serviceReference) {
+		public InfoItemCapabilitiesProvider<?> addingService(
+			ServiceReference<InfoItemCapabilitiesProvider<?>>
+				serviceReference) {
 
-			InfoItemFormProvider<?> infoItemFormProvider =
+			InfoItemCapabilitiesProvider<?> infoItemCapabilitiesProvider =
 				_bundleContext.getService(serviceReference);
 
-			if (!FFDisplayPageSiteNavigationMenuItemConfigurationUtil.
-					displayPageTypesEnabled()) {
+			String className = GetterUtil.getString(
+				serviceReference.getProperty("item.class.name"));
 
-				return infoItemFormProvider;
+			if (Validator.isNull(className)) {
+				className = GenericUtil.getGenericClassName(
+					infoItemCapabilitiesProvider);
 			}
 
-			String className = GenericUtil.getGenericClassName(
-				infoItemFormProvider);
-
-			if (Validator.isNull(className) ||
-				!_hasDisplayPageInfoItemCapability(className)) {
-
-				return infoItemFormProvider;
+			if (Validator.isNull(className)) {
+				return infoItemCapabilitiesProvider;
 			}
 
-			InfoItemDetailsProvider<?> infoItemDetailsProvider =
-				_infoItemServiceTracker.getFirstInfoItemService(
-					InfoItemDetailsProvider.class, className);
+			List<InfoItemCapability> infoItemCapabilities =
+				infoItemCapabilitiesProvider.getInfoItemCapabilities();
 
-			if (infoItemDetailsProvider == null) {
-				return infoItemFormProvider;
+			if (!infoItemCapabilities.contains(
+					_displayPageInfoItemCapability)) {
+
+				return infoItemCapabilitiesProvider;
 			}
-
-			LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
-				_layoutDisplayPageProviderTracker.
-					getLayoutDisplayPageProviderByClassName(className);
-
-			if (layoutDisplayPageProvider == null) {
-				return infoItemFormProvider;
-			}
-
-			InfoItemClassDetails infoItemClassDetails =
-				infoItemDetailsProvider.getInfoItemClassDetails();
 
 			try {
 				_serviceRegistrations.put(
@@ -181,11 +165,8 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 						new DisplayPageTypeSiteNavigationMenuItemType(
 							_assetDisplayPageFriendlyURLProvider,
 							new DisplayPageTypeContext(
-								infoItemClassDetails,
-								_infoItemServiceTracker.getFirstInfoItemService(
-									InfoItemFormVariationsProvider.class,
-									className),
-								layoutDisplayPageProvider),
+								className, _infoItemServiceTracker,
+								_layoutDisplayPageProviderTracker),
 							_itemSelector, _jspRenderer, _portal,
 							_servletContext),
 						HashMapDictionaryBuilder.<String, Object>put(
@@ -200,26 +181,26 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 				throw throwable;
 			}
 
-			return infoItemFormProvider;
+			return infoItemCapabilitiesProvider;
 		}
 
 		@Override
 		public void modifiedService(
-			ServiceReference<InfoItemFormProvider<?>> serviceReference,
-			InfoItemFormProvider<?> infoItemFormProvider) {
+			ServiceReference<InfoItemCapabilitiesProvider<?>> serviceReference,
+			InfoItemCapabilitiesProvider<?> infoItemCapabilitiesProvider) {
 
-			removedService(serviceReference, infoItemFormProvider);
+			removedService(serviceReference, infoItemCapabilitiesProvider);
 
 			addingService(serviceReference);
 		}
 
 		@Override
 		public void removedService(
-			ServiceReference<InfoItemFormProvider<?>> serviceReference,
-			InfoItemFormProvider<?> infoItemFormProvider) {
+			ServiceReference<InfoItemCapabilitiesProvider<?>> serviceReference,
+			InfoItemCapabilitiesProvider<?> infoItemCapabilitiesProvider) {
 
 			String className = GenericUtil.getGenericClassName(
-				infoItemFormProvider);
+				infoItemCapabilitiesProvider);
 
 			if (Validator.isNull(className)) {
 				return;
@@ -231,22 +212,6 @@ public class DisplayPageSiteNavigationMenuItemTypeProviderTrackerImpl {
 			if (serviceRegistration != null) {
 				serviceRegistration.unregister();
 			}
-		}
-
-		private boolean _hasDisplayPageInfoItemCapability(String className) {
-			InfoItemCapabilitiesProvider infoItemCapabilitiesProvider =
-				_infoItemServiceTracker.getFirstInfoItemService(
-					InfoItemCapabilitiesProvider.class, className);
-
-			if (infoItemCapabilitiesProvider == null) {
-				return false;
-			}
-
-			List<InfoItemCapability> infoItemCapabilities =
-				infoItemCapabilitiesProvider.getInfoItemCapabilities();
-
-			return infoItemCapabilities.contains(
-				_displayPageInfoItemCapability);
 		}
 
 		private final BundleContext _bundleContext;

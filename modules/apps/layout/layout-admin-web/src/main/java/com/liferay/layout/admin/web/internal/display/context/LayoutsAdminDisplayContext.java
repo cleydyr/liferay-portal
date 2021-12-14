@@ -60,6 +60,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
@@ -231,6 +232,15 @@ public class LayoutsAdminDisplayContext {
 		long layoutPageTemplateEntryId = ParamUtil.getLong(
 			httpServletRequest, "layoutPageTemplateEntryId");
 
+		if (layoutPageTemplateEntryId > 0) {
+			portletURL.setParameter(
+				ActionRequest.ACTION_NAME, "/layout_admin/add_content_layout");
+		}
+		else {
+			portletURL.setParameter(
+				ActionRequest.ACTION_NAME, "/layout_admin/add_simple_layout");
+		}
+
 		portletURL.setParameter(
 			"layoutPageTemplateEntryId",
 			String.valueOf(layoutPageTemplateEntryId));
@@ -240,15 +250,6 @@ public class LayoutsAdminDisplayContext {
 
 		portletURL.setParameter(
 			"masterLayoutPlid", String.valueOf(masterLayoutPlid));
-
-		if (layoutPageTemplateEntryId > 0) {
-			portletURL.setParameter(
-				ActionRequest.ACTION_NAME, "/layout_admin/add_content_layout");
-		}
-		else {
-			portletURL.setParameter(
-				ActionRequest.ACTION_NAME, "/layout_admin/add_simple_layout");
-		}
 
 		if (Objects.equals(type, LayoutConstants.TYPE_COLLECTION)) {
 			String collectionPK = ParamUtil.getString(
@@ -610,11 +611,9 @@ public class LayoutsAdminDisplayContext {
 
 		layoutsSearchContainer.setOrderByCol(_getOrderByCol());
 
-		String orderByType = _getOrderByType();
-
 		boolean orderByAsc = false;
 
-		if (orderByType.equals("asc")) {
+		if (Objects.equals(_getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
@@ -628,13 +627,7 @@ public class LayoutsAdminDisplayContext {
 		}
 
 		layoutsSearchContainer.setOrderByComparator(orderByComparator);
-
 		layoutsSearchContainer.setOrderByType(_getOrderByType());
-
-		EmptyOnClickRowChecker emptyOnClickRowChecker =
-			new EmptyOnClickRowChecker(_liferayPortletResponse);
-
-		layoutsSearchContainer.setRowChecker(emptyOnClickRowChecker);
 
 		String keywords = getKeywords();
 
@@ -644,34 +637,34 @@ public class LayoutsAdminDisplayContext {
 			statuses = new int[] {WorkflowConstants.STATUS_ANY};
 		}
 
-		int layoutsCount = LayoutServiceUtil.getLayoutsCount(
-			getSelGroupId(), isPrivateLayout(), keywords,
-			new String[] {
-				LayoutConstants.TYPE_COLLECTION, LayoutConstants.TYPE_CONTENT,
-				LayoutConstants.TYPE_EMBEDDED,
-				LayoutConstants.TYPE_LINK_TO_LAYOUT,
-				LayoutConstants.TYPE_FULL_PAGE_APPLICATION,
-				LayoutConstants.TYPE_PANEL, LayoutConstants.TYPE_PORTLET,
-				LayoutConstants.TYPE_URL
-			},
-			statuses);
-
-		List<Layout> layouts = LayoutServiceUtil.getLayouts(
-			getSelGroupId(), isPrivateLayout(), keywords,
-			new String[] {
-				LayoutConstants.TYPE_COLLECTION, LayoutConstants.TYPE_CONTENT,
-				LayoutConstants.TYPE_EMBEDDED,
-				LayoutConstants.TYPE_LINK_TO_LAYOUT,
-				LayoutConstants.TYPE_FULL_PAGE_APPLICATION,
-				LayoutConstants.TYPE_PANEL, LayoutConstants.TYPE_PORTLET,
-				LayoutConstants.TYPE_URL
-			},
-			statuses, layoutsSearchContainer.getStart(),
-			layoutsSearchContainer.getEnd(),
-			layoutsSearchContainer.getOrderByComparator());
-
-		layoutsSearchContainer.setTotal(layoutsCount);
-		layoutsSearchContainer.setResults(layouts);
+		layoutsSearchContainer.setResults(
+			LayoutServiceUtil.getLayouts(
+				getSelGroupId(), isPrivateLayout(), keywords,
+				new String[] {
+					LayoutConstants.TYPE_COLLECTION,
+					LayoutConstants.TYPE_CONTENT, LayoutConstants.TYPE_EMBEDDED,
+					LayoutConstants.TYPE_LINK_TO_LAYOUT,
+					LayoutConstants.TYPE_FULL_PAGE_APPLICATION,
+					LayoutConstants.TYPE_PANEL, LayoutConstants.TYPE_PORTLET,
+					LayoutConstants.TYPE_URL
+				},
+				statuses, layoutsSearchContainer.getStart(),
+				layoutsSearchContainer.getEnd(),
+				layoutsSearchContainer.getOrderByComparator()));
+		layoutsSearchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(_liferayPortletResponse));
+		layoutsSearchContainer.setTotal(
+			LayoutServiceUtil.getLayoutsCount(
+				getSelGroupId(), isPrivateLayout(), keywords,
+				new String[] {
+					LayoutConstants.TYPE_COLLECTION,
+					LayoutConstants.TYPE_CONTENT, LayoutConstants.TYPE_EMBEDDED,
+					LayoutConstants.TYPE_LINK_TO_LAYOUT,
+					LayoutConstants.TYPE_FULL_PAGE_APPLICATION,
+					LayoutConstants.TYPE_PANEL, LayoutConstants.TYPE_PORTLET,
+					LayoutConstants.TYPE_URL
+				},
+				statuses));
 
 		_layoutsSearchContainer = layoutsSearchContainer;
 
@@ -1196,7 +1189,6 @@ public class LayoutsAdminDisplayContext {
 		}
 
 		portletURL.setParameter("redirect", themeDisplay.getURLCurrent());
-
 		portletURL.setParameter("collectionPK", collectionPK);
 		portletURL.setParameter("collectionType", collectionType);
 		portletURL.setParameter("showActions", String.valueOf(Boolean.TRUE));
@@ -1841,8 +1833,6 @@ public class LayoutsAdminDisplayContext {
 			UnicodeProperties unicodeProperties =
 				layout.getTypeSettingsProperties();
 
-			unicodeProperties.put("published", "true");
-
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				httpServletRequest);
 
@@ -1898,8 +1888,9 @@ public class LayoutsAdminDisplayContext {
 			defaultOrderByCol = "relevance";
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_liferayPortletRequest, "orderByCol", defaultOrderByCol);
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES,
+			defaultOrderByCol);
 
 		return _orderByCol;
 	}
@@ -1913,8 +1904,8 @@ public class LayoutsAdminDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_liferayPortletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES, "asc");
 
 		return _orderByType;
 	}
