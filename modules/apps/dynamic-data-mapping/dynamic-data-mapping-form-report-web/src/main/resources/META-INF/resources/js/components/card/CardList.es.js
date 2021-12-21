@@ -21,7 +21,7 @@ import EmptyState from '../empty-state/EmptyState.es';
 import List from '../list/List.es';
 import Card from './Card.es';
 
-const chartComponents = {
+const CHART_COMPONENTS = {
 	List,
 	MultiBarChart,
 	PieChart,
@@ -57,7 +57,7 @@ export default function CardList({data, fields}) {
 			title,
 		};
 
-		const ChartComponent = chartComponents[chartComponentName];
+		const ChartComponent = CHART_COMPONENTS[chartComponentName];
 
 		const chart = <ChartComponent {...chartComponentProps} />;
 
