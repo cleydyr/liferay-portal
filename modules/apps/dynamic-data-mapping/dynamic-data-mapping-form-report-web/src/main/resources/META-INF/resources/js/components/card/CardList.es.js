@@ -61,12 +61,7 @@ export default function CardList({data, fields}) {
 
 		const chart = <ChartComponent {...chartComponentProps} />;
 
-		if (chart === null) {
-			return null;
-		}
-		else {
-			hasCards = true;
-		}
+		hasCards = true;
 
 		return (
 			<Card
