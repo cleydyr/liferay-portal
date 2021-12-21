@@ -33,7 +33,7 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.name=object-relationship",
 		"ddm.form.field.type.name=object-relationship",
-		"ddm.form.field.type.name=radio", "ddm.form.field.type.name=select"
+		"ddm.form.field.type.name=radio"
 	},
 	service = DDMFormFieldTypeReportProcessor.class
 )
