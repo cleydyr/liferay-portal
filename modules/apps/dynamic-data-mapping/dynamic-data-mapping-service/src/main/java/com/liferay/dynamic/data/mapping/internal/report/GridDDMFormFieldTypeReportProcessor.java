@@ -119,7 +119,7 @@ public class GridDDMFormFieldTypeReportProcessor
 		JSONObject fieldJSONObject, DDMFormFieldValue ddmFormFieldValue) {
 
 		return JSONUtil.put(
-			"data", fieldJSONObject.getJSONArray("values")
+			"data", fieldJSONObject.getJSONObject("values")
 		).put(
 			"structure", fieldJSONObject.get("structure")
 		).put(

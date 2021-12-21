@@ -40,6 +40,7 @@ export default function CardList({data, fields}) {
 			icon = '',
 			title = '',
 			summary = {},
+			totalEntries,
 		} = newData;
 
 		if (!chartComponentName) {
@@ -48,7 +49,7 @@ export default function CardList({data, fields}) {
 
 		chartComponentProps.field = field;
 
-		const {sumTotalValues, totalEntries} = chartComponentProps;
+		const {sumTotalValues} = chartComponentProps;
 
 		field = {
 			...field,
