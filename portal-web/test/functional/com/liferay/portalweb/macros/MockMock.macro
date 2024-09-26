@@ -70,6 +70,18 @@ definition {
 		AssertTextEquals.assertPartialText(
 			locator1 = "MockMock#MOCKMOCK_MESSAGE_BODY",
 			value1 = "${content}");
+
+		if (isSet(fromAddress)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "MockMock#MOCKMOCK_MESSAGE_BODY",
+				value1 = "${fromAddress}");
+		}
+
+		if (isSet(toName)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "MockMock#MOCKMOCK_MESSAGE_BODY",
+				value1 = "${toName}");
+		}
 	}
 
 	macro clickBodyLink {
@@ -194,8 +206,8 @@ definition {
 			subject = "${subject}");
 
 		var bodyContent = selenium.getText("MockMock#MOCKMOCK_MESSAGE_BODY");
-		var bodyContent = StringUtil.extractLast("${bodyContent}", "href=&quot;");
-		var bodyURL = StringUtil.extractFirst("${bodyContent}", "&quot;");
+		var bodyContent = StringUtil.extractLast("${bodyContent}", "href=\"");
+		var bodyURL = StringUtil.extractFirst("${bodyContent}", "\"");
 
 		Navigator.openSpecificURL(url = "${bodyURL}");
 	}
@@ -214,7 +226,9 @@ definition {
 
 		MockMock._viewMailMessage(
 			content = "${content}",
-			subject = "${subject}");
+			fromAddress = "${fromAddress}",
+			subject = "${subject}",
+			toName = "${toName}");
 
 		MockMock._backtoInbox();
 	}

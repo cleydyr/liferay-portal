@@ -14,8 +14,12 @@
 
 package com.liferay.search.experiences.internal.blueprint.search.request.enhancer;
 
+import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.portal.kernel.json.JSONException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.aggregation.Aggregations;
 import com.liferay.portal.search.filter.ComplexQueryPartBuilderFactory;
 import com.liferay.portal.search.geolocation.GeoBuilders;
@@ -46,14 +50,20 @@ import com.liferay.search.experiences.internal.blueprint.search.request.body.con
 import com.liferay.search.experiences.rest.dto.v1_0.Configuration;
 import com.liferay.search.experiences.rest.dto.v1_0.ElementDefinition;
 import com.liferay.search.experiences.rest.dto.v1_0.ElementInstance;
+import com.liferay.search.experiences.rest.dto.v1_0.Field;
+import com.liferay.search.experiences.rest.dto.v1_0.FieldSet;
 import com.liferay.search.experiences.rest.dto.v1_0.SXPBlueprint;
 import com.liferay.search.experiences.rest.dto.v1_0.SXPElement;
+import com.liferay.search.experiences.rest.dto.v1_0.UiConfiguration;
 import com.liferay.search.experiences.rest.dto.v1_0.util.ConfigurationUtil;
 import com.liferay.search.experiences.rest.dto.v1_0.util.SXPBlueprintUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.lang.StringUtils;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -160,16 +170,20 @@ public class SXPBlueprintSearchRequestEnhancerImpl
 			_expand(
 				elementDefinition.getConfiguration(), propertyResolver,
 				(name, options) -> {
-					String prefix = "configuration.";
+					String shortName = StringUtils.substringAfter(
+						name, "configuration.");
 
-					if (!name.startsWith(prefix)) {
+					if (Validator.isNull(shortName)) {
 						return null;
 					}
 
 					Map<String, Object> values =
 						elementInstance.getUiConfigurationValues();
 
-					return values.get(name.substring(prefix.length()));
+					return _unpack(
+						values.get(shortName),
+						_getFieldType(
+							shortName, elementDefinition.getUiConfiguration()));
 				}),
 			searchRequestBuilder, sxpParameterData);
 	}
@@ -236,6 +250,59 @@ public class SXPBlueprintSearchRequestEnhancerImpl
 		return (DTOConverter
 			<com.liferay.search.experiences.model.SXPBlueprint, SXPBlueprint>)
 				_dtoConverterRegistry.getDTOConverter(dtoClassName);
+	}
+
+	private Field _getField(Field[] fields, String name) {
+		if (ArrayUtil.isEmpty(fields)) {
+			return null;
+		}
+
+		for (Field field : fields) {
+			if (Objects.equals(field.getName(), name)) {
+				return field;
+			}
+		}
+
+		return null;
+	}
+
+	private Field _getField(FieldSet[] fieldSets, String name) {
+		if (ArrayUtil.isEmpty(fieldSets)) {
+			return null;
+		}
+
+		for (FieldSet fieldSet : fieldSets) {
+			Field field = _getField(fieldSet.getFields(), name);
+
+			if (field != null) {
+				return field;
+			}
+		}
+
+		return null;
+	}
+
+	private String _getFieldType(String name, UiConfiguration uiConfiguration) {
+		Field field = _getField(uiConfiguration.getFieldSets(), name);
+
+		if (field != null) {
+			return field.getType();
+		}
+
+		return null;
+	}
+
+	private Object _unpack(Object value, String type) {
+		if ((value instanceof String) && Objects.equals(type, "json")) {
+			try {
+				return JSONFactoryUtil.createJSONObject((String)value);
+			}
+			catch (JSONException jsonException) {
+				return ReflectionUtil.throwException(jsonException);
+			}
+		}
+
+		return value;
 	}
 
 	@Reference

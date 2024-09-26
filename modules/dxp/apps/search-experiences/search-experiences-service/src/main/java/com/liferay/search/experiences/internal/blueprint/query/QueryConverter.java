@@ -43,6 +43,10 @@ public class QueryConverter {
 
 		Iterator<String> iterator = jsonObject.keys();
 
+		if (!iterator.hasNext()) {
+			return null;
+		}
+
 		String type = iterator.next();
 
 		if (Objects.equals(type, "term")) {

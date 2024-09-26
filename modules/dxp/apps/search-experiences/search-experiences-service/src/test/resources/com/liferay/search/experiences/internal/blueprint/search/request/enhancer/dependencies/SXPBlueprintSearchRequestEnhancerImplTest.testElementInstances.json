@@ -98,11 +98,7 @@
 			},
 			"uiConfigurationValues": {
 				"occur": "should",
-				"query": {
-					"match": {
-						"ranking": 5
-					}
-				}
+				"query": "{\"match\": {\"ranking\": 5}}"
 			}
 		},
 		{

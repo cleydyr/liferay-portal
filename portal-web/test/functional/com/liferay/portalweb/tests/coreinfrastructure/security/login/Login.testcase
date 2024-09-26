@@ -9,155 +9,9 @@ definition {
 		TestCase.setUpPortalInstance();
 	}
 
-	@description = "This is a use case for LPS-39744. Default landing page could be set by property and user is redirected to the changed landing page."
-	@priority = "5"
-	test DefaultPortalLandingPageSetByProperty {
-		property custom.properties = "default.landing.page.path=/web/guest/landing";
-		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPageSetByProperty";
-
-		task ("Login and add a public page ") {
-			User.firstLoginPG();
-
-			JSONLayout.addPublicLayout(
-				groupName = "Guest",
-				layoutName = "landing");
-		}
-
-		task ("Logout and login") {
-			User.logoutPG();
-
-			User.firstLoginUI(
-				password = "test",
-				userEmailAddress = "test@liferay.com");
-		}
-
-		task ("Assert url value") {
-			AssertLocation(value1 = "http://localhost:8080/web/guest/landing");
-		}
-	}
-
-	@description = "This is a use case for LPS-105151. User could login to a virtual instance using the system level's OpenID Connect Provider."
+	@description = "This is a use case for LPS-105151. Users could configure multiple OpenID Connect providers."
 	@priority = "4"
-	@uitest
-	test EnabledOpenIDConnectOnSystemLevel {
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#EnabledOpenIDConnectOnSystemLevel";
-
-		var openIDConnectClientID = PropsUtil.get("google.client.id.2");
-		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.2");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
-
-		task ("Login and add CP") {
-			User.firstLoginPG();
-
-			PortalInstances.openVirtualInstancesAdmin();
-
-			PortalInstances.addCP(
-				mailDomain = "www.able.com",
-				virtualHost = "www.able.com",
-				webId = "www.able.com");
-		}
-
-		task ("View CP") {
-			PortalInstances.viewCP(virtualHost = "www.able.com");
-		}
-
-		task ("Goto new CP url and sign in") {
-			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
-
-			AssertClick(
-				locator1 = "UserBar#USER_SIGN_IN",
-				value1 = "Sign In");
-
-			AssertElementNotPresent(locator1 = "Icon#OPENID_CONNECT");
-		}
-
-		task ("Enable openID connect CP") {
-			Navigator.openURL();
-
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect",
-				configurationScope = "System Scope");
-
-			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
-		}
-
-		task ("Add OpenID connect provider") {
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
-
-			OpenIDConnect.addProvider(
-				openIDConnectClientID = "${openIDConnectClientID}",
-				openIDConnectClientSecret = "${openIDConnectClientSecret}",
-				providerName = "Google");
-		}
-
-		task ("Go to able.com and assert openId connect") {
-			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
-
-			AssertClick(
-				locator1 = "UserBar#USER_SIGN_IN",
-				value1 = "Sign In");
-
-			AssertElementPresent(locator1 = "Icon#OPENID_CONNECT");
-		}
-	}
-
-	@description = "This is a use case for LRQA-27624. Users could login and logout using their Facebook profile."
-	@priority = "4"
-	@uitest
-	test FacebookSSOSmoke {
-		property portal.ssl.enabled = "true";
-		property test.name.skip.portal.instance = "Login#FacebookSSOSmoke";
-
-		var facebookApplicationID = PropsUtil.get("facebook.application.id");
-		var facebookApplicationSecret = PropsUtil.get("facebook.application.secret");
-		var facebookEmail = PropsUtil.get("facebook.email");
-		var facebookPassword = PropsUtil.get("facebook.password");
-
-		task ("Login and edit facebook authentication") {
-			User.firstLoginPG();
-
-			var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
-			PortalSettings.gotoConfiguration(
-				baseURL = "http://localhost:8080",
-				configurationCategory = "SSO",
-				configurationName = "Facebook Connect",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.editConfigurationAuthenticationFacebook(
-				facebookApplicationID = "${facebookApplicationID}",
-				facebookApplicationSecret = "${facebookApplicationSecret}");
-		}
-
-		task ("Logout and login with facebook SSO") {
-			User.logoutPG();
-
-			User.loginUserWithFacebookSSOEnabledPG(
-				facebookEmail = "${facebookEmail}",
-				facebookPassword = "${facebookPassword}",
-				siteName = "${siteName}");
-		}
-
-		task ("Logout and login") {
-			User.logoutPG();
-
-			User.firstLoginUI();
-		}
-	}
-
-	@description = "This is a use case for LPS-105151. Users could login and logout using multiple OpenID Connect providers."
-	@priority = "4"
-	test LoginWithMultipleOpenIDConnectProviders {
+	test ConfigureMultipleOpenIDConnectProviders {
 		property dummy.socket.proxy.disabled = "true";
 		property test.name.skip.portal.instance = "Login#MultipleOpenIDConnectProvider";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
@@ -173,23 +27,17 @@ definition {
 		task ("Login and add CP www.able.com") {
 			User.firstLoginPG();
 
-			PortalInstances.openVirtualInstancesAdmin();
-
-			PortalInstances.addCP(
-				mailDomain = "www.able.com",
-				virtualHost = "www.able.com",
-				webId = "www.able.com");
-
-			PortalInstances.viewCP(virtualHost = "www.able.com");
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
 		}
 
 		task ("add CP www.baker.com") {
-			PortalInstances.addCP(
-				mailDomain = "www.baker.com",
-				virtualHost = "www.baker.com",
-				webId = "www.baker.com");
-
-			PortalInstances.viewCP(virtualHost = "www.baker.com");
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.baker.com",
+				portalInstanceId = "www.baker.com",
+				virtualHost = "www.baker.com");
 		}
 
 		task ("Add SSO openID connect provider") {
@@ -250,6 +98,138 @@ definition {
 			Navigator.openSpecificURL(url = "http://www.baker.com:8080/");
 
 			OpenIDConnect.viewProvider();
+		}
+	}
+
+	@description = "This is a use case for LPS-39744. Default landing page could be set by property and user is redirected to the changed landing page."
+	@priority = "5"
+	test DefaultPortalLandingPageSetByProperty {
+		property custom.properties = "default.landing.page.path=/web/guest/landing";
+		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPageSetByProperty";
+
+		task ("Login and add a public page ") {
+			User.firstLoginPG();
+
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "landing");
+		}
+
+		task ("Logout and login") {
+			User.logoutPG();
+
+			User.firstLoginUI(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+		}
+
+		task ("Assert url value") {
+			AssertLocation(value1 = "http://localhost:8080/web/guest/landing");
+		}
+	}
+
+	@description = "This is a use case for LPS-105151. Enabled system level OpenID Connect Provider is also enabled in instance."
+	@priority = "4"
+	@uitest
+	test EnabledOpenIDConnectOnSystemLevel {
+		property dummy.socket.proxy.disabled = "true";
+		property test.name.skip.portal.instance = "Login#EnabledOpenIDConnectOnSystemLevel";
+
+		var openIDConnectClientID = PropsUtil.get("google.client.id.2");
+		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.2");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Login and add CP") {
+			User.firstLoginPG();
+
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Goto new CP url and sign in") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
+
+			OpenIDConnect.viewNoProvider();
+		}
+
+		task ("Enable openID connect CP") {
+			Navigator.openURL();
+
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect",
+				configurationScope = "System Scope");
+
+			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
+		}
+
+		task ("Add OpenID connect provider") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIDConnectClientID = "${openIDConnectClientID}",
+				openIDConnectClientSecret = "${openIDConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Go to able.com and assert openId connect") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
+
+			OpenIDConnect.viewProvider();
+		}
+	}
+
+	@description = "This is a use case for LRQA-27624. Users could login and logout using their Facebook profile."
+	@priority = "4"
+	@uitest
+	test FacebookSSOSmoke {
+		property portal.ssl.enabled = "true";
+		property test.name.skip.portal.instance = "Login#FacebookSSOSmoke";
+
+		var facebookApplicationID = PropsUtil.get("facebook.application.id");
+		var facebookApplicationSecret = PropsUtil.get("facebook.application.secret");
+		var facebookEmail = PropsUtil.get("facebook.email");
+		var facebookPassword = PropsUtil.get("facebook.password");
+
+		task ("Login and edit facebook authentication") {
+			User.firstLoginPG();
+
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "SSO",
+				configurationName = "Facebook Connect",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.editConfigurationAuthenticationFacebook(
+				facebookApplicationID = "${facebookApplicationID}",
+				facebookApplicationSecret = "${facebookApplicationSecret}");
+		}
+
+		task ("Logout and login with facebook SSO") {
+			User.logoutPG();
+
+			User.loginUserWithFacebookSSOEnabledPG(
+				facebookEmail = "${facebookEmail}",
+				facebookPassword = "${facebookPassword}",
+				siteName = "${siteName}");
+		}
+
+		task ("Logout and login") {
+			User.logoutPG();
+
+			User.firstLoginUI();
 		}
 	}
 
@@ -328,14 +308,10 @@ definition {
 		task ("Login and add CP") {
 			User.firstLoginPG();
 
-			PortalInstances.openVirtualInstancesAdmin();
-
-			PortalInstances.addCP(
-				mailDomain = "www.able.com",
-				virtualHost = "www.able.com",
-				webId = "www.able.com");
-
-			PortalInstances.viewCP(virtualHost = "www.able.com");
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
 		}
 
 		task ("Login at able.com and enable OpenId connect CP") {
@@ -585,12 +561,10 @@ definition {
 		}
 
 		task ("Add CP able.com") {
-			PortalInstances.openVirtualInstancesAdmin();
-
-			PortalInstances.addCP(
-				mailDomain = "www.able.com",
-				virtualHost = "www.able.com",
-				webId = "www.able.com");
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
 		}
 
 		task ("Login at able.com and enable token based SSO") {
